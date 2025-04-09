@@ -30,16 +30,16 @@ export default function Home() {
           client={client}
           eventDescriptions={eventDescriptions}
           controlType={controlType}
-          trigger={triggerDataLayer} // Pass trigger state to DataLayerLogic
+          trigger={triggerDataLayer}
         />
         <ExperienceDetails
           onClientChange={setClient}
-          onControlTypeChange={setControlType} // Pass handler to update control type
+          onControlTypeChange={setControlType}
         />
         <EventDetails
           onEventDescriptionsChange={setEventDescriptions}
-          onControlTypeChange={setControlType} // Pass handler to update control type
-          onTriggerDataLayer={handleTriggerDataLayer} // Pass handler to trigger DataLayerLogic
+          onControlTypeChange={setControlType}
+          onTriggerDataLayer={handleTriggerDataLayer}
         />
       </ExperienceProvider>
     </ThemeProvider>

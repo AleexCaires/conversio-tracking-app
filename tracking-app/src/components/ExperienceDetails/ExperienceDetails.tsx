@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Section,
   Heading,
@@ -16,20 +16,71 @@ import {
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 
 const ExperienceDetails: React.FC<{
-  onClientChange: (client: string) => void;
+  onClientChange: (clientCode: string) => void; // Pass the client code to the parent
   onControlTypeChange: (controlType: string) => void;
-}> = ({ onClientChange}) => {
+}> = ({ onClientChange }) => {
   const { numVariants, setNumVariants } = useExperience();
+
+  // Mapping of client names to their codes
+  const clients = [
+    { name: "Finisterre", code: "FN" },
+    { name: "Liverpool FC", code: "LF" },
+    { name: "Phase Eight", code: "PH" },
+    { name: "Hobbs", code: "HO" },
+    { name: "Whistles", code: "WC" },
+    { name: "Laithwaites", code: "LT" },
+    { name: "Accessorize", code: "AS" },
+    { name: "Monsoon", code: "MS" },
+    { name: "Ocado", code: "OPT" },
+    { name: "Team Sport", code: "TS" },
+  ];
+
+  const [platform, setPlatform] = useState("AB Tasty"); // Default platform for Finisterre
+  const [platformOptions, setPlatformOptions] = useState<string[]>(["AB Tasty"]); // Options for the platform dropdown
 
   const handleNumVariantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setNumVariants(isNaN(value) ? 0 : Math.max(0, value)); // Ensure numVariants is at least 0
   };
 
-
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onClientChange(e.target.value); // Notify parent of client changes
+    const selectedCode = e.target.value; // Get the client code
+    onClientChange(selectedCode); // Notify parent of client code changes
+
+    // Update platform and platform options based on client
+    switch (selectedCode) {
+      case "FN": // Finisterre
+      case "PH": // Phase Eight
+      case "HO": // Hobbs
+      case "WC": // Whistles
+      case "TS": // Team Sport
+        setPlatform("AB Tasty");
+        setPlatformOptions(["AB Tasty"]);
+        break;
+      case "AS": // Accessorize
+      case "MS": // Monsoon
+      case "LF": // Liverpool FC
+        setPlatform("Dynamic Yield");
+        setPlatformOptions(["Dynamic Yield"]);
+        break;
+      case "LT": // Laithwaites
+        setPlatform("Adobe Target");
+        setPlatformOptions(["Adobe Target"]);
+        break;
+      case "OPT": // Ocado
+        setPlatform("Dynamic Yield");
+        setPlatformOptions(["Dynamic Yield", "Optimizely"]);
+        break;
+      default:
+        setPlatform("Dynamic Yield");
+        setPlatformOptions(["Dynamic Yield"]);
+    }
   };
+
+  // Set the initial platform value based on the default client (Finisterre)
+  useEffect(() => {
+    handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
+  }, []);
 
   return (
     <Section>
@@ -39,8 +90,11 @@ const ExperienceDetails: React.FC<{
         <div>
           <Label htmlFor="client">Client</Label>
           <Select id="client" name="client" onChange={handleClientChange}>
-            <option value="Finisterre">Finisterre</option>
-            <option value="OtherClient">OtherClient</option>
+            {clients.map((client) => (
+              <option key={client.code} value={client.code}>
+                {client.name}
+              </option>
+            ))}
           </Select>
         </div>
         <div>
@@ -51,8 +105,12 @@ const ExperienceDetails: React.FC<{
         </div>
         <div>
           <Label htmlFor="platform">Platform</Label>
-          <Select id="platform" name="platform">
-            <option value="Dynamic Yield">Dynamic Yield</option>
+          <Select id="platform" name="platform" value={platform} onChange={(e) => setPlatform(e.target.value)}>
+            {platformOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
           </Select>
         </div>
       </FieldGroupFirst>

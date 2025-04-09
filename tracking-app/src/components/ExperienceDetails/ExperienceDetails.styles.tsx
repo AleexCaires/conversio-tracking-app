@@ -45,6 +45,7 @@ export const Select = styled.select`
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+
 `;
 
 export const Input = styled.input`

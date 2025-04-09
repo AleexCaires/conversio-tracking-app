@@ -80,7 +80,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
 
   const handleNumEventsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    setNumEvents(isNaN(value) ? 1 : value);
+    setNumEvents(isNaN(value) ? 0 : value);
   };
 
   const handleDescriptionChange = (index: number, value: string) => {
