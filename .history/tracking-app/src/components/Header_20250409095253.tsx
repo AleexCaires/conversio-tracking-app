@@ -8,7 +8,7 @@ interface NavItem {
   href: string;
 }
 
-const navItems: NavItem[] = [{ name: "See all", href: "/" }];
+const navItems: NavItem[] = [{ name: "", href: "/" }];
 
 const Header = () => {
   return (

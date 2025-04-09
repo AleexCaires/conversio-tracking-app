@@ -11,9 +11,9 @@ export default function Home() {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <Header />
-      <div>
-        This is the main page
-      </div>
+      <div>This is the main page </div>
     </ThemeProvider>
   );
 }
+
+
