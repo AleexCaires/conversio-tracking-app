@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Nav, HeaderWrapper, Logo, NavList, NavItemLink ,NavTitle} from "./Header.styles";
+import { Nav, HeaderWrapper, Logo, NavList, NavItemLink} from "./Header.styles";
 
 interface NavItem {
   name: string;
@@ -26,7 +26,6 @@ const Header = () => {
           ))}
         </NavList>
       </Nav>
-      <NavTitle>Conversio Tracking  Builder</NavTitle>
     </HeaderWrapper>
   );
 };

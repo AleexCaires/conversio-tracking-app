@@ -52,9 +52,3 @@ export const NavItemLink = styled(Link)`
   }
 `;
 
-export const NavTitle = styled.p`
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #333;
-  grid-column: 2;
-`;
