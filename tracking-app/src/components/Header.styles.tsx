@@ -11,19 +11,23 @@ export const HeaderWrapper = styled.header`
 `;
 
 export const Nav = styled.nav`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
+  width: 100%;
 `;
 
 export const Logo = styled(Link)`
-  font-size: 1.5rem;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
-  color: #333;
+  grid-column: 2;
 
-  &:hover {
-    color: #0070f3;
+  img {
+    object-fit: contain;
+    width: 400px;
+    height: 60px;
   }
 `;
 
@@ -33,6 +37,8 @@ export const NavList = styled.ul`
   gap: 2rem;
   padding: 0;
   margin: 0;
+  grid-column: 3;
+  justify-content: flex-end;
 `;
 
 export const NavItemLink = styled(Link)`
@@ -44,4 +50,11 @@ export const NavItemLink = styled(Link)`
   &:hover {
     color: #0070f3;
   }
+`;
+
+export const NavTitle = styled.p`
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #333;
+  grid-column: 2;
 `;

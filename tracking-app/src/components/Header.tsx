@@ -1,20 +1,23 @@
 "use client";
 
 import React from "react";
-import { Nav, HeaderWrapper, Logo, NavList, NavItemLink } from "./Header.styles";
+import Image from "next/image";
+import { Nav, HeaderWrapper, Logo, NavList, NavItemLink ,NavTitle} from "./Header.styles";
 
 interface NavItem {
   name: string;
   href: string;
 }
 
-const navItems: NavItem[] = [{ name: "See all", href: "/" }];
+const navItems: NavItem[] = [{ name: "See all", href: "/all" }];
 
 const Header = () => {
   return (
     <HeaderWrapper>
       <Nav>
-        <Logo href="/">MyApp</Logo>
+        <Logo href="/">
+          <Image src="/conversioLogo.png" alt="Conversio Logo" width={120} height={40} priority />
+        </Logo>
         <NavList>
           {navItems.map((item) => (
             <li key={item.name}>
@@ -23,6 +26,7 @@ const Header = () => {
           ))}
         </NavList>
       </Nav>
+      <NavTitle>Conversio Tracking  Builder</NavTitle>
     </HeaderWrapper>
   );
 };
