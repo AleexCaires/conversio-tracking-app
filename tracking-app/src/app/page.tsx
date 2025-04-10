@@ -12,13 +12,14 @@ import { ExperienceProvider } from "../components/ExperienceContext/ExperienceCo
 import { useState } from 'react';
 
 export default function Home() {
-  const [client, setClient] = useState("Finisterre"); // State to store client
-  const [controlType, setControlType] = useState("Dummy Control"); // State to store control type
-  const [eventDescriptions, setEventDescriptions] = useState<string[]>([]); // State to store event descriptions
-  const [triggerDataLayer, setTriggerDataLayer] = useState(false); // State to trigger DataLayerLogic
+  const [client, setClient] = useState("Finisterre");
+  const [controlType, setControlType] = useState("Dummy Control");
+  const [eventDescriptions, setEventDescriptions] = useState<string[]>([]);
+  const [triggerDataLayer, setTriggerDataLayer] = useState(false);
+  const [experienceNumber, setExperienceNumber] = useState("000"); // ✅ Added this line
 
   const handleTriggerDataLayer = () => {
-    setTriggerDataLayer((prev) => !prev); // Toggle the state to trigger DataLayerLogic
+    setTriggerDataLayer((prev) => !prev);
   };
 
   return (
@@ -28,6 +29,7 @@ export default function Home() {
       <ExperienceProvider>
         <DataLayerLogic
           client={client}
+          experienceNumber={experienceNumber} // ✅ Passed here
           eventDescriptions={eventDescriptions}
           controlType={controlType}
           trigger={triggerDataLayer}
@@ -35,6 +37,7 @@ export default function Home() {
         <ExperienceDetails
           onClientChange={setClient}
           onControlTypeChange={setControlType}
+          onExperienceNumberChange={setExperienceNumber} // ✅ Passed here
         />
         <EventDetails
           onEventDescriptionsChange={setEventDescriptions}

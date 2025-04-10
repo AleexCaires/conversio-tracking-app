@@ -16,9 +16,11 @@ import {
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 
 const ExperienceDetails: React.FC<{
-  onClientChange: (clientCode: string) => void; // Pass the client code to the parent
+  onClientChange: (clientCode: string) => void;
   onControlTypeChange: (controlType: string) => void;
-}> = ({ onClientChange }) => {
+  onExperienceNumberChange: (experienceNumber: string) => void;
+}> = ({ onClientChange, onExperienceNumberChange }) => {
+
   const { numVariants, setNumVariants } = useExperience();
 
   // Mapping of client names to their codes
@@ -81,8 +83,10 @@ const ExperienceDetails: React.FC<{
   useEffect(() => {
     handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
   }, []);
+  
 
   return (
+    
     <Section>
       <Heading>Experience Details</Heading>
 
@@ -118,7 +122,13 @@ const ExperienceDetails: React.FC<{
       <FieldGroupMiddle>
         <ExperimentNumber>
           <Label htmlFor="experienceNumber">Experience Number:*</Label>
-          <Input type="number" id="experienceNumber" name="experienceNumber" />
+          <Input
+            type="number"
+            id="experienceNumber"
+            name="experienceNumber"
+            onChange={(e) => onExperienceNumberChange(e.target.value.padStart(3, '0'))}
+          />
+
         </ExperimentNumber>
 
         <ExperimentName>
