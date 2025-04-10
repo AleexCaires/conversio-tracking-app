@@ -145,52 +145,6 @@ const EventDetails: React.FC<EventDetailsProps> = ({
             </EventDescriptionRow>
           ))}
         </EventCol>
-
-        <EventColEnd>
-          <div>
-            <strong>Dummy Control:</strong>
-            <button onClick={toggleSelectAllDummy} style={{ marginLeft: "1rem" }}>
-              Select All
-            </button>
-            {eventDescriptions.map((_, idx) => (
-              <div key={`dummy-${idx}`}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedDummy[idx]}
-                    onChange={() => toggleDummyCheckbox(idx)}
-                  />
-                  {` Use Event ${idx + 1}`}
-                </label>
-              </div>
-            ))}
-          </div>
-          {Array(numVariants)
-            .fill(null)
-            .map((_, variantIdx) => (
-              <div key={`variation-group-${variantIdx}`}>
-                <strong>{`Variation ${variantIdx + 1}:`}</strong>
-                <button
-                  onClick={() => toggleSelectAllVariant(variantIdx)}
-                  style={{ marginLeft: "1rem" }}
-                >
-                  Select All
-                </button>
-                {eventDescriptions.map((_, eventIdx) => (
-                  <div key={`variation-${variantIdx}-${eventIdx}`}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={selectedVariations[variantIdx]?.[eventIdx] || false}
-                        onChange={() => toggleVariantCheckbox(variantIdx, eventIdx)}
-                      />
-                      {` Use Event ${eventIdx + 1}`}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            ))}
-        </EventColEnd>
       </EventRow>
 
       {/* Add a button to trigger DataLayerLogic */}
