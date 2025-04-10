@@ -102,12 +102,6 @@ const ExperienceDetails: React.FC<{
           </Select>
         </div>
         <div>
-          <Label htmlFor="controlType">Control Type</Label>
-          <Select id="controlType" name="controlType">
-            <option value="Dummy Control">Dummy Control</option>
-          </Select>
-        </div>
-        <div>
           <Label htmlFor="platform">Platform</Label>
           <Select id="platform" name="platform" value={platform} onChange={(e) => setPlatform(e.target.value)}>
             {platformOptions.map((option) => (

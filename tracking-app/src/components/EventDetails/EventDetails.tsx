@@ -147,7 +147,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
       {/* Pass the required props to DataLayerLogic */}
       <DataLayerLogic
         client="Finisterre"
-        experienceNumber="010"
+        experienceNumber="0101"
         eventDescriptions={eventDescriptions}
         controlType="Dummy Control" 
         trigger={trigger}
