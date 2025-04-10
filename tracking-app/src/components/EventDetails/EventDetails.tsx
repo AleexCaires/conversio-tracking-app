@@ -14,11 +14,12 @@ import {
   EventColEnd
 } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
+import DataLayerLogic from "../DataLayerLogic/DataLayerLogic"; // Import the DataLayerLogic component
 
 interface EventDetailsProps {
-  onEventDescriptionsChange: (descriptions: string[]) => void; // Prop to notify parent of event description changes
-  onControlTypeChange: (controlType: string) => void; // Prop to notify parent of control type changes
-  onTriggerDataLayer: () => void; // Prop to trigger DataLayerLogic
+  onEventDescriptionsChange: (descriptions: string[]) => void;
+  onControlTypeChange: (controlType: string) => void;
+  onTriggerDataLayer: () => void;
 }
 
 const EventDetails: React.FC<EventDetailsProps> = ({
@@ -30,12 +31,13 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   const [eventDescriptions, setEventDescriptions] = useState<string[]>(Array(2).fill(""));
   const [selectedDummy, setSelectedDummy] = useState<boolean[]>(Array(2).fill(false));
 
-  const { numVariants } = useExperience(); // Get number of variants from context
+  const { numVariants } = useExperience();
   const [selectedVariations, setSelectedVariations] = useState<boolean[][]>(
     Array(numVariants).fill(null).map(() => Array(numEvents).fill(false))
   );
 
-  // Update when numEvents or numVariants changes
+  const [trigger, setTrigger] = useState(false); // Trigger state to control event logic execution
+
   useEffect(() => {
     setEventDescriptions((prev) =>
       numEvents > prev.length
@@ -61,23 +63,6 @@ const EventDetails: React.FC<EventDetailsProps> = ({
     );
   }, [numEvents, numVariants]);
 
-  // Notify parent of event description changes
-  useEffect(() => {
-    if (typeof onEventDescriptionsChange === "function") {
-      onEventDescriptionsChange(eventDescriptions);
-    } else {
-      console.error("onEventDescriptionsChange is not a function");
-    }
-  }, [eventDescriptions, onEventDescriptionsChange]);
-
-  // Notify parent of control type changes based on selected dummy checkboxes
-  useEffect(() => {
-    const selectedControlType = selectedDummy.some((isSelected) => isSelected)
-      ? "Dummy Control"
-      : "Variation 1"; // Default to "Variation 1" if no dummy is selected
-    onControlTypeChange(selectedControlType);
-  }, [selectedDummy, onControlTypeChange]);
-
   const handleNumEventsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setNumEvents(isNaN(value) ? 0 : value);
@@ -98,6 +83,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
     updated[index] = !updated[index];
     setSelectedDummy(updated);
   };
+
   const toggleSelectAllVariant = (variantIndex: number) => {
     const updated = [...selectedVariations];
     updated[variantIndex] = Array(numEvents).fill(true);
@@ -108,6 +94,12 @@ const EventDetails: React.FC<EventDetailsProps> = ({
     const updated = [...selectedVariations];
     updated[variantIndex][eventIndex] = !updated[variantIndex][eventIndex];
     setSelectedVariations(updated);
+  };
+
+  // Function to handle the trigger logic when button is clicked
+  const handleTriggerDataLayer = () => {
+    setTrigger(true); // Set the trigger state to true to run event logic
+    onTriggerDataLayer(); // Call the prop function to trigger DataLayer logic in the parent
   };
 
   return (
@@ -147,10 +139,20 @@ const EventDetails: React.FC<EventDetailsProps> = ({
         </EventCol>
       </EventRow>
 
-      {/* Add a button to trigger DataLayerLogic */}
-      <button onClick={onTriggerDataLayer} style={{ marginTop: "1rem" }}>
+      {/* Button to trigger DataLayerLogic */}
+      <button onClick={handleTriggerDataLayer} style={{ marginTop: "1rem" }}>
         Trigger DataLayer Logic
       </button>
+
+      {/* Pass the required props to DataLayerLogic */}
+      <DataLayerLogic
+        client="Finisterre"
+        experienceNumber="010"
+        eventDescriptions={eventDescriptions}
+        controlType="Dummy Control" 
+        trigger={trigger}
+        setTrigger={setTrigger}
+      />
     </Section>
   );
 };

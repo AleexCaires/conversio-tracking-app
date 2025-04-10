@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 
 interface DataLayerLogicProps {
@@ -20,8 +20,16 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
 }) => {
   const { numVariants } = useExperience();
 
+  const [eventData, setEventData] = useState<{
+    controlEvents: string[];
+    variationEvents: string[];
+  }>({
+    controlEvents: [],
+    variationEvents: [],
+  });
+
   // Format client code: First 2 letters of client (uppercase) + experience number
-  const fullClient = `${client.slice(0, 2).toUpperCase()}${experienceNumber}`;
+  const fullClient = `${client}${experienceNumber}`;
 
   // Helper to get a unique random letter from the last 10 letters of the alphabet
   const getRandomLetter = (usedLetters: Set<string>): string => {
@@ -58,6 +66,9 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       return `${fullClient}E${variantPrefix}${sharedLetter}`;
     };
 
+    const newControlEvents: string[] = [];
+    const newVariationEvents: string[] = [];
+
     // Always generate Dummy Control events
     eventDescriptions.forEach((description) => {
       const eventSegment = generateEventSegment(description, "ECO");
@@ -67,10 +78,20 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         conversio: {
           eventCategory: "Conversio CRO",
           eventAction: `${fullClient} | Event Tracking`,
-          eventLabel: `${fullClient} | (Dummy Control) | ${description}`,
-          eventSegment,
+          eventLabel: `${fullClient} | (Control Original) | ${description}`,
+          eventSegment: eventSegment,
         },
       };
+
+      newControlEvents.push(`window.dataLayer.push({
+    'event': 'conversioEvent',
+    'conversio' : {
+        'eventCategory': 'Conversio CRO',
+        'eventAction': '${fullClient} | Event Tracking',
+        'eventLabel': '${fullClient} | (Control Original) | ${description}',
+        'eventSegment': '${eventSegment}'
+    }
+});`);
 
       if (typeof window !== "undefined" && window.dataLayer) {
         window.dataLayer.push(dataLayerObject);
@@ -90,9 +111,19 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
             eventCategory: "Conversio CRO",
             eventAction: `${fullClient} | Event Tracking`,
             eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-            eventSegment,
+            eventSegment: eventSegment,
           },
         };
+
+        newVariationEvents.push(`window.dataLayer.push({
+    'event': 'conversioEvent',
+    'conversio' : {
+        'eventCategory': 'Conversio CRO',
+        'eventAction': '${fullClient} | Event Tracking',
+        'eventLabel': '${fullClient} | (Variation ${variantIndex}) | ${description}',
+        'eventSegment': '${eventSegment}'
+    }
+});`);
 
         if (typeof window !== "undefined" && window.dataLayer) {
           window.dataLayer.push(dataLayerObject);
@@ -101,9 +132,131 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         }
       });
     }
+
+    // Update state with the generated event data
+    setEventData({
+      controlEvents: newControlEvents,
+      variationEvents: newVariationEvents,
+    });
   }, [trigger, numVariants, eventDescriptions, client, experienceNumber]);
 
-  return null;
+  // Function to copy code to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Code copied to clipboard!");
+    });
+  };
+
+  return (
+    <div>
+      <h3>Control Events</h3>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", // Use grid to allow events to share a line if there's enough space
+          gap: "16px",
+          padding: "10px",
+        }}
+      >
+        {eventData.controlEvents.map((event, index) => (
+          <div key={index} style={{ position: "relative" }}>
+            <pre
+              style={{
+                backgroundColor: "#1e1e1e", // Dark background for dark mode
+                color: "#f5f5f5", // Light text for readability
+                padding: "16px",
+                borderRadius: "8px",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                maxHeight: "300px", // Fixed height for code block
+                overflowY: "auto", // Scroll if content exceeds
+              }}
+            >
+              {event}
+            </pre>
+            <button
+              onClick={() => copyToClipboard(event)}
+              style={{
+                position: "absolute",
+                right: "16px",
+                bottom: "16px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Copy Code
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <h3>Variation Events</h3>
+      {Array.from({ length: numVariants }).map((_, variantIndex) => (
+        <div
+          key={variantIndex}
+          style={{
+            marginTop: "20px", // Space between each variation block
+          }}
+        >
+          {/* Variation Title (h4) */}
+          <h4>Variation {variantIndex + 1}</h4>
+
+          {/* Grid of variation events */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", // Use grid to allow events to share a line if there's enough space
+              gap: "16px",
+              padding: "10px",
+            }}
+          >
+            {eventData.variationEvents
+              .filter((_, index) => index % numVariants === variantIndex)
+              .map((event, index) => (
+                <div key={index} style={{ position: "relative" }}>
+                  <pre
+                    style={{
+                      backgroundColor: "#1e1e1e", // Dark background for dark mode
+                      color: "#f5f5f5", // Light text for readability
+                      padding: "16px",
+                      borderRadius: "8px",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      maxHeight: "300px", // Fixed height for code block
+                      overflowY: "auto", // Scroll if content exceeds
+                    }}
+                  >
+                    {event}
+                  </pre>
+                  <button
+                    onClick={() => copyToClipboard(event)}
+                    style={{
+                      position: "absolute",
+                      right: "16px",
+                      bottom: "16px",
+                      padding: "8px 12px",
+                      fontSize: "14px",
+                      backgroundColor: "#007bff",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Copy Code
+                  </button>
+                </div>
+              ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default DataLayerLogic;
