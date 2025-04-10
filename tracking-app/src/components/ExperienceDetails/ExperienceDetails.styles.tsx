@@ -22,14 +22,14 @@ export const FieldGroupEnd = styled.div`
   display: flex;
   flex-direction: row;
   gap: 1rem;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
 `;
 
 export const FieldGroupFirst = styled.div`
 display: flex;
 flex-direction: row;
-justify-content: space-between;
+justify-content: start;
 align-items: center;
 gap: 1rem;
 width: 100%;
