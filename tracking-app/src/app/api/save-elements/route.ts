@@ -8,19 +8,19 @@ export async function POST(req: Request) {
     //console.log("Parsed request body:", bocldy);
 
     const { elementData } = bocldy;
-    //console.log("Element data to insert:", elementData); 
+    console.log("Received elementData:", elementData);
 
     const db = await connectToDatabase();
-    //console.log("Connected to database:", db.databaseName); 
+    console.log("Connected to database:", db.databaseName);
 
     const collection = db.collection("eventdata");
 
     const result = await collection.insertOne(elementData);
-    //console.log("Insert result:", result); 
+    console.log("Insert result:", result);
 
     return NextResponse.json({ message: "Element saved successfully!", result });
   } catch (error: any) {
-    //console.error("Error saving data:", error.message, error.stack); 
+    //console.error("Error saving data:", error.message, error.stack);
     return NextResponse.json({ message: `Failed to save element: ${error.message}` }, { status: 500 });
   }
 }

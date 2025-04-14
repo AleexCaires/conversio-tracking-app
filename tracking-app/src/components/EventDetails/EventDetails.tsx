@@ -11,32 +11,19 @@ import {
   EventInput,
   EventRow,
   EventCol,
-  EventColEnd
 } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
-import DataLayerLogic from "../DataLayerLogic/DataLayerLogic"; // Import the DataLayerLogic component
+import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 
-interface EventDetailsProps {
-  onEventDescriptionsChange: (descriptions: string[]) => void;
-  onControlTypeChange: (controlType: string) => void;
-  onTriggerDataLayer: () => void;
-}
-
-const EventDetails: React.FC<EventDetailsProps> = ({
-  onEventDescriptionsChange,
-  onControlTypeChange,
-  onTriggerDataLayer,
-}) => {
+const EventDetails: React.FC = () => {
   const [numEvents, setNumEvents] = useState(2);
   const [eventDescriptions, setEventDescriptions] = useState<string[]>(Array(2).fill(""));
-  const [selectedDummy, setSelectedDummy] = useState<boolean[]>(Array(2).fill(false));
+  const [trigger, setTrigger] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const { numVariants } = useExperience();
-  const [selectedVariations, setSelectedVariations] = useState<boolean[][]>(
-    Array(numVariants).fill(null).map(() => Array(numEvents).fill(false))
-  );
-
-  const [trigger, setTrigger] = useState(false); // Trigger state to control event logic execution
+  const { selectedClient, experienceNumber } = useExperience();
 
   useEffect(() => {
     setEventDescriptions((prev) =>
@@ -44,24 +31,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
         ? [...prev, ...Array(numEvents - prev.length).fill("")]
         : prev.slice(0, numEvents)
     );
-
-    setSelectedDummy((prev) =>
-      numEvents > prev.length
-        ? [...prev, ...Array(numEvents - prev.length).fill(false)]
-        : prev.slice(0, numEvents)
-    );
-
-    setSelectedVariations(
-      Array(numVariants)
-        .fill(null)
-        .map((_, variantIdx) => {
-          const current = selectedVariations[variantIdx] || [];
-          return numEvents > current.length
-            ? [...current, ...Array(numEvents - current.length).fill(false)]
-            : current.slice(0, numEvents);
-        })
-    );
-  }, [numEvents, numVariants]);
+  }, [numEvents]);
 
   const handleNumEventsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -74,35 +44,44 @@ const EventDetails: React.FC<EventDetailsProps> = ({
     setEventDescriptions(updated);
   };
 
-  const toggleSelectAllDummy = () => {
-    setSelectedDummy(Array(numEvents).fill(true));
-  };
-
-  const toggleDummyCheckbox = (index: number) => {
-    const updated = [...selectedDummy];
-    updated[index] = !updated[index];
-    setSelectedDummy(updated);
-  };
-
-  const toggleSelectAllVariant = (variantIndex: number) => {
-    const updated = [...selectedVariations];
-    updated[variantIndex] = Array(numEvents).fill(true);
-    setSelectedVariations(updated);
-  };
-
-  const toggleVariantCheckbox = (variantIndex: number, eventIndex: number) => {
-    const updated = [...selectedVariations];
-    updated[variantIndex][eventIndex] = !updated[variantIndex][eventIndex];
-    setSelectedVariations(updated);
-  };
-
-  // Function to handle the trigger logic when button is clicked
   const handleTriggerDataLayer = () => {
-    setTrigger(true); // Set the trigger state to true to run event logic
-    onTriggerDataLayer(); // Call the prop function to trigger DataLayer logic in the parent
+    setTrigger(true); // Trigger DataLayer logic
   };
-  const { selectedClient, experienceNumber } = useExperience();
-  
+
+  const saveElementData = async () => {
+    const elementData = {
+      client: selectedClient,
+      controlType: "Dummy Control",
+      eventDescriptions,
+      experienceNumber,
+    };
+
+    setIsLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const res = await fetch("/api/save-elements", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ elementData }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSuccessMessage(data.message || "Element saved successfully!");
+      } else {
+        const errorData = await res.json();
+        setErrorMessage(errorData.message || "An error occurred while saving.");
+      }
+    } catch (error) {
+      setErrorMessage("Failed to save element data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Section>
@@ -141,25 +120,29 @@ const EventDetails: React.FC<EventDetailsProps> = ({
         </EventCol>
       </EventRow>
 
-      {/* Button to trigger DataLayerLogic */}
       <button onClick={handleTriggerDataLayer} style={{ marginTop: "1rem" }}>
         Trigger DataLayer Logic
       </button>
 
-     
+      <DataLayerLogic
+        client={selectedClient}
+        experienceNumber={experienceNumber}
+        eventDescriptions={eventDescriptions}
+        controlType="Dummy Control"
+        trigger={trigger}
+        setTrigger={setTrigger}
+      />
 
-    <DataLayerLogic
-      client={selectedClient}
-      experienceNumber={experienceNumber} 
-      eventDescriptions={eventDescriptions}
-      controlType="Dummy Control"
-      trigger={trigger}
-      setTrigger={setTrigger}
-    />
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={saveElementData} disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Element"}
+        </button>
+      </div>
 
+      {successMessage && <div style={{ color: "green", marginTop: "1rem" }}>{successMessage}</div>}
+      {errorMessage && <div style={{ color: "red", marginTop: "1rem" }}>{errorMessage}</div>}
     </Section>
   );
 };
 
 export default EventDetails;
-

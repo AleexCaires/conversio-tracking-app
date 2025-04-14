@@ -17,7 +17,6 @@ import { useExperience } from "../ExperienceContext/ExperienceContext";
 
 const ExperienceDetails: React.FC<{
   onClientChange: (clientCode: string) => void;
-  onControlTypeChange: (controlType: string) => void;
   onExperienceNumberChange: (experienceNumber: string) => void;
 }> = ({ onClientChange, onExperienceNumberChange }) => {
 
@@ -50,7 +49,7 @@ const ExperienceDetails: React.FC<{
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCode = e.target.value; // Get the client code
-    onClientChange(selectedCode); // Notify parent of client code changes
+    onClientChange(selectedCode);
     setSelectedClient(e.target.value);
 
     // Update platform and platform options based on client
@@ -83,7 +82,6 @@ const ExperienceDetails: React.FC<{
     }
   };
 
-  // Set the initial platform value based on the default client (Finisterre)
   useEffect(() => {
     handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
   }, []);
@@ -132,7 +130,7 @@ const ExperienceDetails: React.FC<{
     id="experienceNumber"
     type="text"
     value={experienceNumber}
-    onChange={(e) => setExperienceNumber(e.target.value)} // Set the experienceNumber value
+    onChange={(e) => setExperienceNumber(e.target.value)}
   />
 
         </ExperimentNumber>

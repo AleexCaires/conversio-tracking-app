@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
-
 interface DataLayerLogicProps {
-  client: string; // e.g., "Finisterre"
-  experienceNumber: string; // e.g., "010"
-  eventDescriptions: string[]; // e.g., ["CTA Click", "Banner Impression"]
-  controlType: string; // e.g., "Dummy Control"
-  trigger: boolean; // toggled to re-run logic
+  client: string;
+  experienceNumber: string;
+  eventDescriptions: string[];
+  controlType: string;
+  trigger: boolean;
+  setTrigger: (value: boolean) => void;
+  onDataGenerated?: (data: any) => void; // New callback prop
 }
 
 const clients = [
@@ -41,12 +42,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
 
   // Find the client code based on the client name
   const clientData = clients.find((c) => c.name === client);
-  const clientCode = clientData ? clientData.code : client; // If not found, use the original client name
+  const clientCode = clientData ? clientData.code : client;
 
-  // Format client code: First 2 letters of client (uppercase) + experience number
   const fullClient = `${clientCode}${experienceNumber}`;
 
-  // Helper to get a unique random letter from the last 10 letters of the alphabet
   const getRandomLetter = (usedLetters: Set<string>): string => {
     const letters = "QRSTUVWXYZ";
     let letter;
@@ -273,5 +272,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     </div>
   );
 };
+
 
 export default DataLayerLogic;

@@ -5,7 +5,7 @@ export const Section = styled.section`
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem;
-  background-color: #f0f6ff; /* Optional: Matches the screenshot */
+  background-color: #f0f6ff;
 `;
 
 export const Heading = styled.h2`
