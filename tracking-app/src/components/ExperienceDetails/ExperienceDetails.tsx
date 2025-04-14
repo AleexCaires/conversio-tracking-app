@@ -44,10 +44,14 @@ const ExperienceDetails: React.FC<{
     const value = parseInt(e.target.value, 10);
     setNumVariants(isNaN(value) ? 0 : Math.max(0, value)); // Ensure numVariants is at least 0
   };
+  const { selectedClient, setSelectedClient } = useExperience();
+  const { experienceNumber, setExperienceNumber } = useExperience();
+
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCode = e.target.value; // Get the client code
     onClientChange(selectedCode); // Notify parent of client code changes
+    setSelectedClient(e.target.value);
 
     // Update platform and platform options based on client
     switch (selectedCode) {
@@ -93,13 +97,21 @@ const ExperienceDetails: React.FC<{
       <FieldGroupFirst>
         <div>
           <Label htmlFor="client">Client</Label>
-          <Select id="client" name="client" onChange={handleClientChange}>
-            {clients.map((client) => (
-              <option key={client.code} value={client.code}>
-                {client.name}
-              </option>
-            ))}
-          </Select>
+          <Select
+      id="client"
+      name="client"
+      value={selectedClient}
+      onChange={handleClientChange}
+    >
+      <option value="" disabled>
+        Select a client
+      </option>
+      {clients.map((client) => (
+        <option key={client.code} value={client.code}>
+          {client.name}
+        </option>
+      ))}
+    </Select>
         </div>
         <div>
           <Label htmlFor="platform">Platform</Label>
@@ -117,11 +129,11 @@ const ExperienceDetails: React.FC<{
         <ExperimentNumber>
           <Label htmlFor="experienceNumber">Experience Number:*</Label>
           <Input
-            type="number"
-            id="experienceNumber"
-            name="experienceNumber"
-            onChange={(e) => onExperienceNumberChange(e.target.value.padStart(3, '0'))}
-          />
+    id="experienceNumber"
+    type="text"
+    value={experienceNumber}
+    onChange={(e) => setExperienceNumber(e.target.value)} // Set the experienceNumber value
+  />
 
         </ExperimentNumber>
 

@@ -101,6 +101,8 @@ const EventDetails: React.FC<EventDetailsProps> = ({
     setTrigger(true); // Set the trigger state to true to run event logic
     onTriggerDataLayer(); // Call the prop function to trigger DataLayer logic in the parent
   };
+  const { selectedClient, experienceNumber } = useExperience();
+  
 
   return (
     <Section>
@@ -144,15 +146,17 @@ const EventDetails: React.FC<EventDetailsProps> = ({
         Trigger DataLayer Logic
       </button>
 
-      {/* Pass the required props to DataLayerLogic */}
-      <DataLayerLogic
-        client="Finisterre"
-        experienceNumber="0101"
-        eventDescriptions={eventDescriptions}
-        controlType="Dummy Control" 
-        trigger={trigger}
-        setTrigger={setTrigger}
-      />
+     
+
+    <DataLayerLogic
+      client={selectedClient}
+      experienceNumber={experienceNumber} 
+      eventDescriptions={eventDescriptions}
+      controlType="Dummy Control"
+      trigger={trigger}
+      setTrigger={setTrigger}
+    />
+
     </Section>
   );
 };
