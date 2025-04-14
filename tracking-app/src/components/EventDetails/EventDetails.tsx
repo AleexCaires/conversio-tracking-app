@@ -162,3 +162,4 @@ const EventDetails: React.FC<EventDetailsProps> = ({
 };
 
 export default EventDetails;
+
