@@ -20,8 +20,8 @@ const clients = [
 const History = () => {
   const router = useRouter();
 
-  const [searchTerm, setSearchTerm] = useState(""); // State to track the search input
-  const [selectedClient, setSelectedClient] = useState(""); // State to track the selected client
+  const [searchTerm, setSearchTerm] = useState(""); 
+  const [selectedClient, setSelectedClient] = useState(""); 
   const [items] = useState([
     { name: "OPT101", dateCreated: "2023-01-15" },
     { name: "LT102", dateCreated: "2023-02-20" },
