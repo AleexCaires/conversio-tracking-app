@@ -19,7 +19,6 @@ export async function POST(req: Request) {
     ];
 
     const { elementData } = body;
-    console.log("Incoming body:", body);
 
     if (
       !elementData ||
@@ -107,7 +106,7 @@ export async function POST(req: Request) {
       { _id: fullClient },
       {
         $set: {
-          client: elementData.client,
+          client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
           events,
         },
       },
