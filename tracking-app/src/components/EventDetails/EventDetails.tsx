@@ -25,6 +25,22 @@ const EventDetails: React.FC = () => {
 
   const { selectedClient, experienceNumber } = useExperience();
 
+  const clients = [
+    { name: "Finisterre", code: "FN" },
+    { name: "Liverpool FC", code: "LF" },
+    { name: "Phase Eight", code: "PH" },
+    { name: "Hobbs", code: "HO" },
+    { name: "Whistles", code: "WC" },
+    { name: "Laithwaites", code: "LT" },
+    { name: "Accessorize", code: "AS" },
+    { name: "Monsoon", code: "MS" },
+    { name: "Ocado", code: "OPT" },
+    { name: "Team Sport", code: "TS" },
+  ];
+  
+  const clientCode = clients.find((c) => c.name === selectedClient)?.code || selectedClient;
+  const fullClient = `${clientCode}${experienceNumber}`;
+
   useEffect(() => {
     setEventDescriptions((prev) =>
       numEvents > prev.length
@@ -50,10 +66,10 @@ const EventDetails: React.FC = () => {
 
   const saveElementData = async () => {
     const elementData = {
+      id: fullClient,
       client: selectedClient,
-      controlType: "Dummy Control",
+      experienceNumber, 
       eventDescriptions,
-      experienceNumber,
     };
 
     setIsLoading(true);
