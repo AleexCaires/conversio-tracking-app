@@ -41,7 +41,7 @@ const ExperienceDetails: React.FC<{
 
   const handleNumVariantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    setNumVariants(isNaN(value) ? 0 : Math.max(0, value)); // Ensure numVariants is at least 0
+    setNumVariants(isNaN(value) ? 0 : Math.max(0, value)); 
   };
   const { selectedClient, setSelectedClient } = useExperience();
   const { experienceNumber, setExperienceNumber } = useExperience();

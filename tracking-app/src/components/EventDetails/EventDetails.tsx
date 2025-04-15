@@ -23,7 +23,7 @@ const EventDetails: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const { selectedClient, experienceNumber } = useExperience();
+  const { selectedClient, experienceNumber, numVariants } = useExperience(); // Extract numVariants
 
   const clients = [
     { name: "Finisterre", code: "FN" },
@@ -37,7 +37,7 @@ const EventDetails: React.FC = () => {
     { name: "Ocado", code: "OPT" },
     { name: "Team Sport", code: "TS" },
   ];
-  
+
   const clientCode = clients.find((c) => c.name === selectedClient)?.code || selectedClient;
   const fullClient = `${clientCode}${experienceNumber}`;
 
@@ -68,8 +68,9 @@ const EventDetails: React.FC = () => {
     const elementData = {
       id: fullClient,
       client: selectedClient,
-      experienceNumber, 
+      experienceNumber,
       eventDescriptions,
+      numVariants, // Include the number of variants
     };
 
     setIsLoading(true);
@@ -162,3 +163,4 @@ const EventDetails: React.FC = () => {
 };
 
 export default EventDetails;
+

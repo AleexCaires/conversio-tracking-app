@@ -19,12 +19,14 @@ export async function POST(req: Request) {
     ];
 
     const { elementData } = body;
+    console.log("Incoming body:", body);
 
     if (
       !elementData ||
       !elementData.client ||
       !elementData.eventDescriptions ||
-      !elementData.experienceNumber
+      !elementData.experienceNumber ||
+      typeof elementData.numVariants !== "number"
     ) {
       return NextResponse.json(
         { message: "Missing required fields in request body." },
@@ -55,30 +57,46 @@ export async function POST(req: Request) {
       }
     });
 
-    // Map to final event structure
-    const controlEvents = elementData.eventDescriptions.map((desc) => {
-      const letter = descriptionLetters.get(desc);
+    const generateEventSegment = (description: string, variantPrefix: string) => {
+      const sharedLetter = descriptionLetters.get(description);
+      if (variantPrefix === "ECO") {
+        // For Dummy Control, use 'ECO' prefix
+        return `${fullClient}${variantPrefix}${sharedLetter}`;
+      }
+      // For variations, use 'EV' followed by variant number (e.g., EV1, EV2)
+      return `${fullClient}E${variantPrefix}${sharedLetter}`;
+    };
+
+    // Generate Dummy Control events
+    const controlEvents = elementData.eventDescriptions.map((description) => {
+      const eventSegment = generateEventSegment(description, "ECO");
       return {
         eventCategory: "Conversio CRO",
         eventAction: `${fullClient} | Event Tracking`,
-        eventLabel: `${fullClient} | (Control Original) | ${desc}`,
-        eventSegment: `${fullClient}ECO${letter}`,
+        eventLabel: `${fullClient} | (Control Original) | ${description}`,
+        eventSegment: eventSegment,
       };
     });
 
-    const variationEvents = elementData.eventDescriptions.map((desc) => {
-      const letter = descriptionLetters.get(desc);
-      return {
-        eventCategory: "Conversio CRO",
-        eventAction: `${fullClient} | Event Tracking`,
-        eventLabel: `${fullClient} | (Variation 1) | ${desc}`,
-        eventSegment: `${fullClient}EV1${letter}`,
-      };
-    });
+    // Generate Variation events dynamically based on numVariants
+    const variationEvents = [];
+    for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
+      const eventsForVariant = elementData.eventDescriptions.map((description) => {
+        const eventSegment = generateEventSegment(description, `V${variantIndex}`);
+        return {
+          eventCategory: "Conversio CRO",
+          eventAction: `${fullClient} | Event Tracking`,
+          eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+          eventSegment: eventSegment,
+        };
+      });
+      variationEvents.push({ label: `Variation ${variantIndex}`, events: eventsForVariant });
+    }
 
+    // Combine control and variation events
     const events = [
       { label: "Dummy Control", events: controlEvents },
-      { label: "Variation 1", events: variationEvents },
+      ...variationEvents,
     ];
 
     // Save to MongoDB
