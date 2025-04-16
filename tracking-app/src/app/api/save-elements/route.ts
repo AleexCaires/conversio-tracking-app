@@ -112,7 +112,7 @@ export async function POST(req: Request) {
           events,
         },
         $setOnInsert: {
-          dateCreated: today, // Just the date, no time
+          dateCreated: today, 
         },
       },
       { upsert: true }

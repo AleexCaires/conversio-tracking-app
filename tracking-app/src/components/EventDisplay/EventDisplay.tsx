@@ -23,7 +23,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
   // Sort events based on their order in the array or any specific property
   const sortedEvents = [...parsedEvents].sort((a, b) => {
-    // Use an empty string as a fallback if `eventLabel` is undefined
     const labelA = a.eventLabel || "";
     const labelB = b.eventLabel || "";
     return labelA.localeCompare(labelB);
@@ -40,54 +39,63 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           padding: "10px",
         }}
       >
-        {sortedEvents.map((event, index) => (
-          <div
-            key={index}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "16px",
-              backgroundColor: "#f9f9f9",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            <h4 style={{ marginBottom: "10px", color: "#333" }}>
-              Event {index + 1}
-            </h4>
-            <pre
+        {sortedEvents.map((event, index) => {
+          const eventCode = `window.dataLayer.push({
+    'event': 'conversioEvent',
+    'conversio': ${JSON.stringify(event, null, 2)}
+});`;
+
+          return (
+            <div
+              key={index}
               style={{
-                backgroundColor: "#1e1e1e",
-                color: "#f5f5f5",
-                padding: "16px",
+                border: "1px solid #ccc",
                 borderRadius: "8px",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                maxHeight: "300px",
-                overflowY: "auto",
+                padding: "16px",
+                backgroundColor: "#f9f9f9",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
               }}
             >
-              {JSON.stringify(event, null, 2)}
-            </pre>
-            <button
-              onClick={() => onCopy(JSON.stringify(event, null, 2))}
-              style={{
-                marginTop: "10px",
-                padding: "8px 12px",
-                fontSize: "14px",
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Copy Code
-            </button>
-          </div>
-        ))}
+              <h4 style={{ marginBottom: "10px", color: "#333" }}>
+                Event {index + 1}
+              </h4>
+              <pre
+                style={{
+                  backgroundColor: "#1e1e1e",
+                  color: "#f5f5f5",
+                  padding: "16px",
+                  borderRadius: "8px",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                }}
+              >
+                {eventCode}
+              </pre>
+              <button
+                onClick={() => onCopy(eventCode)} // Pass the full eventCode to the onCopy function
+                style={{
+                  marginTop: "10px",
+                  padding: "8px 12px",
+                  fontSize: "14px",
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Copy Code
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
 export default EventDisplay;
+
+

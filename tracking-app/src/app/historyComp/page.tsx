@@ -4,6 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header/Header";
 import Modal from "@/components/Modal/Modal";
+import {
+  ContentWrapper,
+  SearchWrapper,
+  InputWrapper,
+  FilterWrapper,
+} from "./page.styles";
 
 interface ModalContent {
   controlEvents: string[];
@@ -40,8 +46,8 @@ const History = () => {
         if (res.ok) {
           const data = await res.json();
           console.log("Fetched data:", data);
-          setItems(data.elements); 
-          setFilteredItems(data.elements); 
+          setItems(data.elements);
+          setFilteredItems(data.elements);
         } else {
           console.error("Failed to fetch elements");
         }
@@ -57,11 +63,11 @@ const History = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    // Filter items based on the search term and selected client
     const filtered = items.filter((item) => {
-      const matchesSearch = item._id.toLowerCase().includes(value); // Assuming _id is the unique identifier
+      const matchesSearch = item._id.toLowerCase().includes(value);
       const matchesClient =
-        selectedClient === "" || item.client.startsWith(selectedClient);
+        selectedClient === "" ||
+        item.client.toLowerCase() === selectedClient.toLowerCase();
       return matchesSearch && matchesClient;
     });
 
@@ -72,77 +78,98 @@ const History = () => {
     const value = e.target.value;
     setSelectedClient(value);
 
-    // Filter items based on the selected client and search term
     const filtered = items.filter((item) => {
-      const matchesSearch = item._id.toLowerCase().includes(searchTerm); // Assuming _id is the unique identifier
+      const matchesSearch = item._id.toLowerCase().includes(searchTerm);
       const matchesClient =
-        value === "" || item.client.startsWith(value);
+        value === "" || item.client.toLowerCase() === value.toLowerCase();
       return matchesSearch && matchesClient;
     });
 
     setFilteredItems(filtered);
   };
 
-
   const handleOpenModal = (item: any) => {
     console.log("Selected item:", item);
 
-    // Separate control events and variation events
-    const controlEvents = item.events.filter((event: any) => event.label === "Dummy Control");
-    const variationEvents = item.events.filter((event: any) => event.label !== "Dummy Control");
+    const controlGroup = item.events.find(
+      (group: any) => group.label === "Dummy Control"
+    );
+    const variationGroups = item.events.filter(
+      (group: any) => group.label !== "Dummy Control"
+    );
+
+    const controlEvents = controlGroup?.events || [];
+    const variationEvents = variationGroups.flatMap(
+      (group: any) => group.events || []
+    );
+
+    console.log("Control Events", controlEvents);
+    console.log("Variation Events", variationEvents);
 
     setModalContent({
-      controlEvents: controlEvents.map((event: any) => JSON.stringify(event, null, 2)), // Format as JSON strings
-      variationEvents: variationEvents.map((event: any) => JSON.stringify(event, null, 2)), // Format as JSON strings
+      controlEvents: controlEvents.map((event: any) =>
+        JSON.stringify(event, null, 2)
+      ),
+      variationEvents: variationEvents.map((event: any) =>
+        JSON.stringify(event, null, 2)
+      ),
     });
 
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false); // Close the modal
-    setModalContent(null); // Clear the modal content
+    setIsModalOpen(false);
+    setModalContent(null);
   };
 
   return (
-    <div>
+    <>
       <Header />
-      <div style={{ padding: "1rem" }}>
-        <h1>Search for specific Events:</h1>
-        <input
-          type="text"
-          placeholder="For Example: OPT100"
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{
-            padding: "0.5rem",
-            width: "100%",
-            maxWidth: "400px",
-            marginBottom: "1rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-          }}
-        />
-        <p>Filter by client:</p>
-        <select
-          value={selectedClient}
-          onChange={handleClientChange}
-          style={{
-            padding: "0.5rem",
-            width: "100%",
-            maxWidth: "400px",
-            marginBottom: "1rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-          }}
-        >
-          <option value="">All Clients</option>
-          {clients.map((client) => (
-            <option key={client.code} value={client.code}>
-              {client.name}
-            </option>
-          ))}
-        </select>
+      <ContentWrapper>
+        <SearchWrapper>
+          <InputWrapper>
+            <h1>Search for specific Events:</h1>
+            <input
+              type="text"
+              placeholder="For Example: OPT100"
+              value={searchTerm}
+              onChange={handleSearch}
+              style={{
+                padding: "0.5rem",
+                width: "100%",
+                maxWidth: "400px",
+                marginBottom: "1rem",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+              }}
+            />
+          </InputWrapper>
+          <FilterWrapper>
+            <h1>Filter by client:</h1>
+            <select
+              value={selectedClient}
+              onChange={handleClientChange}
+              style={{
+                padding: "0.5rem",
+                width: "100%",
+                maxWidth: "400px",
+                marginBottom: "1rem",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+              }}
+              className="clientSelector"
+            >
+              <option value="">All Clients</option>
+              {clients.map((client) => (
+                <option key={client.code} value={client.name}>
+                  {client.name}
+                </option>
+              ))}
+            </select>
+          </FilterWrapper>
+        </SearchWrapper>
+
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
           {filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
@@ -158,7 +185,7 @@ const History = () => {
                   textAlign: "center",
                   cursor: "pointer",
                 }}
-                onClick={() => handleOpenModal(item)} // Open modal on click
+                onClick={() => handleOpenModal(item)}
               >
                 <p
                   style={{
@@ -167,26 +194,28 @@ const History = () => {
                     color: "#333",
                   }}
                 >
-                  {item._id} {/* Assuming _id is the unique identifier */}
+                  {item._id}
                 </p>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>Date Created: {item.createdAt}</p>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-                  Client: {item.client}</p>
+                <p
+                  style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}
+                >
+                  Date Created: {item.dateCreated}
+                </p>
+                <p
+                  style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}
+                >
+                  Client: {item.client}
+                </p>
               </div>
             ))
           ) : (
             <p>No matching items found.</p>
           )}
         </div>
-      </div>
+      </ContentWrapper>
 
-      {/* Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        content={modalContent}
-      />
-    </div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} />
+    </>
   );
 };
 

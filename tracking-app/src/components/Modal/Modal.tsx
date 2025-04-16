@@ -9,6 +9,7 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
   if (!isOpen) return null;
+  //console.log(content.variationEvents,'content')
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -77,7 +78,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
           />
         )}
 
-        {/* Display Variation Events */}
         {content?.variationEvents && (
           <EventDisplay
             title="Variation Events"
