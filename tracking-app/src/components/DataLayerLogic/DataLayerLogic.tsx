@@ -163,114 +163,127 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
 
   return (
     <div>
-      <h3>Control Events</h3>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", // Use grid to allow events to share a line if there's enough space
-          gap: "16px",
-          padding: "10px",
-        }}
-      >
-        {eventData.controlEvents.map((event, index) => (
-          <div key={index} style={{ position: "relative" }}>
-            <pre
-              style={{
-                backgroundColor: "#1e1e1e", // Dark background for dark mode
-                color: "#f5f5f5", // Light text for readability
-                padding: "16px",
-                borderRadius: "8px",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                maxHeight: "300px", // Fixed height for code block
-                overflowY: "auto", // Scroll if content exceeds
-              }}
-            >
-              {event}
-            </pre>
-            <button
-              onClick={() => copyToClipboard(event)}
-              style={{
-                position: "absolute",
-                right: "16px",
-                bottom: "16px",
-                padding: "8px 12px",
-                fontSize: "14px",
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Copy Code
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <h3>Variation Events</h3>
-      {Array.from({ length: numVariants }).map((_, variantIndex) => (
-        <div
-          key={variantIndex}
-          style={{
-            marginTop: "20px", // Space between each variation block
-          }}
-        >
-          {/* Variation Title (h4) */}
-          <h4>Variation {variantIndex + 1}</h4>
-
-          {/* Grid of variation events */}
+      {/* Only show Control Events if there are any */}
+      {eventData.controlEvents && eventData.controlEvents.length > 0 && (
+        <>
+          <h3>Control Events</h3>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", // Use grid to allow events to share a line if there's enough space
+              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
               gap: "16px",
               padding: "10px",
             }}
           >
-            {eventData.variationEvents
-              .filter((_, index) => index % numVariants === variantIndex)
-              .map((event, index) => (
-                <div key={index} style={{ position: "relative" }}>
-                  <pre
-                    style={{
-                      backgroundColor: "#1e1e1e", // Dark background for dark mode
-                      color: "#f5f5f5", // Light text for readability
-                      padding: "16px",
-                      borderRadius: "8px",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      maxHeight: "300px", // Fixed height for code block
-                      overflowY: "auto", // Scroll if content exceeds
-                    }}
-                  >
-                    {event}
-                  </pre>
-                  <button
-                    onClick={() => copyToClipboard(event)}
-                    style={{
-                      position: "absolute",
-                      right: "16px",
-                      bottom: "16px",
-                      padding: "8px 12px",
-                      fontSize: "14px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Copy Code
-                  </button>
-                </div>
-              ))}
+            {eventData.controlEvents.map((event, index) => (
+              <div key={index} style={{ position: "relative" }}>
+                <pre
+                  style={{
+                    backgroundColor: "#1e1e1e",
+                    color: "#f5f5f5",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                  }}
+                >
+                  {event}
+                </pre>
+                <button
+                  onClick={() => copyToClipboard(event)}
+                  style={{
+                    position: "absolute",
+                    right: "16px",
+                    bottom: "16px",
+                    padding: "8px 12px",
+                    fontSize: "14px",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Copy Code
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
+        </>
+      )}
+  
+      {/* Only show Variation Events if there are any */}
+      {eventData.variationEvents && eventData.variationEvents.length > 0 && (
+        <>
+          <h3>Variation Events</h3>
+          {Array.from({ length: numVariants }).map((_, variantIndex) => {
+            const filteredEvents = eventData.variationEvents.filter(
+              (_, index) => index % numVariants === variantIndex
+            );
+  
+            // Only show this variation if it has events
+            if (filteredEvents.length === 0) return null;
+  
+            return (
+              <div
+                key={variantIndex}
+                style={{ marginTop: "20px" }}
+              >
+                <h4>Variation {variantIndex + 1}</h4>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                    gap: "16px",
+                    padding: "10px",
+                  }}
+                >
+                  {filteredEvents.map((event, index) => (
+                    <div key={index} style={{ position: "relative" }}>
+                      <pre
+                        style={{
+                          backgroundColor: "#1e1e1e",
+                          color: "#f5f5f5",
+                          padding: "16px",
+                          borderRadius: "8px",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          maxHeight: "300px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {event}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(event)}
+                        style={{
+                          position: "absolute",
+                          right: "16px",
+                          bottom: "16px",
+                          padding: "8px 12px",
+                          fontSize: "14px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Copy Code
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
+  
 };
 
 
