@@ -16,8 +16,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
     });
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Close the modal only if the user clicks on the overlay, not the modal content
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <div
+      onClick={handleOverlayClick} // Close modal on overlay click
       style={{
         position: "fixed",
         top: 0,

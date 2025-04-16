@@ -6,7 +6,6 @@ export async function GET() {
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
 
-    // Fetch all documents from the "eventdata" collection
     const elements = await collection.find({}).toArray();
 
     return NextResponse.json({ elements });

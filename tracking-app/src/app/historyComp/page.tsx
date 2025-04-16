@@ -169,9 +169,9 @@ const History = () => {
                 >
                   {item._id} {/* Assuming _id is the unique identifier */}
                 </p>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>Date Created: {item.createdAt}</p>
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-                  Client: {item.client}
-                </p>
+                  Client: {item.client}</p>
               </div>
             ))
           ) : (

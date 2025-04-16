@@ -102,12 +102,17 @@ export async function POST(req: Request) {
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
 
+    const today = new Date().toISOString().split('T')[0];
+
     const result = await collection.updateOne(
       { _id: fullClient },
       {
         $set: {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
           events,
+        },
+        $setOnInsert: {
+          dateCreated: today, // Just the date, no time
         },
       },
       { upsert: true }
