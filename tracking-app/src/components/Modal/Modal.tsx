@@ -4,12 +4,11 @@ import EventDisplay from "@/components/EventDisplay/EventDisplay";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  content: any; // Replace `any` with the appropriate type for your data
+  content: any;
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
   if (!isOpen) return null;
-  //console.log(content.variationEvents,'content')
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -26,7 +25,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
 
   return (
     <div
-      onClick={handleOverlayClick} // Close modal on overlay click
+      onClick={handleOverlayClick}
       style={{
         position: "fixed",
         top: 0,
@@ -47,8 +46,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
           borderRadius: "8px",
           maxWidth: "800px",
           width: "90%",
-          maxHeight: "90%", // Limit the modal height
-          overflowY: "auto", // Enable scrolling inside the modal
+          maxHeight: "90%",
+          overflowY: "auto",
           boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
           position: "relative",
         }}
@@ -63,13 +62,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
             border: "none",
             fontSize: "1.5rem",
             cursor: "pointer",
-          }}
-        >
+          }}>
           &times;
         </button>
-        <h2>Data Layer Content</h2>
 
-        {/* Display Control Events */}
         {content?.controlEvents && (
           <EventDisplay
             title="Control Events"

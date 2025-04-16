@@ -39,6 +39,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           padding: "10px",
         }}
       >
+
         {sortedEvents.map((event, index) => {
           const eventCode = `window.dataLayer.push({
     'event': 'conversioEvent',
@@ -46,6 +47,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 });`;
 
           return (
+
             <div
               key={index}
               style={{
@@ -59,6 +61,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
               <h4 style={{ marginBottom: "10px", color: "#333" }}>
                 Event {index + 1}
               </h4>
+              <div>
               <pre
                 style={{
                   backgroundColor: "#1e1e1e",
@@ -88,7 +91,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
               >
                 Copy Code
               </button>
+              </div>
             </div>
+            
           );
         })}
       </div>
