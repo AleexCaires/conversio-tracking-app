@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header/Header";
+import Modal from "@/components/Modal/Modal";
+
+interface ModalContent {
+  controlEvents: string[];
+  variationEvents: string[];
+}
 
 const clients = [
   { name: "Finisterre", code: "FN" },
@@ -20,16 +26,32 @@ const clients = [
 const History = () => {
   const router = useRouter();
 
-  const [searchTerm, setSearchTerm] = useState(""); 
-  const [selectedClient, setSelectedClient] = useState(""); 
-  const [items] = useState([
-    { name: "OPT101", dateCreated: "2023-01-15" },
-    { name: "LT102", dateCreated: "2023-02-20" },
-    { name: "PH021", dateCreated: "2023-03-10" },
-    { name: "PH056", dateCreated: "2023-04-05" },
-    { name: "AS092", dateCreated: "2023-05-12" },
-  ]); // Example list of elements with creation dates
-  const [filteredItems, setFilteredItems] = useState(items); // State to track filtered elements
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClient, setSelectedClient] = useState("");
+  const [items, setItems] = useState([]); // State to store fetched items
+  const [filteredItems, setFilteredItems] = useState([]); // State to track filtered elements
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [modalContent, setModalContent] = useState<ModalContent | null>(null); // State to store modal content
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/api/get-elements");
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Fetched data:", data);
+          setItems(data.elements); 
+          setFilteredItems(data.elements); 
+        } else {
+          console.error("Failed to fetch elements");
+        }
+      } catch (error) {
+        console.error("Error fetching elements:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
@@ -37,9 +59,9 @@ const History = () => {
 
     // Filter items based on the search term and selected client
     const filtered = items.filter((item) => {
-      const matchesSearch = item.name.toLowerCase().includes(value);
+      const matchesSearch = item._id.toLowerCase().includes(value); // Assuming _id is the unique identifier
       const matchesClient =
-        selectedClient === "" || item.name.startsWith(selectedClient);
+        selectedClient === "" || item.client.startsWith(selectedClient);
       return matchesSearch && matchesClient;
     });
 
@@ -52,42 +74,44 @@ const History = () => {
 
     // Filter items based on the selected client and search term
     const filtered = items.filter((item) => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm);
+      const matchesSearch = item._id.toLowerCase().includes(searchTerm); // Assuming _id is the unique identifier
       const matchesClient =
-        value === "" || item.name.startsWith(value);
+        value === "" || item.client.startsWith(value);
       return matchesSearch && matchesClient;
     });
 
     setFilteredItems(filtered);
   };
 
-  const handleGoBack = () => {
-    router.push("/"); // Navigate to the homepage
+
+  const handleOpenModal = (item: any) => {
+    console.log("Selected item:", item);
+
+    // Separate control events and variation events
+    const controlEvents = item.events.filter((event: any) => event.label === "Dummy Control");
+    const variationEvents = item.events.filter((event: any) => event.label !== "Dummy Control");
+
+    setModalContent({
+      controlEvents: controlEvents.map((event: any) => JSON.stringify(event, null, 2)), // Format as JSON strings
+      variationEvents: variationEvents.map((event: any) => JSON.stringify(event, null, 2)), // Format as JSON strings
+    });
+
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+    setModalContent(null); // Clear the modal content
   };
 
   return (
     <div>
       <Header />
       <div style={{ padding: "1rem" }}>
-        <button
-          onClick={handleGoBack}
-          style={{
-            marginBottom: "1rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: "#0070f3",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Go Back
-        </button>
-        <h1>See All Content</h1>
-        <p>Search for specific elements:</p>
+        <h1>Search for specific Events:</h1>
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="For Example: OPT100"
           value={searchTerm}
           onChange={handleSearch}
           style={{
@@ -132,7 +156,9 @@ const History = () => {
                   boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                   minWidth: "150px",
                   textAlign: "center",
+                  cursor: "pointer",
                 }}
+                onClick={() => handleOpenModal(item)} // Open modal on click
               >
                 <p
                   style={{
@@ -141,10 +167,10 @@ const History = () => {
                     color: "#333",
                   }}
                 >
-                  {item.name}
+                  {item._id} {/* Assuming _id is the unique identifier */}
                 </p>
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-                  Date Created: {item.dateCreated}
+                  Client: {item.client}
                 </p>
               </div>
             ))
@@ -153,6 +179,13 @@ const History = () => {
           )}
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        content={modalContent}
+      />
     </div>
   );
 };
