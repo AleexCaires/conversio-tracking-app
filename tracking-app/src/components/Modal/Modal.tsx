@@ -44,7 +44,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
           backgroundColor: "#fff",
           padding: "2rem",
           borderRadius: "8px",
-          maxWidth: "800px",
+          maxWidth: "90vw",
           width: "90%",
           maxHeight: "90%",
           overflowY: "auto",

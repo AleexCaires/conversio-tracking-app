@@ -1,4 +1,5 @@
 import React from "react";
+import {ChildrenWrapper} from './EventDisplay.styles'
 
 interface Event {
   eventAction: string;
@@ -16,12 +17,10 @@ interface EventDisplayProps {
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
   if (!events || events.length === 0) return null;
 
-  // Parse events if they are JSON strings
   const parsedEvents: Event[] = events.map((event) =>
     typeof event === "string" ? JSON.parse(event) : event
   );
 
-  // Sort events based on their order in the array or any specific property
   const sortedEvents = [...parsedEvents].sort((a, b) => {
     const labelA = a.eventLabel || "";
     const labelB = b.eventLabel || "";
@@ -31,6 +30,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
   return (
     <div style={{ marginTop: "20px" }}>
       <h3>{title}</h3>
+
       <div
         style={{
           display: "flex",
@@ -39,6 +39,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           padding: "10px",
         }}
       >
+        <ChildrenWrapper>
 
         {sortedEvents.map((event, index) => {
           const eventCode = `window.dataLayer.push({
@@ -48,16 +49,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
           return (
 
-            <div
-              key={index}
-              style={{
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "16px",
-                backgroundColor: "#f9f9f9",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-              }}
-            >
+            <div key={index}>
               <h4 style={{ marginBottom: "10px", color: "#333" }}>
                 Event {index + 1}
               </h4>
@@ -96,6 +88,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
             
           );
         })}
+        </ChildrenWrapper>
       </div>
     </div>
   );
