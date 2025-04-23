@@ -48,13 +48,13 @@ const History = () => {
         if (res.ok) {
           const data = await res.json();
           console.log("Fetched data:", data);
+  
           const sortedElements = data.elements.sort((a: any, b: any) => {
             return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
           });
-          
+  
           setItems(sortedElements);
           setFilteredItems(sortedElements);
-          
         } else {
           console.error("Failed to fetch elements");
         }
@@ -62,7 +62,7 @@ const History = () => {
         console.error("Error fetching elements:", error);
       }
     };
-
+  
     fetchData();
   }, []);
 
@@ -201,47 +201,46 @@ const History = () => {
         </SearchWrapper>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-          {filteredItems.length > 0 ? (
-            filteredItems.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: "1rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  backgroundColor: "#f9f9f9",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  minWidth: "150px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleOpenModal(item)}
-              >
-                <p
-                  style={{
-                    fontWeight: "bold",
-                    margin: "0 0 0.5rem 0",
-                    color: "#333",
-                  }}
-                >
-                  {item._id}
-                </p>
-                <p
-                  style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}
-                >
-                  Date Created: {item.dateCreated}
-                </p>
-                <p
-                  style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}
-                >
-                  Client: {item.client}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p>No matching items found.</p>
-          )}
-        </div>
+  {filteredItems.length > 0 ? (
+    filteredItems.map((item, index) => (
+      <div
+        key={index}
+        style={{
+          padding: "1rem",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+          backgroundColor: "#f9f9f9",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+          minWidth: "150px",
+          textAlign: "center",
+          cursor: "pointer",
+        }}
+        onClick={() => handleOpenModal(item)}
+      >
+        <p
+          style={{
+            fontWeight: "bold",
+            margin: "0 0 0.5rem 0",
+            color: "#333",
+          }}
+        >
+          {item._id}
+        </p>
+        <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
+          Date Created: {item.dateCreated}
+        </p>
+        <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
+          Client: {item.client}
+        </p>
+        <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
+          Experience Name: {item.experienceName}
+        </p>
+      </div>
+    ))
+  ) : (
+    <p>No matching items found.</p>
+  )}
+</div>
       </ContentWrapper>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} />

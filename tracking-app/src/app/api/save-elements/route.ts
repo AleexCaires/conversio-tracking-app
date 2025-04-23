@@ -110,11 +110,11 @@ export async function POST(req: Request) {
       {
         $set: {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
-          experienceName: elementData.experienceName,
+          experienceName: elementData.experienceName, 
           events,
         },
         $setOnInsert: {
-          dateCreated: today, 
+          dateCreated: today,
         },
       },
       { upsert: true }
