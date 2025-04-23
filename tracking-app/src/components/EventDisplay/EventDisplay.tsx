@@ -1,5 +1,5 @@
 import React from "react";
-import {ChildrenWrapper} from './EventDisplay.styles'
+import { ChildrenWrapper } from './EventDisplay.styles'
 
 interface Event {
   eventAction: string;
@@ -10,7 +10,7 @@ interface Event {
 
 interface EventDisplayProps {
   title: string;
-  events: (Event | string)[]; // Allow events to be either objects or JSON strings
+  events: (Event | string)[];
   onCopy: (text: string) => void;
 }
 
@@ -40,54 +40,66 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
         }}
       >
         <ChildrenWrapper>
-
-        {sortedEvents.map((event, index) => {
-          const eventCode = `window.dataLayer.push({
-    'event': 'conversioEvent',
-    'conversio': ${JSON.stringify(event, null, 2)}
+          {sortedEvents.map((event, index) => {
+            const eventCode = `window.dataLayer.push({
+  'event': 'conversioEvent',
+  'conversio': ${JSON.stringify(event, null, 2)}
 });`;
 
-          return (
-
-            <div key={index}>
-              <h4 style={{ marginBottom: "10px", color: "#333" }}>
-                Event {index + 1}
-              </h4>
-              <div>
-              <pre
-                style={{
-                  backgroundColor: "#1e1e1e",
-                  color: "#f5f5f5",
-                  padding: "16px",
-                  borderRadius: "8px",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  maxHeight: "300px",
-                  overflowY: "auto",
-                }}
-              >
-                {eventCode}
-              </pre>
-              <button
-                onClick={() => onCopy(eventCode)} // Pass the full eventCode to the onCopy function
-                style={{
-                  marginTop: "10px",
-                  padding: "8px 12px",
-                  fontSize: "14px",
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Copy Code
-              </button>
+            return (
+              <div key={index}>
+                <h4 style={{ marginBottom: "10px", color: "#333" }}>
+                  Event {index + 1}
+                </h4>
+                <div>
+                  <pre
+                    style={{
+                      backgroundColor: "#1e1e1e",
+                      color: "#f5f5f5",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    {eventCode}
+                  </pre>
+                  <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
+                    <button
+                      onClick={() => onCopy(eventCode)}
+                      style={{
+                        padding: "8px 12px",
+                        fontSize: "14px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Copy Code
+                    </button>
+                    <button
+                      onClick={() => onCopy(event.eventSegment)}
+                      style={{
+                        padding: "8px 12px",
+                        fontSize: "14px",
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Copy Segment
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-          );
-        })}
+            );
+          })}
         </ChildrenWrapper>
       </div>
     </div>
@@ -95,5 +107,3 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 };
 
 export default EventDisplay;
-
-
