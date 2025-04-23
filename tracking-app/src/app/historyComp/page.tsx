@@ -46,8 +46,13 @@ const History = () => {
         if (res.ok) {
           const data = await res.json();
           console.log("Fetched data:", data);
-          setItems(data.elements);
-          setFilteredItems(data.elements);
+          const sortedElements = data.elements.sort((a: any, b: any) => {
+            return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
+          });
+          
+          setItems(sortedElements);
+          setFilteredItems(sortedElements);
+          
         } else {
           console.error("Failed to fetch elements");
         }
@@ -62,31 +67,36 @@ const History = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
+  
     const filtered = items.filter((item) => {
-      const matchesSearch = item._id.toLowerCase().includes(value);
-      const matchesClient =
+      const matchesId = item._id.toLowerCase().includes(value);
+      const matchesClientName = item.client.toLowerCase().includes(value);
+      const matchesClientFilter =
         selectedClient === "" ||
         item.client.toLowerCase() === selectedClient.toLowerCase();
-      return matchesSearch && matchesClient;
+  
+      return (matchesId || matchesClientName) && matchesClientFilter;
     });
-
+  
     setFilteredItems(filtered);
   };
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSelectedClient(value);
-
+  
     const filtered = items.filter((item) => {
-      const matchesSearch = item._id.toLowerCase().includes(searchTerm);
-      const matchesClient =
+      const matchesId = item._id.toLowerCase().includes(searchTerm);
+      const matchesClientName = item.client.toLowerCase().includes(searchTerm);
+      const matchesClientFilter =
         value === "" || item.client.toLowerCase() === value.toLowerCase();
-      return matchesSearch && matchesClient;
+  
+      return (matchesId || matchesClientName) && matchesClientFilter;
     });
-
+  
     setFilteredItems(filtered);
   };
+  
 
   const handleOpenModal = (item: any) => {
     console.log("Selected item:", item);
