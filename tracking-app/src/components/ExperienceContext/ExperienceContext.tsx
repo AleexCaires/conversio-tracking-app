@@ -9,6 +9,8 @@ interface ExperienceContextType {
   setSelectedClient: (client: string) => void;
   experienceNumber: string;
   setExperienceNumber: (expNumber: string) => void;
+  experienceName: string; // Add experimentName
+  setExperienceName: (name: string) => void
 }
 
 const ExperienceContext = createContext<ExperienceContextType>({
@@ -18,12 +20,15 @@ const ExperienceContext = createContext<ExperienceContextType>({
   setSelectedClient: () => {},
   experienceNumber: '',
   setExperienceNumber: () => {},
+  experienceName: '', // Default value
+  setExperienceName: () => {}, // Default setter
 });
 
 export const ExperienceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [numVariants, setNumVariants] = useState(1);
   const [selectedClient, setSelectedClient] = useState("");
-  const [experienceNumber, setExperienceNumber] = useState(""); // Added this state
+  const [experienceNumber, setExperienceNumber] = useState(""); 
+  const [experienceName, setExperienceName] = useState("");
 
   return (
     <ExperienceContext.Provider
@@ -32,8 +37,10 @@ export const ExperienceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setNumVariants,
         selectedClient,
         setSelectedClient,
-        experienceNumber,  // Provided the state value
-        setExperienceNumber,  // Provided the setter function
+        experienceNumber,  
+        setExperienceNumber,  
+        experienceName, 
+        setExperienceName, 
       }}
     >
       {children}

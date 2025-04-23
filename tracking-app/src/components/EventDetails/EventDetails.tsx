@@ -23,7 +23,7 @@ const EventDetails: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const { selectedClient, experienceNumber, numVariants } = useExperience(); // Extract numVariants
+  const { selectedClient, experienceNumber, numVariants, experienceName } = useExperience(); 
 
   const clients = [
     { name: "Finisterre", code: "FN" },
@@ -66,12 +66,14 @@ const EventDetails: React.FC = () => {
 
   const saveElementData = async () => {
     const elementData = {
-      id: fullClient,
       client: selectedClient,
       experienceNumber,
+      experienceName, 
       eventDescriptions,
-      numVariants, // Include the number of variants
+      numVariants, 
     };
+
+    console.log("Element Data:", elementData); 
 
     setIsLoading(true);
     setErrorMessage("");
@@ -163,4 +165,3 @@ const EventDetails: React.FC = () => {
 };
 
 export default EventDetails;
-

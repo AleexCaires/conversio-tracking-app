@@ -85,6 +85,7 @@ const ExperienceDetails: React.FC<{
   useEffect(() => {
     handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
   }, []);
+  const { experienceName, setExperienceName } = useExperience(); 
   
 
   return (
@@ -136,9 +137,15 @@ const ExperienceDetails: React.FC<{
         </ExperimentNumber>
 
         <ExperimentName>
-          <Label htmlFor="experienceName">Experience Name:*</Label>
-          <Input type="text" id="experienceName" name="experienceName" />
-        </ExperimentName>
+      <Label htmlFor="experienceName">Experience Name:*</Label>
+      <Input
+        type="text"
+        id="experienceName"
+        name="experienceName"
+        value={experienceName} // Bind to experimentName state
+        onChange={(e) => setExperienceName(e.target.value)} // Update state on input change
+      />
+    </ExperimentName>
       </FieldGroupMiddle>
 
       <FieldGroupEnd>

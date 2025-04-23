@@ -25,6 +25,7 @@ export async function POST(req: Request) {
       !elementData.client ||
       !elementData.eventDescriptions ||
       !elementData.experienceNumber ||
+      !elementData.experienceName || 
       typeof elementData.numVariants !== "number"
     ) {
       return NextResponse.json(
@@ -109,6 +110,7 @@ export async function POST(req: Request) {
       {
         $set: {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
+          experienceName: elementData.experienceName,
           events,
         },
         $setOnInsert: {

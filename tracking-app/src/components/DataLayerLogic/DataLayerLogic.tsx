@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
+
 interface DataLayerLogicProps {
   client: string;
   experienceNumber: string;
@@ -7,7 +8,7 @@ interface DataLayerLogicProps {
   controlType: string;
   trigger: boolean;
   setTrigger: (value: boolean) => void;
-  onDataGenerated?: (data: any) => void; // New callback prop
+  onDataGenerated?: (data: any) => void;
 }
 
 const clients = [
@@ -29,6 +30,8 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   eventDescriptions,
   controlType,
   trigger,
+  setTrigger,
+  onDataGenerated,
 }) => {
   const { numVariants } = useExperience();
 
@@ -40,10 +43,8 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     variationEvents: [],
   });
 
-  // Find the client code based on the client name
   const clientData = clients.find((c) => c.name === client);
   const clientCode = clientData ? clientData.code : client;
-
   const fullClient = `${clientCode}${experienceNumber}`;
 
   const getRandomLetter = (usedLetters: Set<string>): string => {
@@ -62,31 +63,25 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    // Generate a random letter for each event description
     eventDescriptions.forEach((description) => {
       if (!descriptionLetters.has(description)) {
         descriptionLetters.set(description, getRandomLetter(usedLetters));
       }
     });
 
-    // Helper to generate event segment based on control/variation type and shared letter
     const generateEventSegment = (description: string, variantPrefix: string) => {
       const sharedLetter = descriptionLetters.get(description);
       if (variantPrefix === "ECO") {
-        // For Dummy Control, use 'ECO' prefix
         return `${fullClient}${variantPrefix}${sharedLetter}`;
       }
-      // For variations, use 'EV' followed by variant number (e.g., EV1, EV2)
       return `${fullClient}E${variantPrefix}${sharedLetter}`;
     };
 
     const newControlEvents: string[] = [];
     const newVariationEvents: string[] = [];
 
-    // Always generate Dummy Control events
     eventDescriptions.forEach((description) => {
       const eventSegment = generateEventSegment(description, "ECO");
-
       const dataLayerObject = {
         event: "conversioEvent",
         conversio: {
@@ -114,11 +109,9 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       }
     });
 
-    // Generate variation events based on the number of variants
     for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
       eventDescriptions.forEach((description) => {
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-
         const dataLayerObject = {
           event: "conversioEvent",
           conversio: {
@@ -147,23 +140,27 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       });
     }
 
-    // Update state with the generated event data
     setEventData({
       controlEvents: newControlEvents,
       variationEvents: newVariationEvents,
     });
+
+    if (onDataGenerated) {
+      onDataGenerated({
+        controlEvents: newControlEvents,
+        variationEvents: newVariationEvents,
+      });
+    }
+
+    setTrigger(false);
   }, [trigger, numVariants, eventDescriptions, client, experienceNumber]);
 
-  // Function to copy code to clipboard
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Code copied to clipboard!");
-    });
+    navigator.clipboard.writeText(text);
   };
 
   return (
     <div>
-      {/* Only show Control Events if there are any */}
       {eventData.controlEvents && eventData.controlEvents.length > 0 && (
         <>
           <h3>Control Events</h3>
@@ -214,7 +211,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         </>
       )}
   
-      {/* Only show Variation Events if there are any */}
       {eventData.variationEvents && eventData.variationEvents.length > 0 && (
         <>
           <h3>Variation Events</h3>
