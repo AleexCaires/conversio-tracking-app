@@ -11,9 +11,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
   if (!isOpen) return null;
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Code copied to clipboard!");
-    });
+    navigator.clipboard.writeText(text)
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -73,14 +71,23 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
             onCopy={copyToClipboard}
           />
         )}
+{Array.isArray(content?.variationEvents?.[0])
+  ? content.variationEvents.map((variation: any[], i: number) => (
+      <EventDisplay
+        key={i}
+        title={`Variation ${i + 1}`}
+        events={variation}
+        onCopy={copyToClipboard}
+      />
+    ))
+  : (
+    <EventDisplay
+      title="Variation Events"
+      events={content.variationEvents}
+      onCopy={copyToClipboard}
+    />
+  )}
 
-        {content?.variationEvents && (
-          <EventDisplay
-            title="Variation Events"
-            events={content.variationEvents}
-            onCopy={copyToClipboard}
-          />
-        )}
       </div>
     </div>
   );
