@@ -1,5 +1,5 @@
-import React from "react";
-import { ChildrenWrapper } from './EventDisplay.styles'
+import React, { useState } from "react";
+import { ChildrenWrapper } from './EventDisplay.styles';
 
 interface Event {
   eventAction: string;
@@ -16,6 +16,15 @@ interface EventDisplayProps {
 
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
   if (!events || events.length === 0) return null;
+
+  const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
+
+  const handleCopy = (index: number, type: "code" | "segment", text: string) => {
+    const key = `${index}-${type}`;
+    onCopy(text);
+    setCopiedState((prev) => ({ ...prev, [key]: true }));
+    // Not disabling button so user can copy again
+  };
 
   const parsedEvents: Event[] = events.map((event) =>
     typeof event === "string" ? JSON.parse(event) : event
@@ -46,6 +55,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
   'conversio': ${JSON.stringify(event, null, 2)}
 });`;
 
+            const codeKey = `${index}-code`;
+            const segmentKey = `${index}-segment`;
+
             return (
               <div key={index}>
                 <h4 style={{ marginBottom: "10px", color: "#333" }}>
@@ -68,32 +80,32 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
                   </pre>
                   <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
                     <button
-                      onClick={() => onCopy(eventCode)}
+                      onClick={() => handleCopy(index, "code", eventCode)}
                       style={{
                         padding: "8px 12px",
                         fontSize: "14px",
-                        backgroundColor: "#007bff",
+                        backgroundColor: copiedState[codeKey] ? "#0056b3" : "#007bff",
                         color: "white",
                         border: "none",
                         borderRadius: "4px",
                         cursor: "pointer",
                       }}
                     >
-                      Copy Code
+                      {copiedState[codeKey] ? "Copied!" : "Copy Code"}
                     </button>
                     <button
-                      onClick={() => onCopy(event.eventSegment)}
+                      onClick={() => handleCopy(index, "segment", event.eventSegment)}
                       style={{
                         padding: "8px 12px",
                         fontSize: "14px",
-                        backgroundColor: "#28a745",
+                        backgroundColor: copiedState[segmentKey] ? "#1c7c3e" : "#28a745",
                         color: "white",
                         border: "none",
                         borderRadius: "4px",
                         cursor: "pointer",
                       }}
                     >
-                      Copy Segment
+                      {copiedState[segmentKey] ? "Segment Copied!" : "Copy Segment"}
                     </button>
                   </div>
                 </div>
