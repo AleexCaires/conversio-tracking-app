@@ -11,14 +11,32 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
   if (!isOpen) return null;
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard.writeText(text);
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Close the modal only if the user clicks on the overlay, not the modal content
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+
+  const groupEventsByVariation = (rawEvents: string[]) => {
+    const grouped: Record<string, any[]> = {};
+
+    rawEvents.forEach((eventStr) => {
+      try {
+        const event = JSON.parse(eventStr);
+        const labelMatch = event.eventLabel.match(/\(Variation (\d+)\)/);
+        const variation = labelMatch ? labelMatch[1] : "Unknown";
+
+        if (!grouped[variation]) grouped[variation] = [];
+        grouped[variation].push(event);
+      } catch (error) {
+        console.error("Error parsing event string:", eventStr, error);
+      }
+    });
+
+    return Object.entries(grouped); // [ [variationNumber, events[]], ... ]
   };
 
   return (
@@ -60,7 +78,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
             border: "none",
             fontSize: "1.5rem",
             cursor: "pointer",
-          }}>
+          }}
+        >
           &times;
         </button>
 
@@ -71,23 +90,18 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
             onCopy={copyToClipboard}
           />
         )}
-{Array.isArray(content?.variationEvents?.[0])
-  ? content.variationEvents.map((variation: any[], i: number) => (
-      <EventDisplay
-        key={i}
-        title={`Variation ${i + 1}`}
-        events={variation}
-        onCopy={copyToClipboard}
-      />
-    ))
-  : (
-    <EventDisplay
-      title="Variation Events"
-      events={content.variationEvents}
-      onCopy={copyToClipboard}
-    />
-  )}
 
+        {Array.isArray(content?.variationEvents) &&
+          groupEventsByVariation(content.variationEvents).map(
+            ([variation, events]) => (
+              <EventDisplay
+                key={variation}
+                title={`Variation ${variation}`}
+                events={events}
+                onCopy={copyToClipboard}
+              />
+            )
+          )}
       </div>
     </div>
   );
