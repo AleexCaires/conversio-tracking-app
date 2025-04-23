@@ -5,6 +5,9 @@ export const ContentWrapper = styled.div`
 `
 export const SearchWrapper = styled.div`
 display: flex;
+justify-content: space-between;
+align-items: center;
+
 .clientSelector{
     max-width: 200px;
 }
@@ -14,7 +17,11 @@ input,select{
 `
 
 export const FilterWrapper = styled.div`
-margin-left: 100px;
 `
 export const InputWrapper = styled.div`
+`
+export const ExperienceNameWrapper = styled.div`
+align-items: center;
+
+
 `

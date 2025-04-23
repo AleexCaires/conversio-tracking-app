@@ -9,6 +9,7 @@ import {
   SearchWrapper,
   InputWrapper,
   FilterWrapper,
+  ExperienceNameWrapper
 } from "./page.styles";
 
 interface ModalContent {
@@ -33,6 +34,7 @@ const History = () => {
   const router = useRouter();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [nameSearchTerm, setNameSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
   const [items, setItems] = useState([]); // State to store fetched items
   const [filteredItems, setFilteredItems] = useState([]); // State to track filtered elements
@@ -178,6 +180,24 @@ const History = () => {
               ))}
             </select>
           </FilterWrapper>
+          <ExperienceNameWrapper>
+
+          <h1>Experience Name:</h1>
+          <input
+            type="text"
+            placeholder="Search by name (Coming soon)"
+            value={nameSearchTerm}
+            onChange={(e) => setNameSearchTerm(e.target.value)}
+            style={{
+              padding: "0.5rem",
+              width: "100%",
+              maxWidth: "400px",
+              marginBottom: "1rem",
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+            }}
+          />
+          </ExperienceNameWrapper>
         </SearchWrapper>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
