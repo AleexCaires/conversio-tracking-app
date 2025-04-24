@@ -16,6 +16,7 @@ interface EventDisplayProps {
 
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
   const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
+  const [activeBorderKey, setActiveBorderKey] = useState<string | null>(null); // Track the active border key
 
   if (!events || events.length === 0) return null;
 
@@ -25,8 +26,13 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
   const handleCopy = (index: number, type: "code" | "segment", text: string) => {
     const key = `${index}-${type}`;
+    const borderColor = type === "code" ? "blue" : "pink"; // Set border color based on type
+
     onCopy(text);
     setCopiedState((prev) => ({ ...prev, [key]: true }));
+    setActiveBorderKey(key); // Set the active border key
+
+    // Reset the copied state after 2 seconds, but keep the border
     setTimeout(() => {
       setCopiedState((prev) => ({ ...prev, [key]: false }));
     }, 2000);
@@ -64,6 +70,17 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
                   wordBreak: "break-word",
                   maxHeight: "300px",
                   overflowY: "auto",
+                  border: activeBorderKey === codeKey // Apply border color for "Copy Code"
+                    ? "2px solid blue"
+                    : activeBorderKey === segmentKey // Apply border color for "Copy Segment"
+                    ? "2px solid pink"
+                    : "2px solid transparent",
+                  boxShadow: activeBorderKey === codeKey // Apply glowing effect for "Copy Code"
+                    ? "0 0 10px blue, 0 0 20px blue"
+                    : activeBorderKey === segmentKey // Apply glowing effect for "Copy Segment"
+                    ? "0 0 10px pink, 0 0 20px pink"
+                    : "none",
+                  transition: "box-shadow 0.3s ease, border 0.3s ease", // Smooth transition
                 }}
               >
                 {eventCode}

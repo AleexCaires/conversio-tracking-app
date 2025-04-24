@@ -4,13 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header/Header";
 import Modal from "@/components/Modal/Modal";
-import {
-  ContentWrapper,
-  SearchWrapper,
-  InputWrapper,
-  FilterWrapper,
-  ExperienceNameWrapper,
-} from "./page.styles";
+import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper } from "./page.styles";
 
 interface ModalContent {
   controlEvents: string[];
@@ -73,9 +67,7 @@ const History = () => {
     const filtered = originalItems.filter((item) => {
       const matchesId = item._id.toLowerCase().includes(value);
       const matchesClientName = item.client.toLowerCase().includes(value);
-      const matchesClientFilter =
-        selectedClient === "" ||
-        item.client.toLowerCase() === selectedClient.toLowerCase();
+      const matchesClientFilter = selectedClient === "" || item.client.toLowerCase() === selectedClient.toLowerCase();
 
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
@@ -90,8 +82,7 @@ const History = () => {
     const filtered = originalItems.filter((item) => {
       const matchesId = item._id.toLowerCase().includes(searchTerm);
       const matchesClientName = item.client.toLowerCase().includes(searchTerm);
-      const matchesClientFilter =
-        value === "" || item.client.toLowerCase() === value.toLowerCase();
+      const matchesClientFilter = value === "" || item.client.toLowerCase() === value.toLowerCase();
 
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
@@ -108,8 +99,8 @@ const History = () => {
       setFilteredItems([...originalItems]);
     } else {
       // Filter items based on experienceName starting with the input value
-      const filtered = originalItems.filter((item) =>
-        item.experienceName?.toLowerCase().startsWith(value) // Check if experienceName starts with the input value
+      const filtered = originalItems.filter(
+        (item) => item.experienceName?.toLowerCase().startsWith(value) // Check if experienceName starts with the input value
       );
 
       setFilteredItems(filtered); // Update filtered items
@@ -119,28 +110,18 @@ const History = () => {
   const handleOpenModal = (item: any) => {
     console.log("Selected item:", item);
 
-    const controlGroup = item.events.find(
-      (group: any) => group.label === "Dummy Control"
-    );
-    const variationGroups = item.events.filter(
-      (group: any) => group.label !== "Dummy Control"
-    );
+    const controlGroup = item.events.find((group: any) => group.label === "Dummy Control");
+    const variationGroups = item.events.filter((group: any) => group.label !== "Dummy Control");
 
     const controlEvents = controlGroup?.events || [];
-    const variationEvents = variationGroups.flatMap(
-      (group: any) => group.events || []
-    );
+    const variationEvents = variationGroups.flatMap((group: any) => group.events || []);
 
     console.log("Control Events", controlEvents);
     console.log("Variation Events", variationEvents);
 
     setModalContent({
-      controlEvents: controlEvents.map((event: any) =>
-        JSON.stringify(event, null, 2)
-      ),
-      variationEvents: variationEvents.map((event: any) =>
-        JSON.stringify(event, null, 2)
-      ),
+      controlEvents: controlEvents.map((event: any) => JSON.stringify(event, null, 2)),
+      variationEvents: variationEvents.map((event: any) => JSON.stringify(event, null, 2)),
     });
 
     setIsModalOpen(true);
@@ -214,8 +195,7 @@ const History = () => {
             />
           </ExperienceNameWrapper>
         </SearchWrapper>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between" }}>
           {filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
               <div
@@ -227,27 +207,49 @@ const History = () => {
                   backgroundColor: "#f9f9f9",
                   boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                   minWidth: "150px",
+                  width: "300px",
+                  maxWidth: "300px",
                   textAlign: "center",
                   cursor: "pointer",
                 }}
                 onClick={() => handleOpenModal(item)}
               >
-                {/* Combine Id and Experience Name */}
+                {/* Display Id */}
                 <p
                   style={{
                     fontWeight: "bold",
-                    margin: "0 0 0.5rem 0",
+                    margin: "0px 5px 5px 5px",
                     color: "#333",
+                    fontSize: "18px",
                   }}
                 >
-                  {item._id} - {item.experienceName}
+                  {item._id}
                 </p>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-                  Date Created: {item.dateCreated}
+
+                {/* Display Experience Name */}
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "16px",
+                    color: "rgb(51, 51, 51)",
+                    fontWeight: "bold",
+                    maxWidth: "350px", // Set max width
+                    whiteSpace: "normal", // Allow wrapping to the next line
+                    overflow: "hidden", // Hide overflow
+                    textOverflow: "ellipsis", // Add ellipsis for overflow
+                    display: "-webkit-box", // Use webkit box for multiline truncation
+                    WebkitLineClamp: 2, // Limit to 2 lines
+                    WebkitBoxOrient: "vertical", // Set box orientation to vertical
+                    marginBottom: "10px",
+                  }}
+                >
+                  {item.experienceName}
                 </p>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-                  Client: {item.client}
-                </p>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", color: "#666" }}>
+                  <p style={{ margin: 0 }}>{item.client}</p>
+                  <p style={{ margin: 0 }}>{item.dateCreated}</p>
+                </div>
               </div>
             ))
           ) : (
