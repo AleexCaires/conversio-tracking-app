@@ -9,7 +9,7 @@ import {
   SearchWrapper,
   InputWrapper,
   FilterWrapper,
-  ExperienceNameWrapper
+  ExperienceNameWrapper,
 } from "./page.styles";
 
 interface ModalContent {
@@ -36,8 +36,8 @@ const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [nameSearchTerm, setNameSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
-  const [items, setItems] = useState([]); // State to store fetched items
-  const [filteredItems, setFilteredItems] = useState([]); // State to track filtered elements
+  const [originalItems, setOriginalItems] = useState([]); // Store the full list of items
+  const [filteredItems, setFilteredItems] = useState([]); // Store the filtered list
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const [modalContent, setModalContent] = useState<ModalContent | null>(null); // State to store modal content
 
@@ -48,13 +48,13 @@ const History = () => {
         if (res.ok) {
           const data = await res.json();
           console.log("Fetched data:", data);
-  
+
           const sortedElements = data.elements.sort((a: any, b: any) => {
             return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
           });
-  
-          setItems(sortedElements);
-          setFilteredItems(sortedElements);
+
+          setOriginalItems(sortedElements); // Store the full list of items
+          setFilteredItems(sortedElements); // Initialize filteredItems with the full list
         } else {
           console.error("Failed to fetch elements");
         }
@@ -62,43 +62,59 @@ const History = () => {
         console.error("Error fetching elements:", error);
       }
     };
-  
+
     fetchData();
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-  
-    const filtered = items.filter((item) => {
+
+    const filtered = originalItems.filter((item) => {
       const matchesId = item._id.toLowerCase().includes(value);
       const matchesClientName = item.client.toLowerCase().includes(value);
       const matchesClientFilter =
         selectedClient === "" ||
         item.client.toLowerCase() === selectedClient.toLowerCase();
-  
+
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
-  
+
     setFilteredItems(filtered);
   };
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSelectedClient(value);
-  
-    const filtered = items.filter((item) => {
+
+    const filtered = originalItems.filter((item) => {
       const matchesId = item._id.toLowerCase().includes(searchTerm);
       const matchesClientName = item.client.toLowerCase().includes(searchTerm);
       const matchesClientFilter =
         value === "" || item.client.toLowerCase() === value.toLowerCase();
-  
+
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
-  
+
     setFilteredItems(filtered);
   };
-  
+
+  const handleExperienceNameSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase(); // Normalize input
+    setNameSearchTerm(value);
+
+    if (value === "") {
+      // If input is cleared, reset filteredItems to the full list
+      setFilteredItems([...originalItems]);
+    } else {
+      // Filter items based on experienceName starting with the input value
+      const filtered = originalItems.filter((item) =>
+        item.experienceName?.toLowerCase().startsWith(value) // Check if experienceName starts with the input value
+      );
+
+      setFilteredItems(filtered); // Update filtered items
+    }
+  };
 
   const handleOpenModal = (item: any) => {
     console.log("Selected item:", item);
@@ -181,66 +197,63 @@ const History = () => {
             </select>
           </FilterWrapper>
           <ExperienceNameWrapper>
-
-          <h1>Experience Name:</h1>
-          <input
-            type="text"
-            placeholder="Search by name (Coming soon)"
-            value={nameSearchTerm}
-            onChange={(e) => setNameSearchTerm(e.target.value)}
-            style={{
-              padding: "0.5rem",
-              width: "100%",
-              maxWidth: "400px",
-              marginBottom: "1rem",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-            }}
-          />
+            <h1>Experience Name:</h1>
+            <input
+              type="text"
+              placeholder="Search by Experience Name"
+              value={nameSearchTerm}
+              onChange={handleExperienceNameSearch}
+              style={{
+                padding: "0.5rem",
+                width: "100%",
+                maxWidth: "400px",
+                marginBottom: "1rem",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+              }}
+            />
           </ExperienceNameWrapper>
         </SearchWrapper>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-  {filteredItems.length > 0 ? (
-    filteredItems.map((item, index) => (
-      <div
-        key={index}
-        style={{
-          padding: "1rem",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
-          backgroundColor: "#f9f9f9",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          minWidth: "150px",
-          textAlign: "center",
-          cursor: "pointer",
-        }}
-        onClick={() => handleOpenModal(item)}
-      >
-        <p
-          style={{
-            fontWeight: "bold",
-            margin: "0 0 0.5rem 0",
-            color: "#333",
-          }}
-        >
-          {item._id}
-        </p>
-        <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-          Date Created: {item.dateCreated}
-        </p>
-        <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-          Client: {item.client}
-        </p>
-        <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
-          Experience Name: {item.experienceName}
-        </p>
-      </div>
-    ))
-  ) : (
-    <p>No matching items found.</p>
-  )}
-</div>
+          {filteredItems.length > 0 ? (
+            filteredItems.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: "1rem",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  backgroundColor: "#f9f9f9",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  minWidth: "150px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+                onClick={() => handleOpenModal(item)}
+              >
+                {/* Combine Id and Experience Name */}
+                <p
+                  style={{
+                    fontWeight: "bold",
+                    margin: "0 0 0.5rem 0",
+                    color: "#333",
+                  }}
+                >
+                  {item._id} - {item.experienceName}
+                </p>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
+                  Date Created: {item.dateCreated}
+                </p>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
+                  Client: {item.client}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p>No matching items found.</p>
+          )}
+        </div>
       </ContentWrapper>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} />
