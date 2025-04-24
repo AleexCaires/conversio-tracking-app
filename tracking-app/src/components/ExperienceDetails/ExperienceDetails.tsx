@@ -128,11 +128,30 @@ const ExperienceDetails: React.FC<{
         <ExperimentNumber>
           <Label htmlFor="experienceNumber">Experience Number:*</Label>
           <Input
-    id="experienceNumber"
-    type="text"
-    value={experienceNumber}
-    onChange={(e) => setExperienceNumber(e.target.value)}
-  />
+  id="experienceNumber"
+  type="text"
+  value={experienceNumber}
+  onKeyDown={(e) => {
+    // Allow only numbers, '.', and control keys (e.g., Backspace, Delete, Arrow keys)
+    if (
+      !/[0-9.]/.test(e.key) && // Allow digits and '.'
+      e.key !== "Backspace" &&
+      e.key !== "Delete" &&
+      e.key !== "ArrowLeft" &&
+      e.key !== "ArrowRight" &&
+      e.key !== "Tab"
+    ) {
+      e.preventDefault();
+    }
+  }}
+  onChange={(e) => {
+    // Validate input to ensure it only contains numbers and '.'
+    const value = e.target.value;
+    if (/^[0-9.]*$/.test(value)) {
+      setExperienceNumber(value);
+    }
+  }}
+/>
 
         </ExperimentNumber>
 

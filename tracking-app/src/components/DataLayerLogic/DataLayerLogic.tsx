@@ -56,6 +56,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     usedLetters.add(letter);
     return letter;
   };
+  
 
   useEffect(() => {
     if (!trigger) return;
@@ -94,12 +95,12 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
 
       newControlEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
-    'conversio' : {
-        'eventCategory': 'Conversio CRO',
-        'eventAction': '${fullClient} | Event Tracking',
-        'eventLabel': '${fullClient} | (Control Original) | ${description}',
-        'eventSegment': '${eventSegment}'
-    }
+      'conversio' : {
+          'eventCategory': 'Conversio CRO',
+          'eventAction': '${fullClient} | Event Tracking',
+          'eventLabel': '${fullClient} | (Control Original) | ${description}',
+          'eventSegment': '${eventSegment}'
+      }
 });`);
 
       if (typeof window !== "undefined" && window.dataLayer) {
@@ -114,22 +115,22 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
         const dataLayerObject = {
           event: "conversioEvent",
-          conversio: {
-            eventCategory: "Conversio CRO",
-            eventAction: `${fullClient} | Event Tracking`,
-            eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-            eventSegment: eventSegment,
-          },
+            conversio: {
+              eventCategory: "Conversio CRO",
+              eventAction: `${fullClient} | Event Tracking`,
+              eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+              eventSegment: eventSegment,
+            },
         };
 
         newVariationEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
-    'conversio' : {
-        'eventCategory': 'Conversio CRO',
-        'eventAction': '${fullClient} | Event Tracking',
-        'eventLabel': '${fullClient} | (Variation ${variantIndex}) | ${description}',
-        'eventSegment': '${eventSegment}'
-    }
+      'conversio' : {
+          'eventCategory': 'Conversio CRO',
+          'eventAction': '${fullClient} | Event Tracking',
+          'eventLabel': '${fullClient} | (Variation ${variantIndex}) | ${description}',
+          'eventSegment': '${eventSegment}'
+      }
 });`);
 
         if (typeof window !== "undefined" && window.dataLayer) {
@@ -155,8 +156,13 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     setTrigger(false);
   }, [trigger, numVariants, eventDescriptions, client, experienceNumber]);
 
-  const copyToClipboard = (text: string) => {
+  const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({}); // Track active borders
+
+  const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
+  
+    // Update the active border for the copied event
+    setActiveBorders((prev) => ({ ...prev, [key]: true }));
   };
 
   return (
@@ -172,45 +178,55 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
               padding: "10px",
             }}
           >
-            {eventData.controlEvents.map((event, index) => (
-              <div key={index} style={{ position: "relative" }}>
-                <pre
-                  style={{
-                    backgroundColor: "#1e1e1e",
-                    color: "#f5f5f5",
-                    padding: "16px",
-                    borderRadius: "8px",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                  }}
-                >
-                  {event}
-                </pre>
-                <button
-                  onClick={() => copyToClipboard(event)}
-                  style={{
-                    position: "absolute",
-                    right: "16px",
-                    bottom: "16px",
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    backgroundColor: "#007bff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Copy Code
-                </button>
-              </div>
-            ))}
+            {eventData.controlEvents.map((event, index) => {
+              const key = `control-${index}`;
+              return (
+                <div key={index} style={{ position: "relative" }}>
+                  <pre
+                    style={{
+                      backgroundColor: "#1e1e1e",
+                      color: "#f5f5f5",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: activeBorders[key]
+                        ? "2px solid #007bff" // Blue border for active
+                        : "2px solid transparent",
+                      boxShadow: activeBorders[key]
+                        ? "0 0 10px #007bff, 0 0 20px #007bff"
+                        : "none",
+                      transition: "box-shadow 0.3s ease, border 0.3s ease",
+                    }}
+                  >
+                    {event}
+                  </pre>
+                  <button
+                    onClick={() => copyToClipboard(event, key)}
+                    style={{
+                      position: "absolute",
+                      right: "16px",
+                      bottom: "16px",
+                      padding: "8px 12px",
+                      fontSize: "14px",
+                      backgroundColor: "#007bff",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Copy Code
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
-  
+
       {eventData.variationEvents && eventData.variationEvents.length > 0 && (
         <>
           <h3>Variation Events</h3>
@@ -218,15 +234,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
             const filteredEvents = eventData.variationEvents.filter(
               (_, index) => index % numVariants === variantIndex
             );
-  
-            // Only show this variation if it has events
+
             if (filteredEvents.length === 0) return null;
-  
+
             return (
-              <div
-                key={variantIndex}
-                style={{ marginTop: "20px" }}
-              >
+              <div key={variantIndex} style={{ marginTop: "20px" }}>
                 <h4>Variation {variantIndex + 1}</h4>
                 <div
                   style={{
@@ -236,41 +248,51 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
                     padding: "10px",
                   }}
                 >
-                  {filteredEvents.map((event, index) => (
-                    <div key={index} style={{ position: "relative" }}>
-                      <pre
-                        style={{
-                          backgroundColor: "#1e1e1e",
-                          color: "#f5f5f5",
-                          padding: "16px",
-                          borderRadius: "8px",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                          maxHeight: "300px",
-                          overflowY: "auto",
-                        }}
-                      >
-                        {event}
-                      </pre>
-                      <button
-                        onClick={() => copyToClipboard(event)}
-                        style={{
-                          position: "absolute",
-                          right: "16px",
-                          bottom: "16px",
-                          padding: "8px 12px",
-                          fontSize: "14px",
-                          backgroundColor: "#007bff",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Copy Code
-                      </button>
-                    </div>
-                  ))}
+                  {filteredEvents.map((event, index) => {
+                    const key = `variation-${variantIndex}-${index}`;
+                    return (
+                      <div key={index} style={{ position: "relative" }}>
+<pre
+  style={{
+    backgroundColor: "#1e1e1e",
+    color: "#f5f5f5",
+    padding: "16px",
+    borderRadius: "8px",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    maxHeight: "300px",
+    overflowY: "auto",
+    border: activeBorders[key]
+      ? "2px solid #007bff" // Always blue border for active
+      : "2px solid transparent",
+    boxShadow: activeBorders[key]
+      ? "0 0 10px #007bff, 0 0 20px #007bff" // Always blue glowing effect
+      : "none",
+    transition: "box-shadow 0.3s ease, border 0.3s ease",
+  }}
+>
+  {event}
+</pre>
+                        <button
+                          onClick={() => copyToClipboard(event, key)}
+                          style={{
+                            position: "absolute",
+                            right: "16px",
+                            bottom: "16px",
+                            padding: "8px 12px",
+                            fontSize: "14px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Copy Code
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -279,8 +301,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       )}
     </div>
   );
-  
 };
-
 
 export default DataLayerLogic;
