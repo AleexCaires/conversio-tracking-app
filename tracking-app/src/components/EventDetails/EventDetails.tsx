@@ -102,6 +102,8 @@ const EventDetails: React.FC = () => {
     }
   };
 
+  const isTriggerButtonDisabled = !selectedClient || !experienceNumber || eventDescriptions.some((desc) => desc.trim() === "");
+
   return (
     <Section>
       <Heading>Event Details</Heading>
@@ -139,7 +141,11 @@ const EventDetails: React.FC = () => {
         </EventCol>
       </EventRow>
 
-      <button onClick={handleTriggerDataLayer} style={{ marginTop: "1rem" }}>
+      <button 
+        onClick={handleTriggerDataLayer} 
+        style={{ marginTop: "1rem" }}
+        disabled={isTriggerButtonDisabled} // Disable button if fields are not filled
+      >
         Trigger DataLayer Logic
       </button>
 
