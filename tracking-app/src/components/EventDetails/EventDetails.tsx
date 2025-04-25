@@ -1,17 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Section,
-  Heading,
-  FieldGroupInitial,
-  Label,
-  Input,
-  EventDescriptionRow,
-  EventInput,
-  EventRow,
-  EventCol,
-} from "./EventDetails.styles";
+import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 
@@ -23,7 +13,7 @@ const EventDetails: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const { selectedClient, experienceNumber, numVariants, experienceName } = useExperience(); 
+  const { selectedClient, experienceNumber, numVariants, experienceName } = useExperience();
 
   const clients = [
     { name: "Finisterre", code: "FN" },
@@ -42,11 +32,7 @@ const EventDetails: React.FC = () => {
   const fullClient = `${clientCode}${experienceNumber}`;
 
   useEffect(() => {
-    setEventDescriptions((prev) =>
-      numEvents > prev.length
-        ? [...prev, ...Array(numEvents - prev.length).fill("")]
-        : prev.slice(0, numEvents)
-    );
+    setEventDescriptions((prev) => (numEvents > prev.length ? [...prev, ...Array(numEvents - prev.length).fill("")] : prev.slice(0, numEvents)));
   }, [numEvents]);
 
   const handleNumEventsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,12 +54,12 @@ const EventDetails: React.FC = () => {
     const elementData = {
       client: selectedClient,
       experienceNumber,
-      experienceName, 
+      experienceName,
       eventDescriptions,
-      numVariants, 
+      numVariants,
     };
 
-    console.log("Element Data:", elementData); 
+    console.log("Element Data:", elementData);
 
     setIsLoading(true);
     setErrorMessage("");
@@ -111,14 +97,7 @@ const EventDetails: React.FC = () => {
       <FieldGroupInitial>
         <div>
           <Label htmlFor="numEvents">No. of Events:</Label>
-          <Input
-            type="number"
-            id="numEvents"
-            value={numEvents}
-            min={1}
-            max={20}
-            onChange={handleNumEventsChange}
-          />
+          <Input type="number" id="numEvents" value={numEvents} min={1} max={20} onChange={handleNumEventsChange} />
         </div>
         <div>
           <Label>Event Category Name:</Label>
@@ -131,32 +110,21 @@ const EventDetails: React.FC = () => {
           {eventDescriptions.map((desc, idx) => (
             <EventDescriptionRow key={idx}>
               <Label>{`Event ${idx + 1} Description:`}</Label>
-              <EventInput
-                type="text"
-                value={desc}
-                onChange={(e) => handleDescriptionChange(idx, e.target.value)}
-              />
+              <EventInput type="text" value={desc} onChange={(e) => handleDescriptionChange(idx, e.target.value)} />
             </EventDescriptionRow>
           ))}
         </EventCol>
       </EventRow>
 
-      <button 
-        onClick={handleTriggerDataLayer} 
+      <button
+        onClick={handleTriggerDataLayer}
         style={{ marginTop: "1rem" }}
         disabled={isTriggerButtonDisabled} // Disable button if fields are not filled
       >
         Trigger DataLayer Logic
       </button>
 
-      <DataLayerLogic
-        client={selectedClient}
-        experienceNumber={experienceNumber}
-        eventDescriptions={eventDescriptions}
-        controlType="Dummy Control"
-        trigger={trigger}
-        setTrigger={setTrigger}
-      />
+      <DataLayerLogic client={selectedClient} experienceNumber={experienceNumber} eventDescriptions={eventDescriptions} controlType="Dummy Control" trigger={trigger} setTrigger={setTrigger} />
 
       <div style={{ marginTop: "1rem" }}>
         <button onClick={saveElementData} disabled={isLoading}>
