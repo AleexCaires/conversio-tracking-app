@@ -119,9 +119,7 @@ const EventDetails: React.FC = () => {
       <button
         onClick={handleTriggerDataLayer}
         style={{ marginTop: "1rem" }}
-        disabled={isTriggerButtonDisabled} // Disable button if fields are not filled
-      >
-        Trigger DataLayer Logic
+        disabled={isTriggerButtonDisabled}> Trigger DataLayer Logic
       </button>
 
       <DataLayerLogic client={selectedClient} experienceNumber={experienceNumber} eventDescriptions={eventDescriptions} controlType="Dummy Control" trigger={trigger} setTrigger={setTrigger} />
