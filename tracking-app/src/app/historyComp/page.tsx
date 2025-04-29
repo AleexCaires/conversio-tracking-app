@@ -4,12 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header/Header";
 import Modal from "@/components/Modal/Modal";
-import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper } from "./page.styles";
-
-interface ModalContent {
-  controlEvents: string[];
-  variationEvents: string[];
-}
+import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper, ItemCard } from "./page.styles";
 
 const clients = [
   { name: "Finisterre", code: "FN" },
@@ -139,36 +134,11 @@ const History = () => {
         <SearchWrapper>
           <InputWrapper>
             <h1>Search for specific Events:</h1>
-            <input
-              type="text"
-              placeholder="For Example: OPT100"
-              value={searchTerm}
-              onChange={handleSearch}
-              style={{
-                padding: "0.5rem",
-                width: "100%",
-                maxWidth: "400px",
-                marginBottom: "1rem",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-              }}
-            />
+            <input type="text" placeholder="For Example: OPT100" value={searchTerm} onChange={handleSearch} />
           </InputWrapper>
           <FilterWrapper>
             <h1>Filter by client:</h1>
-            <select
-              value={selectedClient}
-              onChange={handleClientChange}
-              style={{
-                padding: "0.5rem",
-                width: "100%",
-                maxWidth: "400px",
-                marginBottom: "1rem",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-              }}
-              className="clientSelector"
-            >
+            <select value={selectedClient} onChange={handleClientChange} className="clientSelector">
               <option value="">All Clients</option>
               {clients.map((client) => (
                 <option key={client.code} value={client.name}>
@@ -179,78 +149,20 @@ const History = () => {
           </FilterWrapper>
           <ExperienceNameWrapper>
             <h1>Experience Name:</h1>
-            <input
-              type="text"
-              placeholder="Search by Experience Name"
-              value={nameSearchTerm}
-              onChange={handleExperienceNameSearch}
-              style={{
-                padding: "0.5rem",
-                width: "100%",
-                maxWidth: "400px",
-                marginBottom: "1rem",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-              }}
-            />
+            <input type="text" placeholder="Search by Experience Name" value={nameSearchTerm} onChange={handleExperienceNameSearch} />
           </ExperienceNameWrapper>
         </SearchWrapper>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between" }}>
           {filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: "1rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  backgroundColor: "#f9f9f9",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  minWidth: "150px",
-                  width: "300px",
-                  maxWidth: "300px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleOpenModal(item)}
-              >
-                {/* Display Id */}
-                <p
-                  style={{
-                    fontWeight: "bold",
-                    margin: "0px 5px 5px 5px",
-                    color: "#333",
-                    fontSize: "18px",
-                  }}
-                >
-                  {item._id}
-                </p>
-
-                {/* Display Experience Name */}
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "16px",
-                    color: "rgb(51, 51, 51)",
-                    fontWeight: "bold",
-                    maxWidth: "350px", // Set max width
-                    whiteSpace: "normal", // Allow wrapping to the next line
-                    overflow: "hidden", // Hide overflow
-                    textOverflow: "ellipsis", // Add ellipsis for overflow
-                    display: "-webkit-box", // Use webkit box for multiline truncation
-                    WebkitLineClamp: 2, // Limit to 2 lines
-                    WebkitBoxOrient: "vertical", // Set box orientation to vertical
-                    marginBottom: "10px",
-                  }}
-                >
-                  {item.experienceName}
-                </p>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", color: "#666" }}>
-                  <p style={{ margin: 0 }}>{item.client}</p>
-                  <p style={{ margin: 0 }}>{item.dateCreated}</p>
+              <ItemCard key={index} onClick={() => handleOpenModal(item)}>
+                <p>{item._id}</p>
+                <p>{item.experienceName}</p>
+                <div>
+                  <p>{item.client}</p>
+                  <p>{item.dateCreated}</p>
                 </div>
-              </div>
+              </ItemCard>
             ))
           ) : (
             <p>No matching items found.</p>
