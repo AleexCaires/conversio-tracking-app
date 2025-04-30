@@ -114,9 +114,10 @@ const History = () => {
     console.log("Control Events", controlEvents);
     console.log("Variation Events", variationEvents);
 
+    // Pass events as objects
     setModalContent({
-      controlEvents: controlEvents.map((event: any) => JSON.stringify(event, null, 2)),
-      variationEvents: variationEvents.map((event: any) => JSON.stringify(event, null, 2)),
+      controlEvents: controlEvents, // Pass as objects
+      variationEvents: variationEvents, // Pass as objects
     });
 
     setIsModalOpen(true);
