@@ -116,10 +116,9 @@ const EventDetails: React.FC = () => {
         </EventCol>
       </EventRow>
 
-      <button
-        onClick={handleTriggerDataLayer}
-        style={{ marginTop: "1rem" }}
-        disabled={isTriggerButtonDisabled}> Trigger DataLayer Logic
+      <button onClick={handleTriggerDataLayer} style={{ marginTop: "1rem" }} disabled={isTriggerButtonDisabled}>
+        {" "}
+        Trigger DataLayer Logic
       </button>
 
       <DataLayerLogic client={selectedClient} experienceNumber={experienceNumber} eventDescriptions={eventDescriptions} controlType="Dummy Control" trigger={trigger} setTrigger={setTrigger} />
