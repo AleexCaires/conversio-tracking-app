@@ -20,22 +20,11 @@ export async function POST(req: Request) {
 
     const { elementData } = body;
 
-    if (
-      !elementData ||
-      !elementData.client ||
-      !elementData.eventDescriptions ||
-      !elementData.experienceNumber ||
-      !elementData.experienceName || 
-      typeof elementData.numVariants !== "number"
-    ) {
-      return NextResponse.json(
-        { message: "Missing required fields in request body." },
-        { status: 400 }
-      );
+    if (!elementData || !elementData.client || !elementData.eventDescriptions || !elementData.experienceNumber || !elementData.experienceName || typeof elementData.numVariants !== "number") {
+      return NextResponse.json({ message: "Missing required fields in request body." }, { status: 400 });
     }
 
-    const clientCode =
-      clients.find((c) => c.name === elementData.client)?.code || elementData.client;
+    const clientCode = clients.find((c) => c.name === elementData.client)?.code || elementData.client;
     const fullClient = `${clientCode}${elementData.experienceNumber}`;
 
     const usedLetters = new Set<string>();
@@ -70,12 +59,28 @@ export async function POST(req: Request) {
     // Generate Dummy Control events
     const controlEvents = elementData.eventDescriptions.map((description) => {
       const eventSegment = generateEventSegment(description, "ECO");
-      return {
-        eventCategory: "Conversio CRO",
-        eventAction: `${fullClient} | Event Tracking`,
-        eventLabel: `${fullClient} | (Control Original) | ${description}`,
-        eventSegment: eventSegment,
-      };
+
+      if (clientCode === "LT") {
+        // Adobe-specific structure for Laithwaites
+        return {
+          event: "targetClickEvent",
+          eventData: {
+            click: {
+              clickLocation: "Conversio CRO",
+              clickAction: `${fullClient} | Event Tracking`,
+              clickText: `${fullClient} (Control Original) | ${description}`,
+            },
+          },
+        };
+      } else {
+        // Standard structure
+        return {
+          eventCategory: "Conversio CRO",
+          eventAction: `${fullClient} | Event Tracking`,
+          eventLabel: `${fullClient} | (Control Original) | ${description}`,
+          eventSegment: eventSegment,
+        };
+      }
     });
 
     // Generate Variation events dynamically based on numVariants
@@ -83,34 +88,48 @@ export async function POST(req: Request) {
     for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
       const eventsForVariant = elementData.eventDescriptions.map((description) => {
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-        return {
-          eventCategory: "Conversio CRO",
-          eventAction: `${fullClient} | Event Tracking`,
-          eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-          eventSegment: eventSegment,
-        };
+
+        if (clientCode === "LT") {
+          // Adobe-specific structure for Laithwaites
+          return {
+            event: "targetClickEvent",
+            eventData: {
+              click: {
+                clickLocation: "Conversio CRO",
+                clickAction: `${fullClient} | Event Tracking`,
+                clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+              },
+            },
+          };
+        } else {
+          // Standard structure
+          return {
+            eventCategory: "Conversio CRO",
+            eventAction: `${fullClient} | Event Tracking`,
+            eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+            eventSegment: eventSegment,
+          };
+        }
       });
+
       variationEvents.push({ label: `Variation ${variantIndex}`, events: eventsForVariant });
     }
 
     // Combine control and variation events
-    const events = [
-      { label: "Dummy Control", events: controlEvents },
-      ...variationEvents,
-    ];
+    const events = [{ label: "Dummy Control", events: controlEvents }, ...variationEvents];
 
     // Save to MongoDB
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
 
     const result = await collection.updateOne(
       { _id: fullClient },
       {
         $set: {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
-          experienceName: elementData.experienceName, 
+          experienceName: elementData.experienceName,
           events,
         },
         $setOnInsert: {
@@ -122,9 +141,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Element saved successfully!", result });
   } catch (error: any) {
-    return NextResponse.json(
-      { message: `Failed to save element: ${error.message}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: `Failed to save element: ${error.message}` }, { status: 500 });
   }
 }
