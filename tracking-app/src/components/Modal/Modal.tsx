@@ -62,42 +62,64 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
         height: "100%",
         backgroundColor: "rgba(0, 0, 0, 0.5)",
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: "center", // Center horizontally
+        alignItems: "center", // Center vertically
         zIndex: 1000,
       }}
     >
       <div
         style={{
           backgroundColor: "#fff",
-          padding: "2rem",
           borderRadius: "8px",
-          maxWidth: "90vw",
-          width: "90%",
-          maxHeight: "90%",
-          overflowY: "auto",
+          maxWidth: "90vw", // Max width relative to viewport width
+          width: "90%", // Use percentage or fixed width as needed
+          maxHeight: "90vh", // Max height relative to viewport height
           boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
-          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         }}
       >
-        <button
-          onClick={onClose}
+        {/* Header Section (Not Scrollable) */}
+        <div
           style={{
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-            background: "none",
-            border: "none",
-            fontSize: "1.5rem",
-            cursor: "pointer",
+            padding: "1rem 2rem",
+            borderBottom: "1px solid #eee",
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            position: "relative",
+            flexShrink: 0,
           }}
         >
-          &times;
-        </button>
+          {/* You can add a title here if needed */}
+          <button
+            onClick={onClose}
+            style={{
+              // Removed absolute positioning, using flexbox alignment now
+              background: "none",
+              border: "none",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+              lineHeight: 1, // Ensure button doesn't take extra vertical space
+            }}
+          >
+            &times;
+          </button>
+        </div>
 
-        {content?.controlEvents && <EventDisplay title="Control Events" events={content.controlEvents} onCopy={copyToClipboard} />}
+        {/* Content Section (Scrollable) */}
+        <div
+          style={{
+            padding: "1rem 2rem 2rem 2rem",
+            overflowY: "auto",
+            flexGrow: 1,
+          }}
+        >
+          {content?.controlEvents && <EventDisplay title="Control Events" events={content.controlEvents} onCopy={copyToClipboard} />}
 
-        {Array.isArray(content?.variationEvents) && groupEventsByVariation(content.variationEvents).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} />)}
+          {Array.isArray(content?.variationEvents) && groupEventsByVariation(content.variationEvents).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} />)}
+        </div>
       </div>
     </div>
   );
