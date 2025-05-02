@@ -1,5 +1,12 @@
 import React from "react";
 import EventDisplay from "@/components/EventDisplay/EventDisplay";
+import {
+  ModalOverlay,
+  ModalContainer,
+  ModalHeader,
+  CloseButton,
+  ModalContent,
+} from "./Modal.styles"; // Import styled components
 
 interface ModalProps {
   isOpen: boolean;
@@ -15,6 +22,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Check if the click target is the overlay itself
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -52,76 +60,23 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
   };
 
   return (
-    <div
-      onClick={handleOverlayClick}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        justifyContent: "center", // Center horizontally
-        alignItems: "center", // Center vertically
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          maxWidth: "90vw", // Max width relative to viewport width
-          width: "90%", // Use percentage or fixed width as needed
-          maxHeight: "90vh", // Max height relative to viewport height
-          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        {/* Header Section (Not Scrollable) */}
-        <div
-          style={{
-            padding: "1rem 2rem",
-            borderBottom: "1px solid #eee",
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            position: "relative",
-            flexShrink: 0,
-          }}
-        >
+    <ModalOverlay onClick={handleOverlayClick}>
+      {/* Prevent clicks inside the container from closing the modal */}
+      <ModalContainer onClick={(e) => e.stopPropagation()}>
+        {/* Header Section */}
+        <ModalHeader>
           {/* You can add a title here if needed */}
-          <button
-            onClick={onClose}
-            style={{
-              // Removed absolute positioning, using flexbox alignment now
-              background: "none",
-              border: "none",
-              fontSize: "1.5rem",
-              cursor: "pointer",
-              lineHeight: 1, // Ensure button doesn't take extra vertical space
-            }}
-          >
-            &times;
-          </button>
-        </div>
+          <CloseButton onClick={onClose}>&times;</CloseButton>
+        </ModalHeader>
 
-        {/* Content Section (Scrollable) */}
-        <div
-          style={{
-            padding: "1rem 2rem 2rem 2rem",
-            overflowY: "auto",
-            flexGrow: 1,
-          }}
-        >
+        {/* Content Section */}
+        <ModalContent>
           {content?.controlEvents && <EventDisplay title="Control Events" events={content.controlEvents} onCopy={copyToClipboard} />}
 
           {Array.isArray(content?.variationEvents) && groupEventsByVariation(content.variationEvents).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} />)}
-        </div>
-      </div>
-    </div>
+        </ModalContent>
+      </ModalContainer>
+    </ModalOverlay>
   );
 };
 

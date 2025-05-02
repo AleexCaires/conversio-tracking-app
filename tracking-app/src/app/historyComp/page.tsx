@@ -161,7 +161,7 @@ const History = () => {
                 <p>{item.experienceName}</p>
                 <div>
                   <p>{item.client}</p>
-                  <p>{new Date(item.dateCreated).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</p>
+                  <p>{new Date(item.dateCreated).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</p>
                 </div>
               </ItemCard>
             ))
