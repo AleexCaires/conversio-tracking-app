@@ -8,7 +8,9 @@ interface DataLayerLogicProps {
   controlType: string;
   trigger: boolean;
   setTrigger: (value: boolean) => void;
-  onDataGenerated?: (data: any) => void;
+  onDataGenerated: (data: { controlEvents: string[]; variationEvents: string[] }) => void;
+  selectedStatus: Record<string, boolean>;
+  setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 const clients = [
@@ -24,10 +26,11 @@ const clients = [
   { name: "Team Sport", code: "TS" },
 ];
 
-const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, controlType, trigger, setTrigger, onDataGenerated }) => {
+const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, controlType, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus }) => {
   const { numVariants } = useExperience();
 
-  const [eventData, setEventData] = useState<{
+  const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
+  const [localEventData, setLocalEventData] = useState<{
     controlEvents: string[];
     variationEvents: string[];
   }>({
@@ -35,9 +38,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     variationEvents: [],
   });
 
-  const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({}); // Track active borders
-
-  const clientData = clients.find((c) => c.name === client);
+  const clientData = clients.find((c) => c.name === client || c.code === client);
   const clientCode = clientData ? clientData.code : client;
   const fullClient = `${clientCode}${experienceNumber}`;
 
@@ -51,16 +52,13 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     return letter;
   };
 
+  const toggleSelection = (key: string) => {
+    setSelectedStatus((prev) => ({ ...prev, [key]: !prev[key] }));
+    setActiveBorders((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   useEffect(() => {
     if (!trigger) return;
-
-    console.log("Trigger activated:", trigger);
-    console.log("Event Descriptions:", eventDescriptions);
-
-    if (eventDescriptions.length === 0) {
-      console.warn("No event descriptions provided.");
-      return;
-    }
 
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
@@ -71,8 +69,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
       }
     });
 
-    console.log("Description Letters Map:", descriptionLetters);
-
     const generateEventSegment = (description: string, variantPrefix: string) => {
       const sharedLetter = descriptionLetters.get(description);
       if (sharedLetter) {
@@ -81,7 +77,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         }
         return `${fullClient}E${variantPrefix}${sharedLetter}`;
       }
-      console.warn("No shared letter found for description:", description);
       return "";
     };
 
@@ -90,29 +85,8 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
 
     eventDescriptions.forEach((description) => {
       const eventSegment = generateEventSegment(description, "ECO");
-      console.log("Generated Event Segment (Control):", eventSegment);
 
       if (clientCode === "LT") {
-        // Adobe-specific dataLayer object
-        const adobeDataLayerObject = {
-          event: "targetClickEvent",
-          eventData: {
-            click: {
-              clickLocation: "Conversio CRO",
-              clickAction: `${fullClient} | Event Tracking`,
-              clickText: `${fullClient} (Control Original) | ${description}`,
-            },
-          },
-        };
-
-        // Push to adobeDataLayer
-        if (typeof window !== "undefined" && window.adobeDataLayer) {
-          window.adobeDataLayer.push(adobeDataLayerObject);
-        } else {
-          console.log("Dummy Adobe Control dataLayer object:", adobeDataLayerObject);
-        }
-
-        // Add to newControlEvents for UI rendering
         newControlEvents.push(`adobeDataLayer.push({
     event: 'targetClickEvent',
     eventData: {
@@ -124,17 +98,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
       } else {
-        // Standard dataLayer object
-        const dataLayerObject = {
-          event: "conversioEvent",
-          conversio: {
-            eventCategory: "Conversio CRO",
-            eventAction: `${fullClient} | Event Tracking`,
-            eventLabel: `${fullClient} | (Control Original) | ${description}`,
-            eventSegment: eventSegment,
-          },
-        };
-
         newControlEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
     'conversio' : {
@@ -144,41 +107,14 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         'eventSegment': '${eventSegment}'
     }
 });`);
-
-        if (typeof window !== "undefined" && window.dataLayer) {
-          window.dataLayer.push(dataLayerObject);
-        } else {
-          console.log("Dummy Control dataLayer object:", dataLayerObject);
-        }
       }
     });
 
     for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
       eventDescriptions.forEach((description) => {
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-        console.log("Generated Event Segment (Variation):", eventSegment);
 
         if (clientCode === "LT") {
-          // Adobe-specific dataLayer object
-          const adobeDataLayerObject = {
-            event: "targetClickEvent",
-            eventData: {
-              click: {
-                clickLocation: "Conversio CRO",
-                clickAction: `${fullClient} | Event Tracking`,
-                clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
-              },
-            },
-          };
-
-          // Push to adobeDataLayer
-          if (typeof window !== "undefined" && window.adobeDataLayer) {
-            window.adobeDataLayer.push(adobeDataLayerObject);
-          } else {
-            console.log(`Variation ${variantIndex} Adobe dataLayer object:`, adobeDataLayerObject);
-          }
-
-          // Add to newVariationEvents for UI rendering
           newVariationEvents.push(`adobeDataLayer.push({
     event: 'targetClickEvent',
     eventData: {
@@ -190,17 +126,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
         } else {
-          // Standard dataLayer object
-          const dataLayerObject = {
-            event: "conversioEvent",
-            conversio: {
-              eventCategory: "Conversio CRO",
-              eventAction: `${fullClient} | Event Tracking`,
-              eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-              eventSegment: eventSegment,
-            },
-          };
-
           newVariationEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
     'conversio' : {
@@ -210,20 +135,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         'eventSegment': '${eventSegment}'
     }
 });`);
-
-          if (typeof window !== "undefined" && window.dataLayer) {
-            window.dataLayer.push(dataLayerObject);
-          } else {
-            console.log(`Variation ${variantIndex} dataLayer object:`, dataLayerObject);
-          }
         }
       });
     }
 
-    console.log("New Control Events:", newControlEvents);
-    console.log("New Variation Events:", newVariationEvents);
-
-    setEventData({
+    setLocalEventData({
       controlEvents: newControlEvents,
       variationEvents: newVariationEvents,
     });
@@ -236,18 +152,76 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 
     setTimeout(() => setTrigger(false), 100);
-  }, [trigger, numVariants, eventDescriptions, client, experienceNumber]);
+  }, [trigger, numVariants, eventDescriptions, client, experienceNumber, setTrigger, onDataGenerated]);
 
-  const copyToClipboard = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-
-    // Update the active border for the copied event
-    setActiveBorders((prev) => ({ ...prev, [key]: true }));
+  const copyToClipboard = (event: string, key: string) => {
+    navigator.clipboard.writeText(event).then(() => {
+      setActiveBorders((prev) => ({ ...prev, [key]: true }));
+      setSelectedStatus((prev) => ({ ...prev, [key]: true }));
+      console.log(`Code copied locally for key: ${key}`);
+      setTimeout(() => {
+        setActiveBorders((prev) => ({ ...prev, [key]: false }));
+      }, 2000);
+    });
   };
+
+  const renderEventBlock = (event: string, key: string) => (
+    <div key={key} style={{ position: "relative" }} data-copied={!!selectedStatus[key]}>
+      <input
+        type="checkbox"
+        checked={!!selectedStatus[key]}
+        onChange={() => toggleSelection(key)}
+        style={{
+          position: "absolute",
+          top: "-10px",
+          right: "0px",
+          width: "20px",
+          height: "20px",
+          cursor: "pointer",
+        }}
+        title={selectedStatus[key] ? "Unselect" : "Select"}
+      />
+      <pre
+        style={{
+          backgroundColor: "#1e1e1e",
+          color: "#f5f5f5",
+          padding: "16px",
+          borderRadius: "8px",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          maxHeight: "300px",
+          overflowY: "auto",
+          border: activeBorders[key] ? "2px solid #007bff" : "2px solid transparent",
+          boxShadow: activeBorders[key] ? "0 0 10px #007bff, 0 0 20px #007bff" : "none",
+          transition: "box-shadow 0.3s ease, border 0.3s ease",
+        }}
+      >
+        {event}
+      </pre>
+      <button
+        onClick={() => copyToClipboard(event, key)}
+        style={{
+          position: "absolute",
+          right: "16px",
+          bottom: "48px",
+          padding: "8px 12px",
+          fontSize: "14px",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+        title={"Copy Code"}
+      >
+        Copy Code
+      </button>
+    </div>
+  );
 
   return (
     <div>
-      {eventData.controlEvents.length > 0 && (
+      {localEventData.controlEvents.length > 0 && (
         <>
           <h3>Control Events</h3>
           <div
@@ -258,54 +232,12 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
               padding: "10px",
             }}
           >
-            {eventData.controlEvents.map((event, index) => {
-              const key = `control-${index}`;
-              return (
-                <div key={key} style={{ position: "relative" }}>
-                  <pre
-                    style={{
-                      backgroundColor: "#1e1e1e",
-                      color: "#f5f5f5",
-                      padding: "16px",
-                      borderRadius: "8px",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      border: activeBorders[key]
-                        ? "2px solid #007bff" // Blue border for active
-                        : "2px solid transparent",
-                      boxShadow: activeBorders[key] ? "0 0 10px #007bff, 0 0 20px #007bff" : "none",
-                      transition: "box-shadow 0.3s ease, border 0.3s ease",
-                    }}
-                  >
-                    {event}
-                  </pre>
-                  <button
-                    onClick={() => copyToClipboard(event, key)}
-                    style={{
-                      position: "absolute",
-                      right: "16px",
-                      bottom: "16px",
-                      padding: "8px 12px",
-                      fontSize: "14px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Copy Code
-                  </button>
-                </div>
-              );
-            })}
+            {localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}
           </div>
         </>
       )}
 
-      {eventData.variationEvents.length > 0 && (
+      {localEventData.variationEvents.length > 0 && (
         <>
           <h3>Variation Events</h3>
           <div
@@ -316,49 +248,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
               padding: "10px",
             }}
           >
-            {eventData.variationEvents.map((event, index) => {
-              const key = `variation-${index}`;
-              return (
-                <div key={key} style={{ position: "relative" }}>
-                  <pre
-                    style={{
-                      backgroundColor: "#1e1e1e",
-                      color: "#f5f5f5",
-                      padding: "16px",
-                      borderRadius: "8px",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      border: activeBorders[key]
-                        ? "2px solid #007bff" // Blue border for active
-                        : "2px solid transparent",
-                      boxShadow: activeBorders[key] ? "0 0 10px #007bff, 0 0 20px #007bff" : "none",
-                      transition: "box-shadow 0.3s ease, border 0.3s ease",
-                    }}
-                  >
-                    {event}
-                  </pre>
-                  <button
-                    onClick={() => copyToClipboard(event, key)}
-                    style={{
-                      position: "absolute",
-                      right: "16px",
-                      bottom: "16px",
-                      padding: "8px 12px",
-                      fontSize: "14px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Copy Code
-                  </button>
-                </div>
-              );
-            })}
+            {localEventData.variationEvents.map((event, index) => renderEventBlock(event, `variation-${index}`))}
           </div>
         </>
       )}
