@@ -13,6 +13,13 @@ const EventDetails: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Lifted state
+  const [eventData, setEventData] = useState<{ controlEvents: string[]; variationEvents: string[] }>({
+    controlEvents: [],
+    variationEvents: [],
+  });
+  const [selectedStatus, setSelectedStatus] = useState<Record<string, boolean>>({});
+
   const { selectedClient, experienceNumber, numVariants, experienceName } = useExperience();
 
   const clients = [
@@ -35,6 +42,13 @@ const EventDetails: React.FC = () => {
     setEventDescriptions((prev) => (numEvents > prev.length ? [...prev, ...Array(numEvents - prev.length).fill("")] : prev.slice(0, numEvents)));
   }, [numEvents]);
 
+  // Clear generated data and copied status if core details change
+  useEffect(() => {
+    setSuccessMessage("");
+    setEventData({ controlEvents: [], variationEvents: [] }); // Clear generated code
+    setSelectedStatus({}); // Clear copied status
+  }, [selectedClient, experienceNumber, eventDescriptions, numVariants, experienceName]);
+
   const handleNumEventsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setNumEvents(isNaN(value) ? 0 : value);
@@ -47,19 +61,35 @@ const EventDetails: React.FC = () => {
   };
 
   const handleTriggerDataLayer = () => {
-    setTrigger(true); // Trigger DataLayer logic
+    setSelectedStatus({}); // Clear selection when re-triggering
+    setTrigger(true);
+  };
+
+  // Callback for DataLayerLogic to update generated event data
+  const handleDataGenerated = (data: { controlEvents: string[]; variationEvents: string[] }) => {
+    setEventData(data);
   };
 
   const saveElementData = async () => {
-    const elementData = {
+    // Prepare payload including copied status
+    const mapWithCopied = (events: string[], prefix: string) =>
+      events.map((eventCode, idx) => ({
+        code: eventCode, // The generated code string
+        codeCopied: !!selectedStatus[`${prefix}-${idx}`], // Copied status from local state
+      }));
+
+    const elementDataPayload = {
       client: selectedClient,
       experienceNumber,
       experienceName,
-      eventDescriptions,
+      eventDescriptions, // Send original descriptions
       numVariants,
+      // Send events with their copied status
+      controlEventsWithCopied: mapWithCopied(eventData.controlEvents, "control"),
+      variationEventsWithCopied: mapWithCopied(eventData.variationEvents, "variation"),
     };
 
-    console.log("Element Data:", elementData);
+    console.log("Saving Element Data:", elementDataPayload);
 
     setIsLoading(true);
     setErrorMessage("");
@@ -71,7 +101,7 @@ const EventDetails: React.FC = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ elementData }),
+        body: JSON.stringify({ elementData: elementDataPayload }), // Send the prepared payload
       });
 
       if (res.ok) {
@@ -117,14 +147,23 @@ const EventDetails: React.FC = () => {
       </EventRow>
 
       <button onClick={handleTriggerDataLayer} style={{ marginTop: "1rem" }} disabled={isTriggerButtonDisabled}>
-        {" "}
         Trigger DataLayer Logic
       </button>
 
-      <DataLayerLogic client={selectedClient} experienceNumber={experienceNumber} eventDescriptions={eventDescriptions} controlType="Dummy Control" trigger={trigger} setTrigger={setTrigger} />
+      <DataLayerLogic
+        client={selectedClient}
+        experienceNumber={experienceNumber}
+        eventDescriptions={eventDescriptions}
+        controlType="Dummy Control"
+        trigger={trigger}
+        setTrigger={setTrigger}
+        onDataGenerated={handleDataGenerated} // Pass callback
+        selectedStatus={selectedStatus} // Pass state down
+        setSelectedStatus={setSelectedStatus} // Pass setter down
+      />
 
       <div style={{ marginTop: "1rem" }}>
-        <button onClick={saveElementData} disabled={isLoading}>
+        <button onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
           {isLoading ? "Saving..." : "Save Element"}
         </button>
       </div>
