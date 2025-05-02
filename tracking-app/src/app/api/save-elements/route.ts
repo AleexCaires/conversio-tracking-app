@@ -27,6 +27,8 @@ export async function POST(req: Request) {
     const clientCode = clients.find((c) => c.name === elementData.client)?.code || elementData.client;
     const fullClient = `${clientCode}${elementData.experienceNumber}`;
 
+    console.log("Saving document with _id:", fullClient);
+
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
@@ -57,60 +59,116 @@ export async function POST(req: Request) {
     };
 
     // Generate Dummy Control events
-    const controlEvents = elementData.eventDescriptions.map((description) => {
-      const eventSegment = generateEventSegment(description, "ECO");
-
-      if (clientCode === "LT") {
-        // Adobe-specific structure for Laithwaites
-        return {
-          event: "targetClickEvent",
-          eventData: {
-            click: {
-              clickLocation: "Conversio CRO",
-              clickAction: `${fullClient} | Event Tracking`,
-              clickText: `${fullClient} (Control Original) | ${description}`,
-            },
-          },
-        };
-      } else {
-        // Standard structure
-        return {
-          eventCategory: "Conversio CRO",
-          eventAction: `${fullClient} | Event Tracking`,
-          eventLabel: `${fullClient} | (Control Original) | ${description}`,
-          eventSegment: eventSegment,
-        };
-      }
-    });
+    const controlEvents =
+      elementData.controlEventsWithCopied && elementData.controlEventsWithCopied.length === elementData.eventDescriptions.length
+        ? elementData.controlEventsWithCopied.map((eventObj, idx) => {
+            const description = elementData.eventDescriptions[idx];
+            const eventSegment = generateEventSegment(description, "ECO");
+            const baseEvent =
+              clientCode === "LT"
+                ? {
+                    event: "targetClickEvent",
+                    eventData: {
+                      click: {
+                        clickLocation: "Conversio CRO",
+                        clickAction: `${fullClient} | Event Tracking`,
+                        clickText: `${fullClient} (Control Original) | ${description}`,
+                      },
+                    },
+                  }
+                : {
+                    eventCategory: "Conversio CRO",
+                    eventAction: `${fullClient} | Event Tracking`,
+                    eventLabel: `${fullClient} | (Control Original) | ${description}`,
+                    eventSegment: eventSegment,
+                  };
+            return {
+              ...baseEvent,
+              codeCopied: !!eventObj.codeCopied,
+            };
+          })
+        : elementData.eventDescriptions.map((description) => {
+            const eventSegment = generateEventSegment(description, "ECO");
+            const baseEvent =
+              clientCode === "LT"
+                ? {
+                    event: "targetClickEvent",
+                    eventData: {
+                      click: {
+                        clickLocation: "Conversio CRO",
+                        clickAction: `${fullClient} | Event Tracking`,
+                        clickText: `${fullClient} (Control Original) | ${description}`,
+                      },
+                    },
+                  }
+                : {
+                    eventCategory: "Conversio CRO",
+                    eventAction: `${fullClient} | Event Tracking`,
+                    eventLabel: `${fullClient} | (Control Original) | ${description}`,
+                    eventSegment: eventSegment,
+                  };
+            return {
+              ...baseEvent,
+              codeCopied: false,
+            };
+          });
 
     // Generate Variation events dynamically based on numVariants
     const variationEvents = [];
     for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
-      const eventsForVariant = elementData.eventDescriptions.map((description) => {
-        const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-
-        if (clientCode === "LT") {
-          // Adobe-specific structure for Laithwaites
-          return {
-            event: "targetClickEvent",
-            eventData: {
-              click: {
-                clickLocation: "Conversio CRO",
-                clickAction: `${fullClient} | Event Tracking`,
-                clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
-              },
-            },
-          };
-        } else {
-          // Standard structure
-          return {
-            eventCategory: "Conversio CRO",
-            eventAction: `${fullClient} | Event Tracking`,
-            eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-            eventSegment: eventSegment,
-          };
-        }
-      });
+      const eventsForVariant =
+        elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
+          ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj, idx) => {
+              const description = elementData.eventDescriptions[idx];
+              const eventSegment = generateEventSegment(description, `V${variantIndex}`);
+              const baseEvent =
+                clientCode === "LT"
+                  ? {
+                      event: "targetClickEvent",
+                      eventData: {
+                        click: {
+                          clickLocation: "Conversio CRO",
+                          clickAction: `${fullClient} | Event Tracking`,
+                          clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+                        },
+                      },
+                    }
+                  : {
+                      eventCategory: "Conversio CRO",
+                      eventAction: `${fullClient} | Event Tracking`,
+                      eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                      eventSegment: eventSegment,
+                    };
+              return {
+                ...baseEvent,
+                codeCopied: !!eventObj.codeCopied,
+              };
+            })
+          : elementData.eventDescriptions.map((description) => {
+              const eventSegment = generateEventSegment(description, `V${variantIndex}`);
+              const baseEvent =
+                clientCode === "LT"
+                  ? {
+                      event: "targetClickEvent",
+                      eventData: {
+                        click: {
+                          clickLocation: "Conversio CRO",
+                          clickAction: `${fullClient} | Event Tracking`,
+                          clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+                        },
+                      },
+                    }
+                  : {
+                      eventCategory: "Conversio CRO",
+                      eventAction: `${fullClient} | Event Tracking`,
+                      eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                      eventSegment: eventSegment,
+                    };
+              return {
+                ...baseEvent,
+                codeCopied: false,
+              };
+            });
 
       variationEvents.push({ label: `Variation ${variantIndex}`, events: eventsForVariant });
     }
