@@ -6,7 +6,6 @@ import { theme } from "../styles/theme";
 import Header from "@/components/Header/Header";
 import ExperienceDetails from "@/components/ExperienceDetails/ExperienceDetails";
 import EventDetails from "@/components/EventDetails/EventDetails";
-
 import { ExperienceProvider } from "../components/ExperienceContext/ExperienceContext";
 
 export default function Home() {
@@ -14,8 +13,9 @@ export default function Home() {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <Header />
+      {/* Component for Creating/Editing */}
       <ExperienceProvider>
-        <ExperienceDetails 
+        <ExperienceDetails
           onClientChange={(clientCode: string) => {
             console.log("Client code changed:", clientCode);
           }}
