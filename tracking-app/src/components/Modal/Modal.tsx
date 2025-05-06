@@ -1,12 +1,6 @@
 import React from "react";
 import EventDisplay from "@/components/EventDisplay/EventDisplay";
-import {
-  ModalOverlay,
-  ModalContainer,
-  ModalHeader,
-  CloseButton,
-  ModalContent,
-} from "./Modal.styles"; // Import styled components
+import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles"; // Import styled components
 
 interface ModalProps {
   isOpen: boolean;
