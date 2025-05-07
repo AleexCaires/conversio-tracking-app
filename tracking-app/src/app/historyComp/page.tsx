@@ -177,13 +177,7 @@ const History = () => {
         </div>
       </ContentWrapper>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        content={modalContent}
-        experienceNumber={experienceNumber}
-        experienceName={experienceName}
-      />
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} experienceNumber={experienceNumber} experienceName={experienceName} />
     </>
   );
 };

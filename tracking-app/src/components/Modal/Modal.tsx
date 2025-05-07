@@ -10,13 +10,7 @@ interface ModalProps {
   experienceName?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  content,
-  experienceNumber,
-  experienceName,
-}) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumber, experienceName }) => {
   if (!isOpen) return null;
 
   const copyToClipboard = (text: string) => {
