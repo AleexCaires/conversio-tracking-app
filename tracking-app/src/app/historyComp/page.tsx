@@ -29,6 +29,8 @@ const History = () => {
   const [filteredItems, setFilteredItems] = useState([]); // Store the filtered list
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const [modalContent, setModalContent] = useState<ModalContent | null>(null); // State to store modal content
+  const [experienceNumber, setExperienceNumber] = useState<string | undefined>(undefined);
+  const [experienceName, setExperienceName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +121,8 @@ const History = () => {
       controlEvents: controlEvents, // Pass as objects
       variationEvents: variationEvents, // Pass as objects
     });
+    setExperienceNumber(item._id); // Use item._id as experienceNumber
+    setExperienceName(item.experienceName);
 
     setIsModalOpen(true);
   };
@@ -126,6 +130,8 @@ const History = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setModalContent(null);
+    setExperienceNumber(undefined);
+    setExperienceName(undefined);
   };
 
   return (
@@ -157,11 +163,11 @@ const History = () => {
           {filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
               <ItemCard key={index} onClick={() => handleOpenModal(item)}>
-                <p>{item._id}</p>
-                <p>{item.experienceName}</p>
-                <div>
-                  <p>{item.client}</p>
-                  <p>{new Date(item.dateCreated).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</p>
+                <p className="itemCode">{item._id}</p>
+                <p className="experienceName">{item.experienceName}</p>
+                <div className="bottomContainer">
+                  <p className="clientName">{item.client}</p>
+                  <p className="date">{new Date(item.dateCreated).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</p>
                 </div>
               </ItemCard>
             ))
@@ -171,7 +177,13 @@ const History = () => {
         </div>
       </ContentWrapper>
 
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} />
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        content={modalContent}
+        experienceNumber={experienceNumber}
+        experienceName={experienceName}
+      />
     </>
   );
 };

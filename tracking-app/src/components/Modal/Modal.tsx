@@ -6,9 +6,17 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   content: any;
+  experienceNumber?: string;
+  experienceName?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  content,
+  experienceNumber,
+  experienceName,
+}) => {
   if (!isOpen) return null;
 
   const copyToClipboard = (text: string) => {
@@ -59,7 +67,15 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content }) => {
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         {/* Header Section */}
         <ModalHeader>
-          {/* You can add a title here if needed */}
+          <div style={{ flex: 1, fontWeight: 600, fontSize: "1.1rem", textAlign: "left" }}>
+            {(experienceNumber || experienceName) && (
+              <span style={{ color: "inherit" }}>
+                {experienceNumber ? experienceNumber : ""}
+                {experienceNumber && experienceName ? " - " : ""}
+                {experienceName ? experienceName : ""}
+              </span>
+            )}
+          </div>
           <CloseButton onClick={onClose}>&times;</CloseButton>
         </ModalHeader>
 

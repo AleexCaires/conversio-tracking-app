@@ -85,18 +85,21 @@ export const ItemCard = styled.div`
   p {
     margin: 0;
   }
+  .bottomContainer{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
 
-  p:first-child {
-    font-weight: bold;
+    .clientName, .date {
+    font-weight: 100;
     margin: 0px 5px 5px 5px;
-    color: #333;
-    font-size: 18px;
-  }
-
-  p:nth-child(2) {
-    margin: 0;
+    color: grey;
     font-size: 16px;
-    color: rgb(51, 51, 51);
+  }
+  }
+  .experienceName , .itemCode {
+    font-size: 16px;
+    color: #000;
     font-weight: bold;
     max-width: 350px;
     white-space: normal;
@@ -105,13 +108,6 @@ export const ItemCard = styled.div`
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    margin-bottom: 10px;
-  }
-
-  div {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: #666;
+    margin-bottom: 5px;
   }
 `;
