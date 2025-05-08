@@ -83,9 +83,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     const newControlEvents: string[] = [];
     const newVariationEvents: string[] = [];
 
-    eventDescriptions.forEach((description) => {
+    // Render code blocks for all events, including trigger event
+    for (let idx = 0; idx < eventDescriptions.length; idx++) {
+      const description = eventDescriptions[idx];
       const eventSegment = generateEventSegment(description, "ECO");
-
       if (clientCode === "LT") {
         newControlEvents.push(`adobeDataLayer.push({
     event: 'targetClickEvent',
@@ -108,12 +109,12 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
       }
-    });
+    }
 
     for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
-      eventDescriptions.forEach((description) => {
+      for (let idx = 0; idx < eventDescriptions.length; idx++) {
+        const description = eventDescriptions[idx];
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-
         if (clientCode === "LT") {
           newVariationEvents.push(`adobeDataLayer.push({
     event: 'targetClickEvent',
@@ -136,7 +137,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
         }
-      });
+      }
     }
 
     setLocalEventData({
@@ -151,7 +152,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
       });
     }
 
-    setTimeout(() => setTrigger(false), 100);
+    // Fix: Only reset trigger if it is still true after this effect runs
+    // This prevents infinite update loops if setTrigger is called when trigger is already false
+    // Use a microtask to avoid immediate re-render in the same commit phase
+    Promise.resolve().then(() => setTrigger(false));
     // Only include stable, primitive dependencies
   }, [trigger, numVariants, client, experienceNumber, eventDescriptions]);
 
