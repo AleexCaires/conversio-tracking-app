@@ -58,6 +58,9 @@ export async function POST(req: Request) {
       return `${fullClient}E${variantPrefix}${sharedLetter}`;
     };
 
+    // Helper to determine if this index is the trigger event
+    const isTriggerEvent = (idx: number) => elementData.triggerEvent && elementData.triggerEvent.enabled && idx === 0;
+
     // Generate Dummy Control events
     const controlEvents =
       elementData.controlEventsWithCopied && elementData.controlEventsWithCopied.length === elementData.eventDescriptions.length
@@ -82,12 +85,14 @@ export async function POST(req: Request) {
                     eventLabel: `${fullClient} | (Control Original) | ${description}`,
                     eventSegment: eventSegment,
                   };
+            // Only add triggerEvent: true if this is the trigger event
             return {
               ...baseEvent,
               codeCopied: !!eventObj.codeCopied,
+              ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
             };
           })
-        : elementData.eventDescriptions.map((description) => {
+        : elementData.eventDescriptions.map((description, idx) => {
             const eventSegment = generateEventSegment(description, "ECO");
             const baseEvent =
               clientCode === "LT"
@@ -110,6 +115,7 @@ export async function POST(req: Request) {
             return {
               ...baseEvent,
               codeCopied: false,
+              ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
             };
           });
 
@@ -142,9 +148,10 @@ export async function POST(req: Request) {
               return {
                 ...baseEvent,
                 codeCopied: !!eventObj.codeCopied,
+                ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
               };
             })
-          : elementData.eventDescriptions.map((description) => {
+          : elementData.eventDescriptions.map((description, idx) => {
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
               const baseEvent =
                 clientCode === "LT"
@@ -167,6 +174,7 @@ export async function POST(req: Request) {
               return {
                 ...baseEvent,
                 codeCopied: false,
+                ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
               };
             });
 
@@ -180,8 +188,9 @@ export async function POST(req: Request) {
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
 
-    const today = new Date().toISOString().split("T")[0];
+    const now = new Date().toISOString();
 
+    // Always update dateCreated to now (full timestamp), even when a trigger event is enabled
     const result = await collection.updateOne(
       { _id: fullClient },
       {
@@ -189,9 +198,7 @@ export async function POST(req: Request) {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
           experienceName: elementData.experienceName,
           events,
-        },
-        $setOnInsert: {
-          dateCreated: today,
+          dateCreated: now, // always update with full timestamp
         },
       },
       { upsert: true }
