@@ -12,6 +12,8 @@ const EventDetails: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [triggerEventEnabled, setTriggerEventEnabled] = useState(false); // replaces triggerEventType
+  const [triggerEventDescription, setTriggerEventDescription] = useState(""); // unchanged
 
   // Lifted state
   const [eventData, setEventData] = useState<{ controlEvents: string[]; variationEvents: string[] }>({
@@ -42,11 +44,10 @@ const EventDetails: React.FC = () => {
     setEventDescriptions((prev) => (numEvents > prev.length ? [...prev, ...Array(numEvents - prev.length).fill("")] : prev.slice(0, numEvents)));
   }, [numEvents]);
 
-  // Clear generated data and copied status if core details change
   useEffect(() => {
     setSuccessMessage("");
-    setEventData({ controlEvents: [], variationEvents: [] }); // Clear generated code
-    setSelectedStatus({}); // Clear copied status
+    setEventData({ controlEvents: [], variationEvents: [] });
+    setSelectedStatus({});
   }, [selectedClient, experienceNumber, eventDescriptions, numVariants, experienceName]);
 
   const handleNumEventsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,32 +62,41 @@ const EventDetails: React.FC = () => {
   };
 
   const handleTriggerDataLayer = () => {
-    setSelectedStatus({}); // Clear selection when re-triggering
+    setSelectedStatus({});
     setTrigger(true);
   };
 
-  // Callback for DataLayerLogic to update generated event data
   const handleDataGenerated = (data: { controlEvents: string[]; variationEvents: string[] }) => {
     setEventData(data);
   };
 
   const saveElementData = async () => {
-    // Prepare payload including copied status
     const mapWithCopied = (events: string[], prefix: string) =>
       events.map((eventCode, idx) => ({
-        code: eventCode, // The generated code string
-        codeCopied: !!selectedStatus[`${prefix}-${idx}`], // Copied status from local state
+        code: eventCode,
+        codeCopied: !!selectedStatus[`${prefix}-${idx}`],
       }));
+
+    // Compose eventDescriptions with trigger event if enabled
+    const eventDescriptionsToSave = triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : [...eventDescriptions];
 
     const elementDataPayload = {
       client: selectedClient,
       experienceNumber,
       experienceName,
-      eventDescriptions, // Send original descriptions
+      eventDescriptions: eventDescriptionsToSave,
       numVariants,
-      // Send events with their copied status
       controlEventsWithCopied: mapWithCopied(eventData.controlEvents, "control"),
       variationEventsWithCopied: mapWithCopied(eventData.variationEvents, "variation"),
+      triggerEvent: triggerEventEnabled
+        ? {
+            enabled: true,
+            description: triggerEventDescription,
+          }
+        : {
+            enabled: false,
+            description: "",
+          },
     };
 
     console.log("Saving Element Data:", elementDataPayload);
@@ -101,7 +111,7 @@ const EventDetails: React.FC = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ elementData: elementDataPayload }), // Send the prepared payload
+        body: JSON.stringify({ elementData: elementDataPayload }),
       });
 
       if (res.ok) {
@@ -137,8 +147,27 @@ const EventDetails: React.FC = () => {
 
       <EventRow>
         <EventCol>
+          {/* Trigger Event Checkbox */}
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "flex", alignItems: "center" }}>
+              <input type="checkbox" checked={triggerEventEnabled} onChange={(e) => setTriggerEventEnabled(e.target.checked)} style={{ marginRight: "0.5rem" }} />
+              Add Trigger Event
+            </label>
+          </div>
+
+          {/* Trigger Event Input (conditionally rendered) */}
+          {triggerEventEnabled && (
+            <EventDescriptionRow>
+              <Label>Trigger Event Description:</Label>
+              <EventInput type="text" value={triggerEventDescription} onChange={(e) => setTriggerEventDescription(e.target.value)} placeholder="Describe the trigger event" />
+            </EventDescriptionRow>
+          )}
+
+          {/* Existing event descriptions */}
           {eventDescriptions.map((desc, idx) => (
             <EventDescriptionRow key={idx}>
+              {/* Show trigger event label if first event and trigger enabled */}
+              {triggerEventEnabled && idx === 0 && <div style={{ marginBottom: "0.25rem", color: "#d35400", fontWeight: 600 }}>Trigger Event</div>}
               <Label>{`Event ${idx + 1} Description:`}</Label>
               <EventInput type="text" value={desc} onChange={(e) => handleDescriptionChange(idx, e.target.value)} />
             </EventDescriptionRow>
@@ -153,13 +182,13 @@ const EventDetails: React.FC = () => {
       <DataLayerLogic
         client={selectedClient}
         experienceNumber={experienceNumber}
-        eventDescriptions={eventDescriptions}
+        eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
         controlType="Dummy Control"
         trigger={trigger}
         setTrigger={setTrigger}
-        onDataGenerated={handleDataGenerated} // Pass callback
-        selectedStatus={selectedStatus} // Pass state down
-        setSelectedStatus={setSelectedStatus} // Pass setter down
+        onDataGenerated={handleDataGenerated}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
       />
 
       <div style={{ marginTop: "1rem" }}>

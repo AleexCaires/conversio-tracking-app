@@ -6,6 +6,7 @@ interface Event {
   eventCategory: string;
   eventLabel: string;
   eventSegment: string;
+  triggerEvent?: boolean;
 }
 
 interface EventDisplayProps {
@@ -15,48 +16,84 @@ interface EventDisplayProps {
 }
 
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
-  const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
-  const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({}); // Track active borders for multiple events
-
+  // Move this check above the stateful logic to avoid unnecessary renders and React warnings
   if (!events || events.length === 0) return null;
 
+  const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
+  const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
+
+  // Always preserve triggerEvent property for all event types
   const parsedEvents: Event[] = events.map((event) => {
     if (typeof event === "string") {
       const parsed = JSON.parse(event);
       // Check if the event is Adobe-specific
       if (parsed.event === "targetClickEvent" && parsed.eventData?.click) {
         const { clickAction, clickLocation, clickText } = parsed.eventData.click;
+        // For Adobe events, triggerEvent may be at the root, inside eventData, or inside eventData.click
+        const triggerEvent =
+          typeof parsed.triggerEvent !== "undefined"
+            ? Boolean(parsed.triggerEvent)
+            : typeof parsed.eventData?.triggerEvent !== "undefined"
+            ? Boolean(parsed.eventData?.triggerEvent)
+            : typeof parsed.eventData?.click?.triggerEvent !== "undefined"
+            ? Boolean(parsed.eventData?.click?.triggerEvent)
+            : false;
         return {
           eventAction: clickAction || "N/A",
           eventCategory: clickLocation || "N/A",
           eventLabel: clickText || "N/A",
-          eventSegment: "", // Adobe-specific events do not have eventSegment
+          eventSegment: "",
+          triggerEvent,
         };
       }
-      return parsed;
-    } else if (event.event === "targetClickEvent" && event.eventData?.click) {
-      // Handle Adobe-specific events passed as objects
-      const { clickAction, clickLocation, clickText } = event.eventData.click;
+      // For all other events, preserve triggerEvent if present
       return {
-        eventAction: clickAction || "N/A",
-        eventCategory: clickLocation || "N/A",
-        eventLabel: clickText || "N/A",
-        eventSegment: "", // Adobe-specific events do not have eventSegment
+        ...parsed,
+        triggerEvent: Boolean(parsed.triggerEvent),
+      };
+    } else if (event && typeof event === "object") {
+      // Handle Adobe-specific events passed as objects
+      if ((event as any).event === "targetClickEvent" && (event as any).eventData?.click) {
+        const { clickAction, clickLocation, clickText } = (event as any).eventData.click;
+        // For Adobe events, triggerEvent may be at the root, inside eventData, or inside eventData.click
+        const triggerEvent =
+          typeof (event as any).triggerEvent !== "undefined"
+            ? Boolean((event as any).triggerEvent)
+            : typeof (event as any).eventData?.triggerEvent !== "undefined"
+            ? Boolean((event as any).eventData?.triggerEvent)
+            : typeof (event as any).eventData?.click?.triggerEvent !== "undefined"
+            ? Boolean((event as any).eventData?.click?.triggerEvent)
+            : false;
+        return {
+          eventAction: clickAction || "N/A",
+          eventCategory: clickLocation || "N/A",
+          eventLabel: clickText || "N/A",
+          eventSegment: "",
+          triggerEvent,
+        };
+      }
+      // For all other objects, preserve triggerEvent if present
+      return {
+        ...(event as any),
+        triggerEvent: Boolean((event as any).triggerEvent),
       };
     }
-    return event;
+    return event as Event;
   });
 
   // Collect all eventLabels, filtering out dots and empty/whitespace-only labels
-  const eventLabels = parsedEvents.map((event) => event.eventLabel).filter((label) => label && label.trim() !== "." && label.trim() !== "");
+  const eventLabels = parsedEvents
+    .map((event) => ({
+      label: event.eventLabel,
+      triggerEvent: event.triggerEvent,
+    }))
+    .filter((item) => item.label && item.label.trim() !== "." && item.label.trim() !== "");
 
   const handleCopy = (index: number, type: "code" | "segment", text: string) => {
     const key = `${index}-${type}`;
-    const borderColor = type === "code" ? "blue" : "pink"; // Set border color based on type
-
     onCopy(text);
     setCopiedState((prev) => ({ ...prev, [key]: true }));
-    setActiveBorders((prev) => ({ ...prev, [key]: true })); // Add the key to active borders
+    setActiveBorders((prev) => ({ ...prev, [key]: true }));
   };
 
   return (
@@ -68,17 +105,18 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
         <div style={{ marginBottom: "1rem", color: "#555", fontSize: "1rem" }}>
           <strong>Event Labels:</strong>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", listStyle: "none" }}>
-            {eventLabels.map((label, idx) => (
+            {eventLabels.map((item, idx) => (
               <li
                 key={idx}
                 style={{
-                  lineHeight: "2", // Increased line height
+                  lineHeight: "2",
                   display: "flex",
                   alignItems: "center",
                 }}
               >
                 <span style={{ marginRight: "0.5em" }}>{idx + 1}.</span>
-                {label}
+                {item.label}
+                {item.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
               </li>
             ))}
           </ul>
@@ -115,7 +153,12 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           return (
             <div key={index} style={{ marginBottom: "2rem" }}>
               {/* Show eventLabel above the code block, if present */}
-              {event.eventLabel && event.eventLabel.trim() !== "." && event.eventLabel.trim() !== "" && <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>{event.eventLabel}</div>}
+              {event.eventLabel && event.eventLabel.trim() !== "." && event.eventLabel.trim() !== "" && (
+                <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
+                  {event.eventLabel}
+                  {event.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
+                </div>
+              )}
 
               <pre
                 style={{
