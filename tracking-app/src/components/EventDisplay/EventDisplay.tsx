@@ -47,6 +47,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
     return event;
   });
 
+  // Collect all eventLabels, filtering out dots and empty/whitespace-only labels
+  const eventLabels = parsedEvents.map((event) => event.eventLabel).filter((label) => label && label.trim() !== "." && label.trim() !== "");
+
   const handleCopy = (index: number, type: "code" | "segment", text: string) => {
     const key = `${index}-${type}`;
     const borderColor = type === "code" ? "blue" : "pink"; // Set border color based on type
@@ -59,6 +62,28 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
   return (
     <div style={{ marginTop: "2rem" }}>
       <h3 style={{ marginBottom: "1rem", fontSize: "1.25rem", color: "#222" }}>{title}</h3>
+
+      {/* Show all eventLabels below the title */}
+      {eventLabels.length > 0 && (
+        <div style={{ marginBottom: "1rem", color: "#555", fontSize: "1rem" }}>
+          <strong>Event Labels:</strong>
+          <ul style={{ margin: 0, paddingLeft: "1.25rem", listStyle: "none" }}>
+            {eventLabels.map((label, idx) => (
+              <li
+                key={idx}
+                style={{
+                  lineHeight: "2", // Increased line height
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ marginRight: "0.5em" }}>{idx + 1}.</span>
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <ChildrenWrapper>
         {parsedEvents.map((event, index) => {
@@ -89,7 +114,8 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
           return (
             <div key={index} style={{ marginBottom: "2rem" }}>
-              <h4 style={{ marginBottom: "0.5rem", color: "#444" }}>Event {index + 1}</h4>
+              {/* Show eventLabel above the code block, if present */}
+              {event.eventLabel && event.eventLabel.trim() !== "." && event.eventLabel.trim() !== "" && <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>{event.eventLabel}</div>}
 
               <pre
                 style={{
@@ -101,17 +127,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
                   wordBreak: "break-word",
                   maxHeight: "300px",
                   overflowY: "auto",
-                  border: activeBorders[codeKey] // Apply border color for "Copy Code"
-                    ? "2px solid #007bff" // Match the "Copy Code" button color
-                    : activeBorders[segmentKey] // Apply border color for "Copy Segment"
-                    ? "2px solid #28a745" // Match the "Copy Segment" button color
-                    : "2px solid transparent",
-                  boxShadow: activeBorders[codeKey] // Apply glowing effect for "Copy Code"
-                    ? "0 0 10px #007bff, 0 0 20px #007bff" // Match the "Copy Code" button color
-                    : activeBorders[segmentKey] // Apply glowing effect for "Copy Segment"
-                    ? "0 0 10px #28a745, 0 0 20px #28a745" // Match the "Copy Segment" button color
-                    : "none",
-                  transition: "box-shadow 0.3s ease, border 0.3s ease", // Smooth transition
+                  border: activeBorders[codeKey] ? "2px solid #007bff" : activeBorders[segmentKey] ? "2px solid #28a745" : "2px solid transparent",
+                  boxShadow: activeBorders[codeKey] ? "0 0 10px #007bff, 0 0 20px #007bff" : activeBorders[segmentKey] ? "0 0 10px #28a745, 0 0 20px #28a745" : "none",
+                  transition: "box-shadow 0.3s ease, border 0.3s ease",
                 }}
               >
                 {eventCode}
@@ -134,7 +152,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
                   {copiedState[codeKey] ? "Copied!" : "Copy Code"}
                 </button>
 
-                {event.eventSegment && ( // Only show the button if eventSegment exists
+                {event.eventSegment && (
                   <button
                     onClick={() => handleCopy(index, "segment", event.eventSegment)}
                     style={{

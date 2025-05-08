@@ -52,7 +52,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
       }
     });
 
-    return Object.entries(grouped); // [ [variationNumber, events[]], ... ]
+    return Object.entries(grouped);
   };
 
   return (
@@ -85,3 +85,4 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
 };
 
 export default Modal;
+

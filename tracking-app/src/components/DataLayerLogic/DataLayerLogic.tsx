@@ -152,7 +152,8 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 
     setTimeout(() => setTrigger(false), 100);
-  }, [trigger, numVariants, eventDescriptions, client, experienceNumber, setTrigger, onDataGenerated]);
+    // Only include stable, primitive dependencies
+  }, [trigger, numVariants, client, experienceNumber, eventDescriptions]);
 
   const copyToClipboard = (event: string, key: string) => {
     navigator.clipboard.writeText(event).then(() => {
