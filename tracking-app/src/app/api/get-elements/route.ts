@@ -8,9 +8,21 @@ export async function GET() {
     // Fetch all elements, no pagination or search filters
     const elements = await collection.find({}).toArray();
 
-    // Keep the processing logic from before pagination was added
     const formattedElements = elements
       .map((element) => {
+        // --- Ensure dateCreated is always present and is an ISO string ---
+        let dateCreated: string;
+        if (element.dateCreated) {
+          // If already a Date object or ISO string
+          dateCreated = new Date(element.dateCreated).toISOString();
+        } else if (element._id && element._id.getTimestamp) {
+          // If _id is a MongoDB ObjectId, extract timestamp
+          dateCreated = element._id.getTimestamp().toISOString();
+        } else {
+          // Fallback to now
+          dateCreated = new Date().toISOString();
+        }
+
         const isLaithwaites = element.client === "Laithwaites";
         const anyCopied = element.events.some((group: any) => group.events.some((event: any) => event.codeCopied === true));
         let processedEventGroups;
@@ -28,6 +40,8 @@ export async function GET() {
                       eventLabel: event.eventData.click.clickText,
                       eventSegment: "",
                       codeCopied: event.codeCopied,
+                      // Preserve triggerEvent property if it exists
+                      ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
                     };
                   }
                   return event;
@@ -47,6 +61,8 @@ export async function GET() {
                   eventLabel: event.eventData.click.clickText,
                   eventSegment: "",
                   codeCopied: event.codeCopied,
+                  // Preserve triggerEvent property if it exists
+                  ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
                 };
               }
               return event;
@@ -58,7 +74,7 @@ export async function GET() {
         return {
           _id: element._id,
           client: element.client,
-          dateCreated: element.dateCreated,
+          dateCreated, // always ISO string
           experienceName: element.experienceName,
           events: processedEventGroups,
         };
