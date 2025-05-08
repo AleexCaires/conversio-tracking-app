@@ -40,12 +40,19 @@ const History = () => {
           const data = await res.json();
           console.log("Fetched data:", data);
 
-          const sortedElements = data.elements.sort((a: any, b: any) => {
-            return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
+          // Always sort a copy, never mutate the original array
+          const sortedElements = [...data.elements].sort((a: any, b: any) => {
+            const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
+            const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
+            return dateB - dateA; // Newest first
           });
+          console.log(
+            "Sorted elements by dateCreated:",
+            sortedElements.map((e) => ({ id: e._id, dateCreated: e.dateCreated }))
+          );
 
-          setOriginalItems(sortedElements); // Store the full list of items
-          setFilteredItems(sortedElements); // Initialize filteredItems with the full list
+          setOriginalItems([...sortedElements]); // Use a new array reference
+          setFilteredItems([...sortedElements]); // Use a new array reference
         } else {
           console.error("Failed to fetch elements");
         }
@@ -56,6 +63,15 @@ const History = () => {
 
     fetchData();
   }, []);
+
+  // Create a reusable sorting function to ensure consistency
+  const sortByNewestFirst = (items: any[]) => {
+    return [...items].sort((a, b) => {
+      const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
+      const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
+      return dateB - dateA; // Newest first
+    });
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
@@ -69,7 +85,8 @@ const History = () => {
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
 
-    setFilteredItems(filtered);
+    // Use the reusable sorting function
+    setFilteredItems(sortByNewestFirst(filtered));
   };
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -84,23 +101,27 @@ const History = () => {
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
 
-    setFilteredItems(filtered);
+    // Use the reusable sorting function
+    setFilteredItems(sortByNewestFirst(filtered));
   };
 
   const handleExperienceNameSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase(); // Normalize input
+    const value = e.target.value.toLowerCase();
     setNameSearchTerm(value);
 
     if (value === "") {
-      // If input is cleared, reset filteredItems to the full list
+      // If input is cleared, reset filteredItems to the full list (already sorted)
       setFilteredItems([...originalItems]);
     } else {
-      // Filter items based on experienceName starting with the input value
-      const filtered = originalItems.filter(
-        (item) => item.experienceName?.toLowerCase().startsWith(value) // Check if experienceName starts with the input value
-      );
-
-      setFilteredItems(filtered); // Update filtered items
+      // Split the search string into individual words
+      const searchWords = value.split(/\s+/).filter((word) => word !== "");
+      const filtered = originalItems.filter((item) => {
+        const expName = item.experienceName?.toLowerCase() || "";
+        // Check if every search word is included in the experienceName
+        return searchWords.every((word) => expName.includes(word));
+      });
+      // Use the reusable sorting function
+      setFilteredItems(sortByNewestFirst(filtered));
     }
   };
 
@@ -167,7 +188,13 @@ const History = () => {
                 <p className="experienceName">{item.experienceName}</p>
                 <div className="bottomContainer">
                   <p className="clientName">{item.client}</p>
-                  <p className="date">{new Date(item.dateCreated).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</p>
+                  <p className="date">
+                    {new Date(item.dateCreated).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })}
+                  </p>
                 </div>
               </ItemCard>
             ))
