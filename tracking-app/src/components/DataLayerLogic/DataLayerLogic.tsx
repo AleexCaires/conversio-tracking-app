@@ -33,10 +33,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<{
     controlEvents: string[];
-    variationEvents: string[];
+    variationEvents: Record<number, string[]>;
   }>({
     controlEvents: [],
-    variationEvents: [],
+    variationEvents: {},
   });
 
   const clientData = clients.find((c) => c.name === client || c.code === client);
@@ -82,9 +82,8 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     };
 
     const newControlEvents: string[] = [];
-    const newVariationEvents: string[] = [];
+    const newVariationEvents: Record<number, string[]> = {};
 
-    // Render code blocks for all events, including trigger event
     for (let idx = 0; idx < eventDescriptions.length; idx++) {
       const description = eventDescriptions[idx];
       const eventSegment = generateEventSegment(description, "ECO");
@@ -113,11 +112,12 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 
     for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
+      newVariationEvents[variantIndex] = [];
       for (let idx = 0; idx < eventDescriptions.length; idx++) {
         const description = eventDescriptions[idx];
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
         if (clientCode === "LT") {
-          newVariationEvents.push(`adobeDataLayer.push({
+          newVariationEvents[variantIndex].push(`adobeDataLayer.push({
     event: 'targetClickEvent',
     eventData: {
         click: {
@@ -128,7 +128,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
         } else {
-          newVariationEvents.push(`window.dataLayer.push({
+          newVariationEvents[variantIndex].push(`window.dataLayer.push({
     'event': 'conversioEvent',
     'conversio' : {
         'eventCategory': 'Conversio CRO',
@@ -149,15 +149,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     if (onDataGenerated) {
       onDataGenerated({
         controlEvents: newControlEvents,
-        variationEvents: newVariationEvents,
+        variationEvents: Object.values(newVariationEvents).flat(),
       });
     }
 
-    // Fix: Only reset trigger if it is still true after this effect runs
-    // This prevents infinite update loops if setTrigger is called when trigger is already false
-    // Use a microtask to avoid immediate re-render in the same commit phase
     Promise.resolve().then(() => setTrigger(false));
-    // Only include stable, primitive dependencies
   }, [trigger, numVariants, client, experienceNumber, eventDescriptions]);
 
   const copyToClipboard = (event: string, key: string) => {
@@ -243,20 +239,22 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         </>
       )}
 
-      {localEventData.variationEvents.length > 0 && (
-        <>
-          <h3>Variation Events</h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-              gap: "16px",
-              padding: "10px",
-            }}
-          >
-            {localEventData.variationEvents.map((event, index) => renderEventBlock(event, `variation-${index}`))}
-          </div>
-        </>
+      {Object.entries(localEventData.variationEvents).map(([variantIndex, events]) =>
+        events.length > 0 ? (
+          <React.Fragment key={variantIndex}>
+            <h3>{`Variation ${variantIndex} Events`}</h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                gap: "16px",
+                padding: "10px",
+              }}
+            >
+              {events.map((event, idx) => renderEventBlock(event, `variation-${variantIndex}-${idx}`))}
+            </div>
+          </React.Fragment>
+        ) : null
       )}
     </div>
   );
