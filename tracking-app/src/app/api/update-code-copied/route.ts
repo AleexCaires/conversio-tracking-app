@@ -22,6 +22,7 @@ export async function POST(req: Request) {
       { name: "Monsoon", code: "MS" },
       { name: "Ocado", code: "OPT" },
       { name: "Team Sport", code: "TS" },
+      { name: "Sephora", code: "SA" },
     ];
     const clientCode = clients.find((c) => c.name === client || c.code === client)?.code || client;
     const fullClient = `${clientCode}${experienceNumber}`;

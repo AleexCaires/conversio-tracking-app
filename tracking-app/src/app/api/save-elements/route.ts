@@ -16,6 +16,7 @@ export async function POST(req: Request) {
       { name: "Monsoon", code: "MS" },
       { name: "Ocado", code: "OPT" },
       { name: "Team Sport", code: "TS" },
+      { name: "Sephora", code: "SA" },
     ];
 
     const { elementData } = body;

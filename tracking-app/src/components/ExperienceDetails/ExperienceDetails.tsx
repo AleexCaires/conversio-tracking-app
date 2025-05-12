@@ -34,6 +34,7 @@ const ExperienceDetails: React.FC<{
     { name: "Monsoon", code: "MS" },
     { name: "Ocado", code: "OPT" },
     { name: "Team Sport", code: "TS" },
+    { name: "Sephora", code: "SA" },
   ];
 
   const [platform, setPlatform] = useState("AB Tasty"); // Default platform for Finisterre

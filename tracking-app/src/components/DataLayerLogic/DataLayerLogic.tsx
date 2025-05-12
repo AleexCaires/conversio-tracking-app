@@ -24,6 +24,7 @@ const clients = [
   { name: "Monsoon", code: "MS" },
   { name: "Ocado", code: "OPT" },
   { name: "Team Sport", code: "TS" },
+  { name: "Sephora", code: "SA" },
 ];
 
 const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, controlType, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus }) => {
