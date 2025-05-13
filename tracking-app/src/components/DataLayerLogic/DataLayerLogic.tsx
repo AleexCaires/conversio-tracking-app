@@ -8,7 +8,7 @@ interface DataLayerLogicProps {
   controlType: string;
   trigger: boolean;
   setTrigger: (value: boolean) => void;
-  onDataGenerated: (data: { controlEvents: string[]; variationEvents: string[] }) => void;
+  onDataGenerated: (data: { controlEvents: string[]; variationEvents: string[]; controlEventsWithCopied: { code: string; codeCopied: boolean }[]; variationEventsWithCopied: { code: string; codeCopied: boolean }[] }) => void;
   selectedStatus: Record<string, boolean>;
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
@@ -33,10 +33,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<{
     controlEvents: string[];
-    variationEvents: Record<number, string[]>;
+    variationEvents: string[];
   }>({
     controlEvents: [],
-    variationEvents: {},
+    variationEvents: [],
   });
 
   const clientData = clients.find((c) => c.name === client || c.code === client);
@@ -82,7 +82,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     };
 
     const newControlEvents: string[] = [];
-    const newVariationEvents: Record<number, string[]> = {};
+    const newVariationEvents: string[] = [];
 
     for (let idx = 0; idx < eventDescriptions.length; idx++) {
       const description = eventDescriptions[idx];
@@ -112,12 +112,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 
     for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
-      newVariationEvents[variantIndex] = [];
       for (let idx = 0; idx < eventDescriptions.length; idx++) {
         const description = eventDescriptions[idx];
         const eventSegment = generateEventSegment(description, `V${variantIndex}`);
         if (clientCode === "LT") {
-          newVariationEvents[variantIndex].push(`adobeDataLayer.push({
+          newVariationEvents.push(`adobeDataLayer.push({
     event: 'targetClickEvent',
     eventData: {
         click: {
@@ -128,7 +127,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
         } else {
-          newVariationEvents[variantIndex].push(`window.dataLayer.push({
+          newVariationEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
     'conversio' : {
         'eventCategory': 'Conversio CRO',
@@ -147,20 +146,52 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     });
 
     if (onDataGenerated) {
+      const controlEventsWithCopied = newControlEvents.map((event, idx) => ({
+        code: event,
+        codeCopied: !!selectedStatus[`control-${idx}`],
+      }));
+
+      const variationEventsWithCopied = newVariationEvents.map((event, idx) => ({
+        code: event,
+        codeCopied: !!selectedStatus[`variation-${idx}`],
+      }));
+
       onDataGenerated({
         controlEvents: newControlEvents,
-        variationEvents: Object.values(newVariationEvents).flat(),
+        variationEvents: newVariationEvents,
+        controlEventsWithCopied,
+        variationEventsWithCopied,
       });
     }
 
     Promise.resolve().then(() => setTrigger(false));
-  }, [trigger, numVariants, client, experienceNumber, eventDescriptions]);
+  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus]);
 
   const copyToClipboard = (event: string, key: string) => {
     navigator.clipboard.writeText(event).then(() => {
       setActiveBorders((prev) => ({ ...prev, [key]: true }));
-      setSelectedStatus((prev) => ({ ...prev, [key]: true }));
-      console.log(`Code copied locally for key: ${key}`);
+      setSelectedStatus((prev) => {
+        const newSelectedStatus = { ...prev, [key]: true };
+
+        const controlEventsWithCopied = localEventData.controlEvents.map((evt, idx) => ({
+          code: evt,
+          codeCopied: !!newSelectedStatus[`control-${idx}`],
+        }));
+
+        const variationEventsWithCopied = localEventData.variationEvents.map((evt, idx) => ({
+          code: evt,
+          codeCopied: !!newSelectedStatus[`variation-${idx}`],
+        }));
+
+        onDataGenerated({
+          controlEvents: localEventData.controlEvents,
+          variationEvents: localEventData.variationEvents,
+          controlEventsWithCopied,
+          variationEventsWithCopied,
+        });
+
+        return newSelectedStatus;
+      });
       setTimeout(() => {
         setActiveBorders((prev) => ({ ...prev, [key]: false }));
       }, 2000);
@@ -239,10 +270,14 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         </>
       )}
 
-      {Object.entries(localEventData.variationEvents).map(([variantIndex, events]) =>
-        events.length > 0 ? (
-          <React.Fragment key={variantIndex}>
-            <h3>{`Variation ${variantIndex} Events`}</h3>
+      {Array.from({ length: numVariants }, (_, variantIdx) => {
+        const start = variantIdx * eventDescriptions.length;
+        const end = start + eventDescriptions.length;
+        const events = localEventData.variationEvents.slice(start, end);
+        if (events.length === 0) return null;
+        return (
+          <React.Fragment key={variantIdx + 1}>
+            <h3>{`Variation ${variantIdx + 1} Events`}</h3>
             <div
               style={{
                 display: "grid",
@@ -251,11 +286,13 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
                 padding: "10px",
               }}
             >
-              {events.map((event, idx) => renderEventBlock(event, `variation-${variantIndex}-${idx}`))}
+              {events.map((event, idx) =>
+                renderEventBlock(event, `variation-${start + idx}`)
+              )}
             </div>
           </React.Fragment>
-        ) : null
-      )}
+        );
+      })}
     </div>
   );
 };
