@@ -33,36 +33,33 @@ const History = () => {
   const [experienceNumber, setExperienceNumber] = useState<string | undefined>(undefined);
   const [experienceName, setExperienceName] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/get-elements");
-        if (res.ok) {
-          const data = await res.json();
-          console.log("Fetched data:", data);
+  // Add a function to refresh elements after deletion
+  const refreshElements = async () => {
+    try {
+      const res = await fetch("/api/get-elements");
+      if (res.ok) {
+        const data = await res.json();
+        console.log("Refreshed data after deletion:", data);
 
-          // Always sort a copy, never mutate the original array
-          const sortedElements = [...data.elements].sort((a: any, b: any) => {
-            const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
-            const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
-            return dateB - dateA; // Newest first
-          });
-          console.log(
-            "Sorted elements by dateCreated:",
-            sortedElements.map((e) => ({ id: e._id, dateCreated: e.dateCreated }))
-          );
+        const sortedElements = [...data.elements].sort((a: any, b: any) => {
+          const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
+          const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
+          return dateB - dateA;
+        });
 
-          setOriginalItems([...sortedElements]); // Use a new array reference
-          setFilteredItems([...sortedElements]); // Use a new array reference
-        } else {
-          console.error("Failed to fetch elements");
-        }
-      } catch (error) {
-        console.error("Error fetching elements:", error);
+        setOriginalItems([...sortedElements]);
+        setFilteredItems([...sortedElements]);
+      } else {
+        console.error("Failed to refresh elements");
       }
-    };
+    } catch (error) {
+      console.error("Error refreshing elements:", error);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    // Using the refreshElements function for initial load
+    refreshElements();
   }, []);
 
   // Create a reusable sorting function to ensure consistency
@@ -205,7 +202,15 @@ const History = () => {
         </div>
       </ContentWrapper>
 
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} experienceNumber={experienceNumber} experienceName={experienceName} />
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        content={modalContent} 
+        experienceNumber={experienceNumber} 
+        experienceName={experienceName}
+        client={selectedClient} // Pass the selected client
+        onRefresh={refreshElements} // Pass the refresh function
+      />
     </>
   );
 };
