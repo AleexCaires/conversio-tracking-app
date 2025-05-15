@@ -1,7 +1,8 @@
 import React from "react";
 import EventDisplay from "@/components/EventDisplay/EventDisplay";
-import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles"; // Import styled components
-import { FaTrash } from "react-icons/fa"; // Add this import at the top
+import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles";
+import { FaTrash, FaEdit } from "react-icons/fa"; // Add FaEdit icon import
+import { useRouter } from "next/navigation"; // Import useRouter
 
 interface ModalProps {
   isOpen: boolean;
@@ -31,12 +32,14 @@ const clients = [
 const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
-  content,
+  content, // This is the full 'item' from historyComp, containing 'item.events' (grouped)
   experienceNumber,
   experienceName,
-  client,
-  onRefresh, // Add refresh callback
+  client, // This is item.client
+  onRefresh,
 }) => {
+  const router = useRouter(); // Add router
+
   if (!isOpen) return null;
 
   // Extract client code from experienceNumber if not provided directly
@@ -112,6 +115,13 @@ const Modal: React.FC<ModalProps> = ({
     return Object.entries(grouped);
   };
 
+  // Prepare flat event arrays for EventDisplay from the grouped content.events
+  const controlEventsForDisplay = content?.events?.find((g: any) => g.label === "Dummy Control" || g.label === "Control")?.events || [];
+  
+  const variationEventsForDisplay = content?.events
+    ?.filter((g: any) => typeof g.label === 'string' && g.label.startsWith("Variation "))
+    ?.flatMap((g: any) => g.events || []) || [];
+
   // Add delete handler
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // Prevent modal close on click
@@ -149,6 +159,27 @@ const Modal: React.FC<ModalProps> = ({
     }
   };
 
+  // Add edit handler function
+  const handleEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    
+    if (!experienceNumber || !clientValue) {
+      alert("Missing required information for editing.");
+      return;
+    }
+
+    // Store only essential data needed for edit
+    const editPayloadToStore = {
+      id: experienceNumber,
+      client: clientValue,
+      name: experienceName || "",
+      events: content.events
+    };
+    
+    localStorage.setItem("editExperienceData", JSON.stringify(editPayloadToStore));
+    router.push(`/?edit=${experienceNumber}`);
+  };
+
   return (
     <ModalOverlay onClick={handleOverlayClick}>
       {/* Prevent clicks inside the container from closing the modal */}
@@ -164,6 +195,25 @@ const Modal: React.FC<ModalProps> = ({
               </span>
             )}
           </div>
+          {/* Add edit button */}
+          <button
+            onClick={handleEdit}
+            type="button"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#4CAF50",
+              cursor: "pointer",
+              marginRight: "0.5rem",
+              fontSize: "1.2rem",
+              display: "flex",
+              alignItems: "center",
+              zIndex: 2,
+            }}
+            title="Edit this experience"
+          >
+            <FaEdit />
+          </button>
           {/* Add bin icon button */}
           <button
             onClick={handleDelete}
@@ -188,9 +238,9 @@ const Modal: React.FC<ModalProps> = ({
 
         {/* Content Section */}
         <ModalContent>
-          {content?.controlEvents && <EventDisplay title="Control Events" events={content.controlEvents} onCopy={copyToClipboard} />}
-
-          {Array.isArray(content?.variationEvents) && groupEventsByVariation(content.variationEvents).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} />)}
+          <EventDisplay title="Control Events" events={controlEventsForDisplay} onCopy={copyToClipboard} />
+          {/* groupEventsByVariation expects a flat array of event objects */}
+          {Array.isArray(variationEventsForDisplay) && groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} />)}
         </ModalContent>
       </ModalContainer>
     </ModalOverlay>

@@ -124,25 +124,11 @@ const History = () => {
   };
 
   const handleOpenModal = (item: any) => {
-    console.log("Selected item:", item);
-
-    const controlGroup = item.events.find((group: any) => group.label === "Dummy Control");
-    const variationGroups = item.events.filter((group: any) => group.label !== "Dummy Control");
-
-    const controlEvents = controlGroup?.events || [];
-    const variationEvents = variationGroups.flatMap((group: any) => group.events || []);
-
-    console.log("Control Events", controlEvents);
-    console.log("Variation Events", variationEvents);
-
-    // Pass events as objects
-    setModalContent({
-      controlEvents: controlEvents, // Pass as objects
-      variationEvents: variationEvents, // Pass as objects
-    });
-    setExperienceNumber(item._id); // Use item._id as experienceNumber
+    console.log("Selected item for modal in historyComp:", item); // item is from get-elements
+    setModalContent(item); // Pass the entire item as content for the Modal
+    setExperienceNumber(item._id);
     setExperienceName(item.experienceName);
-
+    // The client prop for Modal will be derived from 'item.client' or passed explicitly
     setIsModalOpen(true);
   };
 
@@ -202,14 +188,14 @@ const History = () => {
         </div>
       </ContentWrapper>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        content={modalContent} 
-        experienceNumber={experienceNumber} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        content={modalContent} // modalContent is now the full item
+        experienceNumber={experienceNumber}
         experienceName={experienceName}
-        client={selectedClient} // Pass the selected client
-        onRefresh={refreshElements} // Pass the refresh function
+        client={modalContent?.client} // Pass client from the item
+        onRefresh={refreshElements}
       />
     </>
   );

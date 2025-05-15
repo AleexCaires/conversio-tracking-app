@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChildrenWrapper } from "./EventDisplay.styles";
 
 interface Event {
@@ -16,20 +16,15 @@ interface EventDisplayProps {
 }
 
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
-  // Move this check above the stateful logic to avoid unnecessary renders and React warnings
   if (!events || events.length === 0) return null;
 
-  const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
 
-  // Always preserve triggerEvent property for all event types
   const parsedEvents: Event[] = events.map((event) => {
     if (typeof event === "string") {
       const parsed = JSON.parse(event);
-      // Check if the event is Adobe-specific
       if (parsed.event === "targetClickEvent" && parsed.eventData?.click) {
         const { clickAction, clickLocation, clickText } = parsed.eventData.click;
-        // For Adobe events, triggerEvent may be at the root, inside eventData, or inside eventData.click
         const triggerEvent =
           typeof parsed.triggerEvent !== "undefined"
             ? Boolean(parsed.triggerEvent)
@@ -46,16 +41,13 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           triggerEvent,
         };
       }
-      // For all other events, preserve triggerEvent if present
       return {
         ...parsed,
         triggerEvent: Boolean(parsed.triggerEvent),
       };
     } else if (event && typeof event === "object") {
-      // Handle Adobe-specific events passed as objects
       if ((event as any).event === "targetClickEvent" && (event as any).eventData?.click) {
         const { clickAction, clickLocation, clickText } = (event as any).eventData.click;
-        // For Adobe events, triggerEvent may be at the root, inside eventData, or inside eventData.click
         const triggerEvent =
           typeof (event as any).triggerEvent !== "undefined"
             ? Boolean((event as any).triggerEvent)
@@ -72,7 +64,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           triggerEvent,
         };
       }
-      // For all other objects, preserve triggerEvent if present
       return {
         ...(event as any),
         triggerEvent: Boolean((event as any).triggerEvent),
@@ -81,7 +72,21 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
     return event as Event;
   });
 
-  // Collect all eventLabels, filtering out dots and empty/whitespace-only labels
+  const getInitialCopiedState = () => {
+    const state: Record<string, boolean> = {};
+    parsedEvents.forEach((event, idx) => {
+      const checked = !!(event as any).codeCopied;
+      state[`${idx}-code`] = checked;
+    });
+    return state;
+  };
+
+  const [copiedState, setCopiedState] = useState<Record<string, boolean>>(getInitialCopiedState());
+
+  useEffect(() => {
+    setCopiedState(getInitialCopiedState());
+  }, [events]);
+
   const eventLabels = parsedEvents
     .map((event) => ({
       label: event.eventLabel,
@@ -100,7 +105,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
     <div style={{ marginTop: "2rem" }}>
       <h3 style={{ marginBottom: "1rem", fontSize: "1.25rem", color: "#222" }}>{title}</h3>
 
-      {/* Show all eventLabels below the title */}
       {eventLabels.length > 0 && (
         <div style={{ marginBottom: "1rem", color: "#555", fontSize: "1rem" }}>
           <strong>Event Labels:</strong>
@@ -151,8 +155,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           const segmentKey = `${index}-segment`;
 
           return (
-            <div key={index} style={{ marginBottom: "2rem" }}>
-              {/* Show eventLabel above the code block, if present */}
+            <div key={index} style={{ marginBottom: "2rem" }} data-copied={!!copiedState[codeKey]}>
               {event.eventLabel && event.eventLabel.trim() !== "." && event.eventLabel.trim() !== "" && (
                 <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
                   {event.eventLabel}

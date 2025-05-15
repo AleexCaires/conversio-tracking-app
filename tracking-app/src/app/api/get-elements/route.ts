@@ -76,7 +76,7 @@ export async function GET() {
           client: element.client,
           dateCreated, // always ISO string
           experienceName: element.experienceName,
-          events: processedEventGroups,
+          events: processedEventGroups, // This is the grouped structure
         };
       })
       .filter((element) => element.events.length > 0);

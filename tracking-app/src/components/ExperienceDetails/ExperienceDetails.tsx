@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Section,
   Heading,
@@ -15,10 +15,19 @@ import {
 } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 
-const ExperienceDetails: React.FC<{
+interface ExperienceDetailsProps {
   onClientChange: (clientCode: string) => void;
   onExperienceNumberChange: (experienceNumber: string) => void;
-}> = ({ onClientChange, onExperienceNumberChange }) => {
+  editData?: any; // Add edit data prop
+  isEditMode?: boolean; // Add edit mode flag
+}
+
+const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ 
+  onClientChange, 
+  onExperienceNumberChange, 
+  editData, 
+  isEditMode 
+}) => {
 
   const { numVariants, setNumVariants } = useExperience();
 
@@ -42,11 +51,11 @@ const ExperienceDetails: React.FC<{
 
   const handleNumVariantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    setNumVariants(isNaN(value) ? 0 : Math.max(0, value)); 
+    setNumVariants(isNaN(value) ? 1 : Math.max(1, value));
   };
+
   const { selectedClient, setSelectedClient } = useExperience();
   const { experienceNumber, setExperienceNumber } = useExperience();
-
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCode = e.target.value; // Get the client code
@@ -87,10 +96,53 @@ const ExperienceDetails: React.FC<{
     handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
   }, []);
   const { experienceName, setExperienceName } = useExperience(); 
-  
+
+  const processedEdit = useRef(false);
+
+  // Apply edit data only once
+  useEffect(() => {
+    if (isEditMode && editData && !processedEdit.current) {
+      processedEdit.current = true;
+      console.log("Processing edit data for ExperienceDetails:", editData);
+      
+      // Set client
+      if (editData.client) {
+        const clientEntry = clients.find(c => 
+          c.name === editData.client || c.code === editData.client
+        );
+        if (clientEntry) {
+          setSelectedClient(clientEntry.code);
+          onClientChange(clientEntry.code);
+        }
+      }
+      
+      // Set experience number
+      if (editData.id) {
+        const clientPrefix = clients.find(c => editData.id.startsWith(c.code))?.code;
+        const expNumber = clientPrefix ? 
+          editData.id.substring(clientPrefix.length) : editData.id;
+        
+        setExperienceNumber(expNumber);
+        onExperienceNumberChange(expNumber);
+      }
+      
+      // Set experience name
+      if (editData.name) {
+        setExperienceName(editData.name);
+      }
+      
+      // Set number of variants once
+      if (Array.isArray(editData.events)) {
+        const variationGroups = editData.events.filter(
+          (group) => group.label && group.label.startsWith("Variation ")
+        );
+        const initialVariantCount = Math.max(1, variationGroups.length);
+        setNumVariants(initialVariantCount);
+      }
+    }
+  }, [isEditMode, editData, onClientChange, onExperienceNumberChange, setSelectedClient, setExperienceNumber, setExperienceName, setNumVariants]);
 
   return (
-    
     <Section>
       <Heading>Experience Details</Heading>
 
@@ -177,7 +229,7 @@ const ExperienceDetails: React.FC<{
             name="numVariants"
             value={numVariants}
             min={1}
-            onChange={handleNumVariantsChange}
+            onChange={handleNumVariantsChange}  // use direct handler
           />
         </div>
         <div>
