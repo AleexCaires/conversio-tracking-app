@@ -3,6 +3,7 @@ import EventDisplay from "@/components/EventDisplay/EventDisplay";
 import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles";
 import { FaTrash, FaEdit } from "react-icons/fa"; // Add FaEdit icon import
 import { useRouter } from "next/navigation"; // Import useRouter
+import { clients } from "@/lib/clients";
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,21 +14,6 @@ interface ModalProps {
   client?: string; // <-- add this if needed
   onRefresh?: () => void; // Add refresh callback
 }
-
-// Add clients array definition
-const clients = [
-  { name: "Finisterre", code: "FN" },
-  { name: "Liverpool FC", code: "LF" },
-  { name: "Phase Eight", code: "PH" },
-  { name: "Hobbs", code: "HO" },
-  { name: "Whistles", code: "WC" },
-  { name: "Laithwaites", code: "LT" },
-  { name: "Accessorize", code: "AS" },
-  { name: "Monsoon", code: "MS" },
-  { name: "Ocado", code: "OPT" },
-  { name: "Team Sport", code: "TS" },
-  { name: "Sephora", code: "SA" },
-];
 
 const Modal: React.FC<ModalProps> = ({
   isOpen,

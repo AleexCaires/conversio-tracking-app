@@ -1,23 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { clients } from "@/lib/clients";
+
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    const clients = [
-      { name: "Finisterre", code: "FN" },
-      { name: "Liverpool FC", code: "LF" },
-      { name: "Phase Eight", code: "PH" },
-      { name: "Hobbs", code: "HO" },
-      { name: "Whistles", code: "WC" },
-      { name: "Laithwaites", code: "LT" },
-      { name: "Accessorize", code: "AS" },
-      { name: "Monsoon", code: "MS" },
-      { name: "Ocado", code: "OPT" },
-      { name: "Team Sport", code: "TS" },
-      { name: "Sephora", code: "SA" },
-    ];
 
     const { elementData } = body;
 

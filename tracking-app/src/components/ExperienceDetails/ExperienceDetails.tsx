@@ -14,6 +14,7 @@ import {
   ExperimentNumber,
 } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
+import { clients } from "@/lib/clients";
 
 interface ExperienceDetailsProps {
   onClientChange: (clientCode: string) => void;
@@ -30,21 +31,6 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({
 }) => {
 
   const { numVariants, setNumVariants } = useExperience();
-
-  // Mapping of client names to their codes
-  const clients = [
-    { name: "Finisterre", code: "FN" },
-    { name: "Liverpool FC", code: "LF" },
-    { name: "Phase Eight", code: "PH" },
-    { name: "Hobbs", code: "HO" },
-    { name: "Whistles", code: "WC" },
-    { name: "Laithwaites", code: "LT" },
-    { name: "Accessorize", code: "AS" },
-    { name: "Monsoon", code: "MS" },
-    { name: "Ocado", code: "OPT" },
-    { name: "Team Sport", code: "TS" },
-    { name: "Sephora", code: "SA" },
-  ];
 
   const [platform, setPlatform] = useState("AB Tasty"); // Default platform for Finisterre
   const [platformOptions, setPlatformOptions] = useState<string[]>(["AB Tasty"]); // Options for the platform dropdown

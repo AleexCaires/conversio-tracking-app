@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
+import { clients } from "@/lib/clients";
 
 interface DataLayerLogicProps {
   client: string;
@@ -12,20 +13,6 @@ interface DataLayerLogicProps {
   selectedStatus: Record<string, boolean>;
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
-
-const clients = [
-  { name: "Finisterre", code: "FN" },
-  { name: "Liverpool FC", code: "LF" },
-  { name: "Phase Eight", code: "PH" },
-  { name: "Hobbs", code: "HO" },
-  { name: "Whistles", code: "WC" },
-  { name: "Laithwaites", code: "LT" },
-  { name: "Accessorize", code: "AS" },
-  { name: "Monsoon", code: "MS" },
-  { name: "Ocado", code: "OPT" },
-  { name: "Team Sport", code: "TS" },
-  { name: "Sephora", code: "SA" },
-];
 
 const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   client,
