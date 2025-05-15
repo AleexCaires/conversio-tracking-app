@@ -26,10 +26,8 @@ export async function DELETE(req: Request) {
       { name: "Sephora", code: "SA" },
     ];
 
-    // Find the code for the given client (accept both code and name)
     const clientCode = clients.find((c) => c.name === client || c.code === client)?.code || client;
 
-    // Check if experienceNumber already starts with the client code
     const _id = experienceNumber.startsWith(clientCode) ? experienceNumber : `${clientCode}${experienceNumber}`;
 
     console.log(`[DELETE] Trying to delete document with _id: ${_id}`);
