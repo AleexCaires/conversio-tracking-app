@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { clients } from "@/lib/clients";  // shared clients
+import { clients } from "@/lib/clients"; // shared clients
 
 export async function POST(req: Request) {
   try {
