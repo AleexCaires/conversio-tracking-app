@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Section,
   Heading,
@@ -14,38 +14,34 @@ import {
   ExperimentNumber,
 } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
+import { clients } from "@/lib/clients";
 
-const ExperienceDetails: React.FC<{
+interface ExperienceDetailsProps {
   onClientChange: (clientCode: string) => void;
   onExperienceNumberChange: (experienceNumber: string) => void;
-}> = ({ onClientChange, onExperienceNumberChange }) => {
+  editData?: any; // Add edit data prop
+  isEditMode?: boolean; // Add edit mode flag
+}
+
+const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ 
+  onClientChange, 
+  onExperienceNumberChange, 
+  editData, 
+  isEditMode 
+}) => {
 
   const { numVariants, setNumVariants } = useExperience();
-
-  // Mapping of client names to their codes
-  const clients = [
-    { name: "Finisterre", code: "FN" },
-    { name: "Liverpool FC", code: "LF" },
-    { name: "Phase Eight", code: "PH" },
-    { name: "Hobbs", code: "HO" },
-    { name: "Whistles", code: "WC" },
-    { name: "Laithwaites", code: "LT" },
-    { name: "Accessorize", code: "AS" },
-    { name: "Monsoon", code: "MS" },
-    { name: "Ocado", code: "OPT" },
-    { name: "Team Sport", code: "TS" },
-  ];
 
   const [platform, setPlatform] = useState("AB Tasty"); // Default platform for Finisterre
   const [platformOptions, setPlatformOptions] = useState<string[]>(["AB Tasty"]); // Options for the platform dropdown
 
   const handleNumVariantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    setNumVariants(isNaN(value) ? 0 : Math.max(0, value)); 
+    setNumVariants(isNaN(value) ? 1 : Math.max(1, value));
   };
+
   const { selectedClient, setSelectedClient } = useExperience();
   const { experienceNumber, setExperienceNumber } = useExperience();
-
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCode = e.target.value; // Get the client code
@@ -85,10 +81,54 @@ const ExperienceDetails: React.FC<{
   useEffect(() => {
     handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
   }, []);
-  
+  const { experienceName, setExperienceName } = useExperience(); 
+
+  const processedEdit = useRef(false);
+
+  // Apply edit data only once
+  useEffect(() => {
+    if (isEditMode && editData && !processedEdit.current) {
+      processedEdit.current = true;
+      console.log("Processing edit data for ExperienceDetails:", editData);
+      
+      // Set client
+      if (editData.client) {
+        const clientEntry = clients.find(c => 
+          c.name === editData.client || c.code === editData.client
+        );
+        if (clientEntry) {
+          setSelectedClient(clientEntry.code);
+          onClientChange(clientEntry.code);
+        }
+      }
+      
+      // Set experience number
+      if (editData.id) {
+        const clientPrefix = clients.find(c => editData.id.startsWith(c.code))?.code;
+        const expNumber = clientPrefix ? 
+          editData.id.substring(clientPrefix.length) : editData.id;
+        
+        setExperienceNumber(expNumber);
+        onExperienceNumberChange(expNumber);
+      }
+      
+      // Set experience name
+      if (editData.name) {
+        setExperienceName(editData.name);
+      }
+      
+      // Set number of variants once
+      if (Array.isArray(editData.events)) {
+        const variationGroups = editData.events.filter(
+          (group) => group.label && group.label.startsWith("Variation ")
+        );
+        const initialVariantCount = Math.max(1, variationGroups.length);
+        setNumVariants(initialVariantCount);
+      }
+    }
+  }, [isEditMode, editData, onClientChange, onExperienceNumberChange, setSelectedClient, setExperienceNumber, setExperienceName, setNumVariants]);
 
   return (
-    
     <Section>
       <Heading>Experience Details</Heading>
 
@@ -127,18 +167,43 @@ const ExperienceDetails: React.FC<{
         <ExperimentNumber>
           <Label htmlFor="experienceNumber">Experience Number:*</Label>
           <Input
-    id="experienceNumber"
-    type="text"
-    value={experienceNumber}
-    onChange={(e) => setExperienceNumber(e.target.value)}
-  />
+  id="experienceNumber"
+  type="text"
+  value={experienceNumber}
+  onKeyDown={(e) => {
+    // Allow only numbers, '.', and control keys (e.g., Backspace, Delete, Arrow keys)
+    if (
+      !/[0-9.]/.test(e.key) && // Allow digits and '.'
+      e.key !== "Backspace" &&
+      e.key !== "Delete" &&
+      e.key !== "ArrowLeft" &&
+      e.key !== "ArrowRight" &&
+      e.key !== "Tab"
+    ) {
+      e.preventDefault();
+    }
+  }}
+  onChange={(e) => {
+    // Validate input to ensure it only contains numbers and '.'
+    const value = e.target.value;
+    if (/^[0-9.]*$/.test(value)) {
+      setExperienceNumber(value);
+    }
+  }}
+/>
 
         </ExperimentNumber>
 
         <ExperimentName>
-          <Label htmlFor="experienceName">Experience Name:*</Label>
-          <Input type="text" id="experienceName" name="experienceName" />
-        </ExperimentName>
+      <Label htmlFor="experienceName">Experience Name:*</Label>
+      <Input
+        type="text"
+        id="experienceName"
+        name="experienceName"
+        value={experienceName} // Bind to experimentName state
+        onChange={(e) => setExperienceName(e.target.value)} // Update state on input change
+      />
+    </ExperimentName>
       </FieldGroupMiddle>
 
       <FieldGroupEnd>
@@ -150,7 +215,7 @@ const ExperienceDetails: React.FC<{
             name="numVariants"
             value={numVariants}
             min={1}
-            onChange={handleNumVariantsChange}
+            onChange={handleNumVariantsChange}  // use direct handler
           />
         </div>
         <div>

@@ -1,41 +1,22 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { clients } from "@/lib/clients";
+
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const clients = [
-      { name: "Finisterre", code: "FN" },
-      { name: "Liverpool FC", code: "LF" },
-      { name: "Phase Eight", code: "PH" },
-      { name: "Hobbs", code: "HO" },
-      { name: "Whistles", code: "WC" },
-      { name: "Laithwaites", code: "LT" },
-      { name: "Accessorize", code: "AS" },
-      { name: "Monsoon", code: "MS" },
-      { name: "Ocado", code: "OPT" },
-      { name: "Team Sport", code: "TS" },
-    ];
-
     const { elementData } = body;
 
-    if (
-      !elementData ||
-      !elementData.client ||
-      !elementData.eventDescriptions ||
-      !elementData.experienceNumber ||
-      typeof elementData.numVariants !== "number"
-    ) {
-      return NextResponse.json(
-        { message: "Missing required fields in request body." },
-        { status: 400 }
-      );
+    if (!elementData || !elementData.client || !elementData.eventDescriptions || !elementData.experienceNumber || !elementData.experienceName || typeof elementData.numVariants !== "number") {
+      return NextResponse.json({ message: "Missing required fields in request body." }, { status: 400 });
     }
 
-    const clientCode =
-      clients.find((c) => c.name === elementData.client)?.code || elementData.client;
+    const clientCode = clients.find((c) => c.name === elementData.client)?.code || elementData.client;
     const fullClient = `${clientCode}${elementData.experienceNumber}`;
+
+    console.log("Saving document with _id:", fullClient);
 
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
@@ -66,53 +47,147 @@ export async function POST(req: Request) {
       return `${fullClient}E${variantPrefix}${sharedLetter}`;
     };
 
+    // Helper to determine if this index is the trigger event
+    const isTriggerEvent = (idx: number) => elementData.triggerEvent && elementData.triggerEvent.enabled && idx === 0;
+
     // Generate Dummy Control events
-    const controlEvents = elementData.eventDescriptions.map((description) => {
-      const eventSegment = generateEventSegment(description, "ECO");
-      return {
-        eventCategory: "Conversio CRO",
-        eventAction: `${fullClient} | Event Tracking`,
-        eventLabel: `${fullClient} | (Control Original) | ${description}`,
-        eventSegment: eventSegment,
-      };
-    });
+    const controlEvents =
+      elementData.controlEventsWithCopied && elementData.controlEventsWithCopied.length === elementData.eventDescriptions.length
+        ? elementData.controlEventsWithCopied.map((eventObj, idx) => {
+            const description = elementData.eventDescriptions[idx];
+            const eventSegment = generateEventSegment(description, "ECO");
+            const baseEvent =
+              clientCode === "LT"
+                ? {
+                    event: "targetClickEvent",
+                    eventData: {
+                      click: {
+                        clickLocation: "Conversio CRO",
+                        clickAction: `${fullClient} | Event Tracking`,
+                        clickText: `${fullClient} (Control Original) | ${description}`,
+                      },
+                    },
+                  }
+                : {
+                    eventCategory: "Conversio CRO",
+                    eventAction: `${fullClient} | Event Tracking`,
+                    eventLabel: `${fullClient} | (Control Original) | ${description}`,
+                    eventSegment: eventSegment,
+                  };
+            // Only add triggerEvent: true if this is the trigger event
+            return {
+              ...baseEvent,
+              codeCopied: !!eventObj.codeCopied,
+              ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
+            };
+          })
+        : elementData.eventDescriptions.map((description, idx) => {
+            const eventSegment = generateEventSegment(description, "ECO");
+            const baseEvent =
+              clientCode === "LT"
+                ? {
+                    event: "targetClickEvent",
+                    eventData: {
+                      click: {
+                        clickLocation: "Conversio CRO",
+                        clickAction: `${fullClient} | Event Tracking`,
+                        clickText: `${fullClient} (Control Original) | ${description}`,
+                      },
+                    },
+                  }
+                : {
+                    eventCategory: "Conversio CRO",
+                    eventAction: `${fullClient} | Event Tracking`,
+                    eventLabel: `${fullClient} | (Control Original) | ${description}`,
+                    eventSegment: eventSegment,
+                  };
+            return {
+              ...baseEvent,
+              codeCopied: false,
+              ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
+            };
+          });
 
     // Generate Variation events dynamically based on numVariants
     const variationEvents = [];
     for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
-      const eventsForVariant = elementData.eventDescriptions.map((description) => {
-        const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-        return {
-          eventCategory: "Conversio CRO",
-          eventAction: `${fullClient} | Event Tracking`,
-          eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-          eventSegment: eventSegment,
-        };
-      });
+      const eventsForVariant =
+        elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
+          ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj, idx) => {
+              const description = elementData.eventDescriptions[idx];
+              const eventSegment = generateEventSegment(description, `V${variantIndex}`);
+              const baseEvent =
+                clientCode === "LT"
+                  ? {
+                      event: "targetClickEvent",
+                      eventData: {
+                        click: {
+                          clickLocation: "Conversio CRO",
+                          clickAction: `${fullClient} | Event Tracking`,
+                          clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+                        },
+                      },
+                    }
+                  : {
+                      eventCategory: "Conversio CRO",
+                      eventAction: `${fullClient} | Event Tracking`,
+                      eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                      eventSegment: eventSegment,
+                    };
+              return {
+                ...baseEvent,
+                codeCopied: !!eventObj.codeCopied,
+                ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
+              };
+            })
+          : elementData.eventDescriptions.map((description, idx) => {
+              const eventSegment = generateEventSegment(description, `V${variantIndex}`);
+              const baseEvent =
+                clientCode === "LT"
+                  ? {
+                      event: "targetClickEvent",
+                      eventData: {
+                        click: {
+                          clickLocation: "Conversio CRO",
+                          clickAction: `${fullClient} | Event Tracking`,
+                          clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+                        },
+                      },
+                    }
+                  : {
+                      eventCategory: "Conversio CRO",
+                      eventAction: `${fullClient} | Event Tracking`,
+                      eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                      eventSegment: eventSegment,
+                    };
+              return {
+                ...baseEvent,
+                codeCopied: false,
+                ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
+              };
+            });
+
       variationEvents.push({ label: `Variation ${variantIndex}`, events: eventsForVariant });
     }
 
     // Combine control and variation events
-    const events = [
-      { label: "Dummy Control", events: controlEvents },
-      ...variationEvents,
-    ];
+    const events = [{ label: "Dummy Control", events: controlEvents }, ...variationEvents];
 
     // Save to MongoDB
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
 
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date().toISOString();
 
+    // Always update dateCreated to now (full timestamp), even when a trigger event is enabled
     const result = await collection.updateOne(
       { _id: fullClient },
       {
         $set: {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
+          experienceName: elementData.experienceName,
           events,
-        },
-        $setOnInsert: {
-          dateCreated: today, 
+          dateCreated: now, // always update with full timestamp
         },
       },
       { upsert: true }
@@ -120,9 +195,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Element saved successfully!", result });
   } catch (error: any) {
-    return NextResponse.json(
-      { message: `Failed to save element: ${error.message}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: `Failed to save element: ${error.message}` }, { status: 500 });
   }
 }
