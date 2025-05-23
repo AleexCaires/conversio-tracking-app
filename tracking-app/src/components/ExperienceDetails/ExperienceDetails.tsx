@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Section,
   Heading,
@@ -15,12 +15,13 @@ import {
 } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "@/lib/clients";
+import { EditData } from "@/types";
 
 interface ExperienceDetailsProps {
   onClientChange: (clientCode: string) => void;
   onExperienceNumberChange: (experienceNumber: string) => void;
-  editData?: any; // Add edit data prop
-  isEditMode?: boolean; // Add edit mode flag
+  editData?: EditData;
+  isEditMode?: boolean;
 }
 
 const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ 
@@ -43,7 +44,7 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({
   const { selectedClient, setSelectedClient } = useExperience();
   const { experienceNumber, setExperienceNumber } = useExperience();
 
-  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleClientChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCode = e.target.value; // Get the client code
     onClientChange(selectedCode);
     setSelectedClient(e.target.value);
@@ -76,11 +77,12 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({
         setPlatform("Dynamic Yield");
         setPlatformOptions(["Dynamic Yield"]);
     }
-  };
+  }, [onClientChange, setSelectedClient]);
 
   useEffect(() => {
     handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
-  }, []);
+  }, [handleClientChange]);
+
   const { experienceName, setExperienceName } = useExperience(); 
 
   const processedEdit = useRef(false);

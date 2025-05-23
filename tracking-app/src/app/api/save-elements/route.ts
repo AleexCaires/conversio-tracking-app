@@ -21,19 +21,30 @@ export async function POST(req: Request) {
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    const getRandomLetter = (): string => {
+    const getRandomLetter = (seed: string, usedLetters: Set<string>): string => {
       const letters = "QRSTUVWXYZ";
-      let letter;
-      do {
-        letter = letters[Math.floor(Math.random() * letters.length)];
-      } while (usedLetters.has(letter));
+      // Create a simple hash from the seed to make it deterministic
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) {
+        const char = seed.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      
+      const availableLetters = letters.split('').filter(letter => !usedLetters.has(letter));
+      if (availableLetters.length === 0) return 'Q'; // fallback
+      
+      const index = Math.abs(hash) % availableLetters.length;
+      const letter = availableLetters[index];
       usedLetters.add(letter);
       return letter;
     };
 
-    elementData.eventDescriptions.forEach((desc) => {
+    elementData.eventDescriptions.forEach((desc: string, index: number) => {
       if (!descriptionLetters.has(desc)) {
-        descriptionLetters.set(desc, getRandomLetter());
+        // Use description + index as seed for deterministic results
+        const seed = `${desc}-${index}-${fullClient}`;
+        descriptionLetters.set(desc, getRandomLetter(seed, usedLetters));
       }
     });
 
@@ -53,7 +64,7 @@ export async function POST(req: Request) {
     // Generate Dummy Control events
     const controlEvents =
       elementData.controlEventsWithCopied && elementData.controlEventsWithCopied.length === elementData.eventDescriptions.length
-        ? elementData.controlEventsWithCopied.map((eventObj, idx) => {
+        ? elementData.controlEventsWithCopied.map((eventObj: unknown, idx: number) => {
             const description = elementData.eventDescriptions[idx];
             const eventSegment = generateEventSegment(description, "ECO");
             const baseEvent =
@@ -77,11 +88,11 @@ export async function POST(req: Request) {
             // Only add triggerEvent: true if this is the trigger event
             return {
               ...baseEvent,
-              codeCopied: !!eventObj.codeCopied,
+              codeCopied: !!(eventObj as { codeCopied?: boolean })?.codeCopied,
               ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
             };
           })
-        : elementData.eventDescriptions.map((description, idx) => {
+        : elementData.eventDescriptions.map((description: string, idx: number) => {
             const eventSegment = generateEventSegment(description, "ECO");
             const baseEvent =
               clientCode === "LT"
@@ -113,7 +124,7 @@ export async function POST(req: Request) {
     for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
       const eventsForVariant =
         elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
-          ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj, idx) => {
+          ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj: unknown, idx: number) => {
               const description = elementData.eventDescriptions[idx];
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
               const baseEvent =
@@ -136,11 +147,11 @@ export async function POST(req: Request) {
                     };
               return {
                 ...baseEvent,
-                codeCopied: !!eventObj.codeCopied,
+                codeCopied: !!(eventObj as { codeCopied?: boolean })?.codeCopied,
                 ...(isTriggerEvent(idx) ? { triggerEvent: true } : {}),
               };
             })
-          : elementData.eventDescriptions.map((description, idx) => {
+          : elementData.eventDescriptions.map((description: string, idx: number) => {
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
               const baseEvent =
                 clientCode === "LT"
@@ -175,11 +186,43 @@ export async function POST(req: Request) {
 
     // Save to MongoDB
     const db = await connectToDatabase();
-    const collection = db.collection("eventdata");
+
+    interface Event {
+      event?: string;
+      eventData?: {
+        click?: {
+          clickLocation: string;
+          clickAction: string;
+          clickText: string;
+        };
+      };
+      eventCategory?: string;
+      eventAction?: string;
+      eventLabel?: string;
+      eventSegment?: string;
+      codeCopied: boolean;
+      triggerEvent?: boolean;
+    }
+
+    interface EventGroup {
+      label: string;
+      events: Event[];
+    }
+
+    interface DocumentSchema {
+      _id: string;
+      client: string;
+      experienceName: string;
+      events: EventGroup[];
+      dateCreated: string;
+    }
+    const collection = db.collection<DocumentSchema>("eventdata");
 
     const now = new Date().toISOString();
 
-    // Always update dateCreated to now (full timestamp), even when a trigger event is enabled
+    console.log("About to save/update document with _id:", fullClient);
+
+    // Use string _id consistently
     const result = await collection.updateOne(
       { _id: fullClient },
       {
@@ -187,14 +230,17 @@ export async function POST(req: Request) {
           client: clients.find((c) => c.code === clientCode)?.name || elementData.client,
           experienceName: elementData.experienceName,
           events,
-          dateCreated: now, // always update with full timestamp
+          dateCreated: now,
         },
       },
       { upsert: true }
     );
 
+    console.log("Save operation result:", result);
+
     return NextResponse.json({ message: "Element saved successfully!", result });
-  } catch (error: any) {
-    return NextResponse.json({ message: `Failed to save element: ${error.message}` }, { status: 500 });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: `Failed to save element: ${errorMessage}` }, { status: 500 });
   }
 }

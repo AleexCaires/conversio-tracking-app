@@ -8,16 +8,18 @@ import ExperienceDetails from "@/components/ExperienceDetails/ExperienceDetails"
 import EventDetails from "@/components/EventDetails/EventDetails";
 import { ExperienceProvider, useExperience } from "../components/ExperienceContext/ExperienceContext";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { EditData, EventDetailsRef } from "@/types";
 
 // Create a wrapper component for edit mode functionality
 function EditModeWrapper() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [editData, setEditData] = useState<any>(null);
+  const [editData, setEditData] = useState<EditData | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
-  const eventDetailsRef = useRef<{ reset: () => void; triggerDataGeneration: () => void } | null>(null);
+  const eventDetailsRef = useRef<EventDetailsRef | null>(null);
   
   const { 
     setSelectedClient, 
@@ -26,15 +28,22 @@ function EditModeWrapper() {
     setNumVariants 
   } = useExperience();
 
+  // Ensure component is mounted before accessing localStorage
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Check for edit parameter and load data
   useEffect(() => {
+    if (!mounted) return;
+    
     const editParam = searchParams.get('edit');
     
     if (editParam) {
       try {
         const storedData = localStorage.getItem("editExperienceData");
         if (storedData) {
-          const parsedData = JSON.parse(storedData);
+          const parsedData: EditData = JSON.parse(storedData);
           setEditData(parsedData);
           setIsEditMode(true);
           console.log("Loaded edit data:", parsedData);
@@ -43,50 +52,36 @@ function EditModeWrapper() {
         console.error("Error loading edit data:", error);
       }
     } else {
-      // If no edit param, ensure we're not in edit mode
       setIsEditMode(false);
       setEditData(null);
     }
-  }, [searchParams]);
+  }, [searchParams, mounted]);
 
   // Function to cancel edit mode and reset all fields
   const handleCancelEdit = () => {
-    // Clear localStorage
-    localStorage.removeItem("editExperienceData");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("editExperienceData");
+    }
     
-    // Reset context state
-    setSelectedClient("FN"); // Default to Finisterre
+    setSelectedClient("FN");
     setExperienceNumber("");
     setExperienceName("");
     setNumVariants(1);
     
-    // Reset event details state via ref
     if (eventDetailsRef.current) {
-      eventDetailsRef.current.reset(); // This will call cleanAllFields which hides DataLayerLogic
+      eventDetailsRef.current.reset();
     }
     
-    // Clear edit mode state
     setIsEditMode(false);
     setEditData(null);
     
-    // Update URL without refreshing the page
     router.replace('/');
   };
 
-  // Add function to handle numVariants changes in edit mode
-  const handleExperienceFieldChange = (newNumVariants: number) => {
-    // If in edit mode and we have eventDetailsRef, trigger data regeneration
-    if (isEditMode && eventDetailsRef.current) {
-      // This will force DataLayerLogic to regenerate with new variant count
-      setTimeout(() => {
-        // Access the EventDetails component reference to trigger data generation
-        if (eventDetailsRef.current) {
-          eventDetailsRef.current.triggerDataGeneration();
-        }
-      }, 100);
-      setNumVariants(newNumVariants);
-    }
-  };
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -118,15 +113,24 @@ function EditModeWrapper() {
       <ExperienceDetails
         onClientChange={(code) => console.log("Client code changed:", code)}
         onExperienceNumberChange={(num) => console.log("Experience number changed:", num)}
-        editData={editData}
+        editData={editData ?? undefined}
         isEditMode={isEditMode}
       />
       <EventDetails 
-        editData={editData}
+        editData={editData ?? undefined}
         isEditMode={isEditMode}
         ref={eventDetailsRef}
       />
     </>
+  );
+}
+
+// Create a suspense wrapper component
+function EditModeWithSuspense() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditModeWrapper />
+    </Suspense>
   );
 }
 
@@ -136,7 +140,7 @@ export default function Home() {
       <GlobalStyle />
       <Header />
       <ExperienceProvider>
-        <EditModeWrapper />
+        <EditModeWithSuspense />
       </ExperienceProvider>
     </ThemeProvider>
   );

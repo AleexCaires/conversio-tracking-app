@@ -1,15 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "@/lib/clients";
+import { Client } from "@/types";
+
+interface EventDataWithCopied {
+  controlEvents: string[];
+  variationEvents: string[];
+  controlEventsWithCopied: { code: string; codeCopied: boolean }[];
+  variationEventsWithCopied: { code: string; codeCopied: boolean }[];
+}
+
+interface LocalEventData {
+  controlEvents: string[];
+  variationEvents: string[];
+}
 
 interface DataLayerLogicProps {
   client: string;
   experienceNumber: string;
   eventDescriptions: string[];
-  controlType: string;
   trigger: boolean;
   setTrigger: (value: boolean) => void;
-  onDataGenerated: (data: { controlEvents: string[]; variationEvents: string[]; controlEventsWithCopied: { code: string; codeCopied: boolean }[]; variationEventsWithCopied: { code: string; codeCopied: boolean }[] }) => void;
+  onDataGenerated: (data: EventDataWithCopied) => void;
   selectedStatus: Record<string, boolean>;
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
@@ -18,7 +30,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   client,
   experienceNumber,
   eventDescriptions,
-  controlType,
   trigger,
   setTrigger,
   onDataGenerated,
@@ -28,32 +39,41 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   const { numVariants } = useExperience();
 
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
-  const [localEventData, setLocalEventData] = useState<{
-    controlEvents: string[];
-    variationEvents: string[];
-  }>({
+  const [localEventData, setLocalEventData] = useState<LocalEventData>({
     controlEvents: [],
     variationEvents: [],
   });
 
-  const clientData = clients.find((c) => c.name === client || c.code === client);
+  const clientData: Client | undefined = clients.find((c: Client) => c.name === client || c.code === client);
   const clientCode = clientData ? clientData.code : client;
   const fullClient = `${clientCode}${experienceNumber}`;
 
-  const getRandomLetter = (usedLetters: Set<string>): string => {
+  const getRandomLetter = useCallback((usedLetters: Set<string>, seed: string): string => {
     const letters = "QRSTUVWXYZ";
-    let letter;
-    do {
-      letter = letters[Math.floor(Math.random() * letters.length)];
-    } while (usedLetters.has(letter));
+    // Create a simple hash from the seed to make it deterministic
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      const char = seed.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    const availableLetters = letters.split('').filter(letter => !usedLetters.has(letter));
+    if (availableLetters.length === 0) return 'Q'; // fallback
+    
+    const index = Math.abs(hash) % availableLetters.length;
+    const letter = availableLetters[index];
     usedLetters.add(letter);
     return letter;
-  };
+  }, []);
 
   const toggleSelection = (key: string) => {
     setSelectedStatus((prev) => ({ ...prev, [key]: !prev[key] }));
     setActiveBorders((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Memoize the onDataGenerated callback to prevent unnecessary re-renders
+  const memoizedOnDataGenerated = useCallback(onDataGenerated, [onDataGenerated]);
 
   useEffect(() => {
     if (!trigger) return;
@@ -67,9 +87,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    eventDescriptions.forEach((description) => {
+    eventDescriptions.forEach((description, index) => {
       if (!descriptionLetters.has(description)) {
-        descriptionLetters.set(description, getRandomLetter(usedLetters));
+        // Use description + index as seed for deterministic results
+        const seed = `${description}-${index}-${fullClient}`;
+        descriptionLetters.set(description, getRandomLetter(usedLetters, seed));
       }
     });
 
@@ -148,27 +170,25 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       variationEvents: newVariationEvents,
     });
 
-    if (onDataGenerated) {
-      const controlEventsWithCopied = newControlEvents.map((event, idx) => ({
-        code: event,
-        codeCopied: !!selectedStatus[`control-${idx}`],
-      }));
+    const controlEventsWithCopied = newControlEvents.map((event, idx) => ({
+      code: event,
+      codeCopied: !!selectedStatus[`control-${idx}`],
+    }));
 
-      const variationEventsWithCopied = newVariationEvents.map((event, idx) => ({
-        code: event,
-        codeCopied: !!selectedStatus[`variation-${idx}`],
-      }));
+    const variationEventsWithCopied = newVariationEvents.map((event, idx) => ({
+      code: event,
+      codeCopied: !!selectedStatus[`variation-${idx}`],
+    }));
 
-      onDataGenerated({
-        controlEvents: newControlEvents,
-        variationEvents: newVariationEvents,
-        controlEventsWithCopied,
-        variationEventsWithCopied,
-      });
-    }
+    memoizedOnDataGenerated({
+      controlEvents: newControlEvents,
+      variationEvents: newVariationEvents,
+      controlEventsWithCopied,
+      variationEventsWithCopied,
+    });
 
     Promise.resolve().then(() => setTrigger(false));
-  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus]);
+  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus, clientCode, fullClient, memoizedOnDataGenerated, setTrigger, getRandomLetter]);
 
   useEffect(() => {
     // Reset local event data when eventDescriptions is reset (e.g., after cancel edit)
@@ -180,7 +200,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       setActiveBorders({});
       setSelectedStatus({});
     }
-  }, [eventDescriptions, trigger]);
+  }, [eventDescriptions, trigger, setSelectedStatus, onDataGenerated]);
 
   const copyToClipboard = (event: string, key: string) => {
     navigator.clipboard.writeText(event).then(() => {
@@ -195,7 +215,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
           code: evt,
           codeCopied: !!newSelectedStatus[`variation-${idx}`],
         }));
-        onDataGenerated({
+        memoizedOnDataGenerated({
           controlEvents: localEventData.controlEvents,
           variationEvents: localEventData.variationEvents,
           controlEventsWithCopied,

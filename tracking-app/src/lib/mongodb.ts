@@ -8,7 +8,7 @@ if (!uri) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-let cachedClient: MongoClient | null = null;
+//let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
 export const connectToDatabase = async (): Promise<Db> => {
@@ -23,10 +23,10 @@ export const connectToDatabase = async (): Promise<Db> => {
       // serverApi: ServerApiVersion.v1,
     });
   
-    console.log("Connected to MongoDB");
+    //console.log("Connected to MongoDB");
     const db = client.db('eventdata');  
   
-    cachedClient = client;
+    //cachedClient = client;
     cachedDb = db;
   
     return db;

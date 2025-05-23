@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Header from "@/components/Header/Header";
 import Modal from "@/components/Modal/Modal";
 import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper, ItemCard } from "./page.styles";
+import { ExperienceData, ModalContent as ModalContentType } from "@/types";
 
 const clients = [
   { name: "Finisterre", code: "FN" },
@@ -21,15 +21,13 @@ const clients = [
 ];
 
 const History = () => {
-  const router = useRouter();
-
   const [searchTerm, setSearchTerm] = useState("");
   const [nameSearchTerm, setNameSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
-  const [originalItems, setOriginalItems] = useState([]); // Store the full list of items
-  const [filteredItems, setFilteredItems] = useState([]); // Store the filtered list
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
-  const [modalContent, setModalContent] = useState<ModalContent | null>(null); // State to store modal content
+  const [originalItems, setOriginalItems] = useState<ExperienceData[]>([]);
+  const [filteredItems, setFilteredItems] = useState<ExperienceData[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<ModalContentType | null>(null);
   const [experienceNumber, setExperienceNumber] = useState<string | undefined>(undefined);
   const [experienceName, setExperienceName] = useState<string | undefined>(undefined);
 
@@ -41,7 +39,7 @@ const History = () => {
         const data = await res.json();
         console.log("Refreshed data after deletion:", data);
 
-        const sortedElements = [...data.elements].sort((a: any, b: any) => {
+        const sortedElements = [...data.elements].sort((a: ExperienceData, b: ExperienceData) => {
           const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
           const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
           return dateB - dateA;
@@ -58,16 +56,15 @@ const History = () => {
   };
 
   useEffect(() => {
-    // Using the refreshElements function for initial load
     refreshElements();
   }, []);
 
   // Create a reusable sorting function to ensure consistency
-  const sortByNewestFirst = (items: any[]) => {
+  const sortByNewestFirst = (items: ExperienceData[]): ExperienceData[] => {
     return [...items].sort((a, b) => {
       const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
       const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
-      return dateB - dateA; // Newest first
+      return dateB - dateA;
     });
   };
 
@@ -83,7 +80,6 @@ const History = () => {
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
 
-    // Use the reusable sorting function
     setFilteredItems(sortByNewestFirst(filtered));
   };
 
@@ -99,7 +95,6 @@ const History = () => {
       return (matchesId || matchesClientName) && matchesClientFilter;
     });
 
-    // Use the reusable sorting function
     setFilteredItems(sortByNewestFirst(filtered));
   };
 
@@ -108,27 +103,22 @@ const History = () => {
     setNameSearchTerm(value);
 
     if (value === "") {
-      // If input is cleared, reset filteredItems to the full list (already sorted)
       setFilteredItems([...originalItems]);
     } else {
-      // Split the search string into individual words
       const searchWords = value.split(/\s+/).filter((word) => word !== "");
       const filtered = originalItems.filter((item) => {
         const expName = item.experienceName?.toLowerCase() || "";
-        // Check if every search word is included in the experienceName
         return searchWords.every((word) => expName.includes(word));
       });
-      // Use the reusable sorting function
       setFilteredItems(sortByNewestFirst(filtered));
     }
   };
 
-  const handleOpenModal = (item: any) => {
-    console.log("Selected item for modal in historyComp:", item); // item is from get-elements
-    setModalContent(item); // Pass the entire item as content for the Modal
+  const handleOpenModal = (item: ExperienceData) => {
+    console.log("Selected item for modal in historyComp:", item);
+    setModalContent(item);
     setExperienceNumber(item._id);
     setExperienceName(item.experienceName);
-    // The client prop for Modal will be derived from 'item.client' or passed explicitly
     setIsModalOpen(true);
   };
 
@@ -191,10 +181,10 @@ const History = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        content={modalContent} // modalContent is now the full item
+        content={modalContent}
         experienceNumber={experienceNumber}
         experienceName={experienceName}
-        client={modalContent?.client} // Pass client from the item
+        client={modalContent?.client}
         onRefresh={refreshElements}
       />
     </>

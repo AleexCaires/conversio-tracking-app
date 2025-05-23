@@ -6,25 +6,26 @@ import ExperienceDetails from "../ExperienceDetails/ExperienceDetails";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 
 const TrackingPage: React.FC = () => {
-  const [eventDescriptions, setEventDescriptions] = useState<string[]>([]);
+  const [eventDescriptions] = useState<string[]>([]);
   const [client, setClient] = useState("Finisterre"); 
-  const [controlType, setControlType] = useState("Dummy Control"); 
+  const [selectedStatus, setSelectedStatus] = useState<Record<string, boolean>>({});
 
   return (
     <>
       <ExperienceDetails
         onClientChange={setClient}
-        onControlTypeChange={setControlType} 
+        onExperienceNumberChange={() => {}}
       />
-      <EventDetails
-        onEventDescriptionsChange={(descriptions) => {
-          setEventDescriptions(descriptions); 
-        }}
-      />
+      <EventDetails />
       <DataLayerLogic
         client={client}
         eventDescriptions={eventDescriptions}
-        controlType={controlType}
+        experienceNumber={"0"}
+        trigger={false}
+        setTrigger={() => {}}
+        onDataGenerated={() => {}}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
       />
     </>
   );
