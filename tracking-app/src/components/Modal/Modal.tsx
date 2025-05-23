@@ -1,45 +1,43 @@
 import React from "react";
 import EventDisplay from "@/components/EventDisplay/EventDisplay";
 import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles";
-import { FaTrash, FaEdit } from "react-icons/fa"; // Add FaEdit icon import
-import { useRouter } from "next/navigation"; // Import useRouter
+import { FaTrash, FaEdit } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import { clients } from "@/lib/clients";
+import { ModalContent as ModalContentType, Event, EventGroup } from "@/types";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  content: any;
+  content: ModalContentType | null;
   experienceNumber?: string;
   experienceName?: string;
-  client?: string; // <-- add this if needed
-  onRefresh?: () => void; // Add refresh callback
+  client?: string;
+  onRefresh?: () => void;
 }
 
 const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
-  content, // This is the full 'item' from historyComp, containing 'item.events' (grouped)
+  content,
   experienceNumber,
   experienceName,
-  client, // This is item.client
+  client,
   onRefresh,
 }) => {
-  const router = useRouter(); // Add router
+  const router = useRouter();
 
   if (!isOpen) return null;
 
   // Extract client code from experienceNumber if not provided directly
-  // This assumes experienceNumber format is like "FN123" or "LT456" 
   const extractClientCode = (expNumber: string | undefined): string => {
     if (!expNumber) return "";
     
-    // Try to get first 2 or 3 characters as the client code
     const possibleClientCodes = [
-      expNumber.substring(0, 2), // Try 2-character code
-      expNumber.substring(0, 3), // Try 3-character code
+      expNumber.substring(0, 2),
+      expNumber.substring(0, 3),
     ];
     
-    // Check if any extracted code matches our known client codes
     for (const code of possibleClientCodes) {
       if (clients.some(c => c.code === code)) {
         return code;
@@ -49,50 +47,44 @@ const Modal: React.FC<ModalProps> = ({
     return "";
   };
   
-  // Try to get client value from multiple sources
   const clientValue =
     client ||
     content?.client ||
-    content?.selectedClient ||
-    extractClientCode(experienceNumber) || // Extract from experienceNumber
+    extractClientCode(experienceNumber) ||
     "";
     
-  console.log("Client value:", clientValue, "Experience number:", experienceNumber); // Debug
+  console.log("Client value:", clientValue, "Experience number:", experienceNumber);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Check if the click target is the overlay itself
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
-  const groupEventsByVariation = (rawEvents: any[]) => {
-    const grouped: Record<string, any[]> = {};
+  const groupEventsByVariation = (rawEvents: Event[]): [string, Event[]][] => {
+    const grouped: Record<string, Event[]> = {};
 
-    rawEvents.forEach((event) => {
+    rawEvents.forEach((event: Event) => {
       try {
-        // If the event is a string, parse it as JSON
-        const parsedEvent = typeof event === "string" ? JSON.parse(event) : event;
-
         let variation = "Unknown";
 
         // Handle Adobe-specific events
-        if (parsedEvent.event === "targetClickEvent" && parsedEvent.eventData?.click) {
-          const clickText = parsedEvent.eventData.click.clickText;
+        if (event.event === "targetClickEvent" && event.eventData?.click) {
+          const clickText = event.eventData.click.clickText;
           const labelMatch = clickText?.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
-        } else if (parsedEvent.eventLabel) {
+        } else if (event.eventLabel) {
           // Handle standard events
-          const labelMatch = parsedEvent.eventLabel.match(/\(Variation (\d+)\)/);
+          const labelMatch = event.eventLabel.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }
 
         if (!grouped[variation]) grouped[variation] = [];
-        grouped[variation].push(parsedEvent);
+        grouped[variation].push(event);
       } catch (error) {
         console.error("Error processing event:", event, error);
       }
@@ -102,37 +94,47 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   // Prepare flat event arrays for EventDisplay from the grouped content.events
-  const controlEventsForDisplay = content?.events?.find((g: any) => g.label === "Dummy Control" || g.label === "Control")?.events || [];
-  
-  const variationEventsForDisplay = content?.events
-    ?.filter((g: any) => typeof g.label === 'string' && g.label.startsWith("Variation "))
-    ?.flatMap((g: any) => g.events || []) || [];
+  // Ensure eventAction is always a string (fallback to empty string if undefined)
+  const controlEventsForDisplay: Event[] = (content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || []).map(e => ({
+    ...e,
+    eventAction: e.eventAction ?? "",
+  }));
+
+  const variationEventsForDisplay: Event[] = (content?.events
+    ?.filter((g: EventGroup) => typeof g.label === 'string' && g.label.startsWith("Variation "))
+    ?.flatMap((g: EventGroup) => g.events || []) || []).map(e => ({
+      ...e,
+      eventAction: e.eventAction ?? "",
+    }));
 
   // Add delete handler
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); // Prevent modal close on click
-    console.log("Delete clicked. Values:", { clientValue, experienceNumber }); // Add debug
+    e.stopPropagation();
     
-    if (!experienceNumber) {
-      alert("Missing experience number.");
-      return;
-    }
+    // Use the content._id directly since it's already the full identifier
+    const documentId = content?._id || experienceNumber;
     
-    if (!clientValue) {
-      alert("Missing client code. Cannot delete.");
+    console.log("Delete clicked. Values:", { documentId, clientValue, experienceNumber });
+    
+    if (!documentId) {
+      alert("Missing document ID.");
       return;
     }
     
     if (!window.confirm("Are you sure you want to delete this experience?")) return;
+    
     try {
-      console.log("Deleting experience:", { client: clientValue, experienceNumber }); // Debug
+      console.log("Deleting experience with ID:", documentId);
       const res = await fetch("/api/delete-element", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client: clientValue, experienceNumber }),
+        body: JSON.stringify({ 
+          client: clientValue, 
+          experienceNumber: documentId  // Pass the full _id
+        }),
       });
+      
       if (res.ok) {
-        // Call refresh callback if provided before closing modal
         if (onRefresh) {
           onRefresh();
         }
@@ -141,6 +143,7 @@ const Modal: React.FC<ModalProps> = ({
         alert("Failed to delete.");
       }
     } catch (err) {
+      console.error("Delete error:", err);
       alert("Error deleting.");
     }
   };
@@ -154,7 +157,11 @@ const Modal: React.FC<ModalProps> = ({
       return;
     }
 
-    // Store only essential data needed for edit
+    if (!content) {
+      alert("No content available for editing.");
+      return;
+    }
+
     const editPayloadToStore = {
       id: experienceNumber,
       client: clientValue,
@@ -162,8 +169,18 @@ const Modal: React.FC<ModalProps> = ({
       events: content.events
     };
     
-    localStorage.setItem("editExperienceData", JSON.stringify(editPayloadToStore));
-    router.push(`/?edit=${experienceNumber}`);
+    // Only access localStorage on client side
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("editExperienceData", JSON.stringify(editPayloadToStore));
+    }
+    
+    // Close the modal first, then navigate
+    onClose();
+    
+    // Use setTimeout to ensure modal closes before navigation
+    setTimeout(() => {
+      router.push(`/?edit=${experienceNumber}`);
+    }, 100);
   };
 
   return (
@@ -224,9 +241,31 @@ const Modal: React.FC<ModalProps> = ({
 
         {/* Content Section */}
         <ModalContent>
-          <EventDisplay title="Control Events" events={controlEventsForDisplay} onCopy={copyToClipboard} />
-          {/* groupEventsByVariation expects a flat array of event objects */}
-          {Array.isArray(variationEventsForDisplay) && groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} />)}
+          <EventDisplay
+            title="Control Events"
+            events={controlEventsForDisplay.map(e => ({
+              ...e,
+              eventAction: e.eventAction ?? "",
+              eventCategory: e.eventCategory ?? "",
+              eventLabel: e.eventLabel ?? "",
+              eventSegment: e.eventSegment ?? "",
+            }))}
+            onCopy={copyToClipboard}
+          />
+          {Array.isArray(variationEventsForDisplay) && groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => (
+            <EventDisplay
+              key={variation}
+              title={`Variation ${variation}`}
+              events={events.map(e => ({
+                ...e,
+                eventAction: e.eventAction ?? "",
+                eventCategory: e.eventCategory ?? "",
+                eventLabel: e.eventLabel ?? "",
+                eventSegment: e.eventSegment ?? "",
+              }))}
+              onCopy={copyToClipboard}
+            />
+          ))}
         </ModalContent>
       </ModalContainer>
     </ModalOverlay>

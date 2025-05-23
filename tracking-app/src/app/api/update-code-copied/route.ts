@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { clients } from "@/lib/clients"; // shared clients
+import { clients } from "@/lib/clients";
+
+interface UpdateCodeCopiedRequest {
+  client: string;
+  experienceNumber: string;
+  eventType: string;
+  eventIndex: number;
+  codeCopied: boolean;
+}
 
 export async function POST(req: Request) {
   try {
-    const { client, experienceNumber, eventType, eventIndex, codeCopied } = await req.json();
+    const { client, experienceNumber, eventType, eventIndex, codeCopied }: UpdateCodeCopiedRequest = await req.json();
 
     console.log("Received update request:", { client, experienceNumber, eventType, eventIndex, codeCopied });
 
@@ -18,7 +26,15 @@ export async function POST(req: Request) {
     console.log("Looking for document with _id:", fullClient);
 
     const db = await connectToDatabase();
-    const collection = db.collection("eventdata");
+    interface EventGroup {
+      label: string;
+      events: {
+        codeCopied?: boolean;
+        [key: string]: unknown;
+      }[];
+    }
+    
+    const collection = db.collection<{ _id: string; events?: EventGroup[] }>("eventdata");
 
     const doc = await collection.findOne({ _id: fullClient });
     if (!doc) {
@@ -49,8 +65,9 @@ export async function POST(req: Request) {
     await collection.updateOne({ _id: fullClient }, { $set: { events: doc.events } });
 
     return NextResponse.json({ message: "codeCopied updated successfully." });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.error("API error:", error);
-    return NextResponse.json({ message: `Failed to update codeCopied: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ message: `Failed to update codeCopied: ${errorMessage}` }, { status: 500 });
   }
 }

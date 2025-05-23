@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ChildrenWrapper } from "./EventDisplay.styles";
 
 interface Event {
@@ -7,7 +7,33 @@ interface Event {
   eventLabel: string;
   eventSegment: string;
   triggerEvent?: boolean;
+  codeCopied?: boolean;
 }
+
+interface TargetClickEvent {
+  event: "targetClickEvent";
+  eventData: {
+    click: {
+      clickAction?: string;
+      clickLocation?: string;
+      clickText?: string;
+      triggerEvent?: boolean;
+    };
+    triggerEvent?: boolean;
+  };
+  triggerEvent?: boolean;
+}
+
+interface ConversioEvent {
+  eventCategory: string;
+  eventAction: string;
+  eventLabel: string;
+  eventSegment: string;
+  triggerEvent?: boolean;
+  codeCopied?: boolean;
+}
+
+type ParsedEventData = TargetClickEvent | ConversioEvent;
 
 interface EventDisplayProps {
   title: string;
@@ -16,76 +42,82 @@ interface EventDisplayProps {
 }
 
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
-  if (!events || events.length === 0) return null;
-
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
+  const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
 
-  const parsedEvents: Event[] = events.map((event) => {
-    if (typeof event === "string") {
-      const parsed = JSON.parse(event);
-      if (parsed.event === "targetClickEvent" && parsed.eventData?.click) {
-        const { clickAction, clickLocation, clickText } = parsed.eventData.click;
-        const triggerEvent =
-          typeof parsed.triggerEvent !== "undefined"
-            ? Boolean(parsed.triggerEvent)
-            : typeof parsed.eventData?.triggerEvent !== "undefined"
-            ? Boolean(parsed.eventData?.triggerEvent)
-            : typeof parsed.eventData?.click?.triggerEvent !== "undefined"
-            ? Boolean(parsed.eventData?.click?.triggerEvent)
-            : false;
+  const parseEvent = useMemo(() => {
+    return (event: Event | string): Event => {
+      if (typeof event === "string") {
+        const parsed: ParsedEventData = JSON.parse(event);
+        if ("event" in parsed && parsed.event === "targetClickEvent" && parsed.eventData?.click) {
+          const { clickAction, clickLocation, clickText } = parsed.eventData.click;
+          const triggerEvent =
+            typeof parsed.triggerEvent !== "undefined"
+              ? Boolean(parsed.triggerEvent)
+              : typeof parsed.eventData?.triggerEvent !== "undefined"
+              ? Boolean(parsed.eventData?.triggerEvent)
+              : typeof parsed.eventData?.click?.triggerEvent !== "undefined"
+              ? Boolean(parsed.eventData?.click?.triggerEvent)
+              : false;
+          return {
+            eventAction: clickAction || "N/A",
+            eventCategory: clickLocation || "N/A",
+            eventLabel: clickText || "N/A",
+            eventSegment: "",
+            triggerEvent,
+          };
+        }
+        const conversioEvent = parsed as ConversioEvent;
         return {
-          eventAction: clickAction || "N/A",
-          eventCategory: clickLocation || "N/A",
-          eventLabel: clickText || "N/A",
-          eventSegment: "",
-          triggerEvent,
+          ...conversioEvent,
+          triggerEvent: Boolean(conversioEvent.triggerEvent),
+        };
+      } else if (event && typeof event === "object") {
+        const eventObj = event as Event & { event?: string; eventData?: TargetClickEvent["eventData"] };
+        if (eventObj.event === "targetClickEvent" && eventObj.eventData?.click) {
+          const { clickAction, clickLocation, clickText } = eventObj.eventData.click;
+          const triggerEvent =
+            typeof eventObj.triggerEvent !== "undefined"
+              ? Boolean(eventObj.triggerEvent)
+              : typeof eventObj.eventData?.triggerEvent !== "undefined"
+              ? Boolean(eventObj.eventData?.triggerEvent)
+              : typeof eventObj.eventData?.click?.triggerEvent !== "undefined"
+              ? Boolean(eventObj.eventData?.click?.triggerEvent)
+              : false;
+          return {
+            eventAction: clickAction || "N/A",
+            eventCategory: clickLocation || "N/A",
+            eventLabel: clickText || "N/A",
+            eventSegment: "",
+            triggerEvent,
+          };
+        }
+        return {
+          ...eventObj,
+          triggerEvent: Boolean(eventObj.triggerEvent),
         };
       }
-      return {
-        ...parsed,
-        triggerEvent: Boolean(parsed.triggerEvent),
-      };
-    } else if (event && typeof event === "object") {
-      if ((event as any).event === "targetClickEvent" && (event as any).eventData?.click) {
-        const { clickAction, clickLocation, clickText } = (event as any).eventData.click;
-        const triggerEvent =
-          typeof (event as any).triggerEvent !== "undefined"
-            ? Boolean((event as any).triggerEvent)
-            : typeof (event as any).eventData?.triggerEvent !== "undefined"
-            ? Boolean((event as any).eventData?.triggerEvent)
-            : typeof (event as any).eventData?.click?.triggerEvent !== "undefined"
-            ? Boolean((event as any).eventData?.click?.triggerEvent)
-            : false;
-        return {
-          eventAction: clickAction || "N/A",
-          eventCategory: clickLocation || "N/A",
-          eventLabel: clickText || "N/A",
-          eventSegment: "",
-          triggerEvent,
-        };
-      }
-      return {
-        ...(event as any),
-        triggerEvent: Boolean((event as any).triggerEvent),
-      };
-    }
-    return event as Event;
-  });
+      return event as Event;
+    };
+  }, []);
 
-  const getInitialCopiedState = () => {
+  const parsedEvents: Event[] = useMemo(() => events.map(parseEvent), [events, parseEvent]);
+
+  const getInitialCopiedState = useMemo(() => {
     const state: Record<string, boolean> = {};
     parsedEvents.forEach((event, idx) => {
-      const checked = !!(event as any).codeCopied;
+      const eventWithCopied = event as Event & { codeCopied?: boolean };
+      const checked = !!eventWithCopied.codeCopied;
       state[`${idx}-code`] = checked;
     });
     return state;
-  };
-
-  const [copiedState, setCopiedState] = useState<Record<string, boolean>>(getInitialCopiedState());
+  }, [parsedEvents]);
 
   useEffect(() => {
-    setCopiedState(getInitialCopiedState());
-  }, [events]);
+    setCopiedState(getInitialCopiedState);
+  }, [getInitialCopiedState]);
+
+  if (!events || events.length === 0) return null;
 
   const eventLabels = parsedEvents
     .map((event) => ({

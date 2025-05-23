@@ -4,10 +4,23 @@ import React, { useState, useEffect, useImperativeHandle, forwardRef } from "rea
 import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
+import { EditData , EventGroup, Event } from "@/types";
 
 interface EventDetailsProps {
-  editData?: any; // Add edit data prop
-  isEditMode?: boolean; // Add edit mode flag
+  editData?: EditData;
+  isEditMode?: boolean;
+}
+
+interface EventData {
+  controlEvents: string[];
+  variationEvents: string[];
+}
+
+interface EventDataWithCopied {
+  controlEvents: string[];
+  variationEvents: string[];
+  controlEventsWithCopied: { code: string; codeCopied: boolean }[];
+  variationEventsWithCopied: { code: string; codeCopied: boolean }[];
 }
 
 const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () => void }, EventDetailsProps>(({ editData, isEditMode }, ref) => {
@@ -21,7 +34,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   const [triggerEventDescription, setTriggerEventDescription] = useState("");
   const [showDataLayerLogic, setShowDataLayerLogic] = useState(true);
 
-  const [eventData, setEventData] = useState<{ controlEvents: string[]; variationEvents: string[] }>({
+  const [eventData, setEventData] = useState<EventData>({
     controlEvents: [],
     variationEvents: [],
   });
@@ -35,21 +48,18 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     resetExperience
   } = useExperience();
 
-  const clients = [
-    { name: "Finisterre", code: "FN" },
-    { name: "Liverpool FC", code: "LF" },
-    { name: "Phase Eight", code: "PH" },
-    { name: "Hobbs", code: "HO" },
-    { name: "Whistles", code: "WC" },
-    { name: "Laithwaites", code: "LT" },
-    { name: "Accessorize", code: "AS" },
-    { name: "Monsoon", code: "MS" },
-    { name: "Ocado", code: "OPT" },
-    { name: "Team Sport", code: "TS" },
-  ];
-
-  const clientCode = clients.find((c) => c.name === selectedClient)?.code || selectedClient;
-  const fullClient = `${clientCode}${experienceNumber}`;
+  // const clients: Client[] = [
+  //   { name: "Finisterre", code: "FN" },
+  //   { name: "Liverpool FC", code: "LF" },
+  //   { name: "Phase Eight", code: "PH" },
+  //   { name: "Hobbs", code: "HO" },
+  //   { name: "Whistles", code: "WC" },
+  //   { name: "Laithwaites", code: "LT" },
+  //   { name: "Accessorize", code: "AS" },
+  //   { name: "Monsoon", code: "MS" },
+  //   { name: "Ocado", code: "OPT" },
+  //   { name: "Team Sport", code: "TS" },
+  // ];
 
   // Add effect to retrigger data generation when number of variants changes
   useEffect(() => {
@@ -83,21 +93,21 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     if (isEditMode && editData && Array.isArray(editData.events)) {
       console.log("Processing edit data for EventDetails:", editData);
       
-      const allEvents = [];
-      editData.events.forEach((group) => {
+      const allEvents: Event[] = [];
+      editData.events.forEach((group: EventGroup) => {
         if (Array.isArray(group.events)) {
           allEvents.push(...group.events);
         }
       });
       
       // Find trigger event if any
-      const triggerEvent = allEvents.find((event) => event.triggerEvent === true);
+      const triggerEvent = allEvents.find((event: Event) => event.triggerEvent === true);
       let triggerDescription = "";
-      const standardDescriptions = [];
+      const standardDescriptions: string[] = [];
       
       // Process all events to get descriptions
-      allEvents.forEach((event) => {
-        const label = event.eventLabel || (event.eventData?.click?.clickText);
+      allEvents.forEach((event: Event) => {
+        const label = event.eventLabel || event.eventData?.click?.clickText;
         if (label) {
           // Extract the description part (after the last pipe)
           const lastPipeIndex = label.lastIndexOf('|');
@@ -130,18 +140,18 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       const newSelectedStatus: Record<string, boolean> = {};
       
       // Process Control events
-      const controlGroup = editData.events.find(g => g.label === "Dummy Control" || g.label === "Control");
+      const controlGroup = editData.events.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control");
       if (controlGroup && Array.isArray(controlGroup.events)) {
-        controlGroup.events.forEach((event, idx) => {
+        controlGroup.events.forEach((event: Event, idx: number) => {
           newSelectedStatus[`control-${idx}`] = !!event.codeCopied;
         });
       }
       
       // Process Variation events
       let variationOffset = 0;
-      editData.events.forEach(group => {
+      editData.events.forEach((group: EventGroup) => {
         if (group.label && group.label.startsWith("Variation ") && Array.isArray(group.events)) {
-          group.events.forEach((event, idx) => {
+          group.events.forEach((event: Event, idx: number) => {
             newSelectedStatus[`variation-${variationOffset + idx}`] = !!event.codeCopied;
           });
           variationOffset += group.events.length;
@@ -175,8 +185,11 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     setShowDataLayerLogic(true); // Always show when explicitly triggered
   };
 
-  const handleDataGenerated = (data: { controlEvents: string[]; variationEvents: string[] }) => {
-    setEventData(data);
+  const handleDataGenerated = (data: EventDataWithCopied) => {
+    setEventData({
+      controlEvents: data.controlEvents,
+      variationEvents: data.variationEvents,
+    });
   };
   
   // Define isTriggerButtonDisabled - this was missing
@@ -229,21 +242,18 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         const data = await res.json();
         const successMsg = data.message || "Element saved successfully!";
         
-        // Keep the success message for display
         setSuccessMessage(successMsg);
         
-        // Always reset fields after successful save, including ExperienceContext
         if (isEditMode && window) {
           window.history.replaceState({}, '', '/');
         }
         
-        // Reset both EventDetails and ExperienceDetails
-        cleanAllFields(successMsg); // Pass success message to keep it displayed
+        cleanAllFields(successMsg);
       } else {
         const errorData = await res.json();
         setErrorMessage(errorData.message || "An error occurred while saving.");
       }
-    } catch (error) {
+    } catch {
       setErrorMessage("Failed to save element data. Please try again.");
     } finally {
       setIsLoading(false);
@@ -286,7 +296,9 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     setTimeout(() => {
       handleDataGenerated({
         controlEvents: [],
-        variationEvents: []
+        variationEvents: [],
+        controlEventsWithCopied: [],
+        variationEventsWithCopied: []
       });
     }, 50);
   };
@@ -352,7 +364,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           client={selectedClient}
           experienceNumber={experienceNumber}
           eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
-          controlType="Dummy Control"
           trigger={trigger}
           setTrigger={setTrigger}
           onDataGenerated={handleDataGenerated}
@@ -372,5 +383,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     </Section>
   );
 });
+
+EventDetails.displayName = 'EventDetails';
 
 export default EventDetails;
