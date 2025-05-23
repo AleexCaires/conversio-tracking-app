@@ -1,4 +1,4 @@
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "../../../lib/mongodb";
 import { Event, EventGroup, ExperienceData } from "@/types";
 
 interface DatabaseElement {
@@ -15,16 +15,21 @@ export async function GET() {
     const collection = db.collection("eventdata");
 
     const elements = await collection.find({}).toArray();
-    console.log("Raw elements from database:", elements.map(e => ({ _id: e._id, type: typeof e._id })));
+    console.log(
+      "Raw elements from database:",
+      elements.map((e) => ({ _id: e._id, type: typeof e._id }))
+    );
 
     const formattedElements = elements
-      .map((doc: Record<string, unknown>): DatabaseElement => ({
-        _id: typeof doc._id === 'string' ? doc._id : String(doc._id),
-        client: doc.client as string,
-        dateCreated: doc.dateCreated as string | Date | undefined,
-        experienceName: doc.experienceName as string,
-        events: doc.events as EventGroup[],
-      }))
+      .map(
+        (doc: Record<string, unknown>): DatabaseElement => ({
+          _id: typeof doc._id === "string" ? doc._id : String(doc._id),
+          client: doc.client as string,
+          dateCreated: doc.dateCreated as string | Date | undefined,
+          experienceName: doc.experienceName as string,
+          events: doc.events as EventGroup[],
+        })
+      )
       .map((element: DatabaseElement): ExperienceData | null => {
         // Ensure dateCreated is always present and is an ISO string
         let dateCreated: string;
@@ -36,10 +41,8 @@ export async function GET() {
         }
 
         const isLaithwaites = element.client === "Laithwaites";
-        const anyCopied = element.events.some((group: EventGroup) => 
-          group.events.some((event: Event) => event.codeCopied === true)
-        );
-        
+        const anyCopied = element.events.some((group: EventGroup) => group.events.some((event: Event) => event.codeCopied === true));
+
         let processedEventGroups: EventGroup[];
 
         if (anyCopied) {
@@ -98,14 +101,17 @@ export async function GET() {
       })
       .filter((element: ExperienceData | null): element is ExperienceData => element !== null);
 
-    console.log("Formatted elements:", formattedElements.map(e => ({ _id: e._id, type: typeof e._id })));
+    console.log(
+      "Formatted elements:",
+      formattedElements.map((e) => ({ _id: e._id, type: typeof e._id }))
+    );
 
     return new Response(JSON.stringify({ elements: formattedElements }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     return new Response(JSON.stringify({ message: `Failed to fetch elements: ${errorMessage}` }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

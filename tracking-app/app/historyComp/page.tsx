@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "@/components/Header/Header";
-import Modal from "@/components/Modal/Modal";
+import Header from "../../components/Header/Header";
+import Modal from "../../components/Modal/Modal";
 import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper, ItemCard } from "./page.styles";
 import { ExperienceData, ModalContent as ModalContentType } from "@/types";
 
@@ -178,15 +178,7 @@ const History = () => {
         </div>
       </ContentWrapper>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        content={modalContent}
-        experienceNumber={experienceNumber}
-        experienceName={experienceName}
-        client={modalContent?.client}
-        onRefresh={refreshElements}
-      />
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} content={modalContent} experienceNumber={experienceNumber} experienceName={experienceName} client={modalContent?.client} onRefresh={refreshElements} />
     </>
   );
 };
