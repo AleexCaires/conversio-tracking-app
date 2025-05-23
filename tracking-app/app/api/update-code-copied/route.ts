@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { clients } from "@/lib/clients";
+import { connectToDatabase } from "../../../lib/mongodb";
+import { clients } from "../../../lib/clients";
 
 interface UpdateCodeCopiedRequest {
   client: string;
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         [key: string]: unknown;
       }[];
     }
-    
+
     const collection = db.collection<{ _id: string; events?: EventGroup[] }>("eventdata");
 
     const doc = await collection.findOne({ _id: fullClient });
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "codeCopied updated successfully." });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("API error:", error);
     return NextResponse.json({ message: `Failed to update codeCopied: ${errorMessage}` }, { status: 500 });
   }

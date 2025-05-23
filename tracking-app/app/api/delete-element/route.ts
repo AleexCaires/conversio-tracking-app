@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { clients } from "@/lib/clients";
+import { connectToDatabase } from "../../../lib/mongodb";
+import { clients } from "../../../lib/clients";
 import { ObjectId } from "mongodb";
 
 export async function DELETE(req: Request) {
@@ -59,13 +59,9 @@ export async function DELETE(req: Request) {
 
     console.log("[DELETE] Experience deleted successfully:", result);
     return NextResponse.json({ message: "Experience deleted successfully." });
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("[DELETE] Failed to delete experience:", error);
-    return NextResponse.json(
-      { message: `Failed to delete experience: ${errorMessage}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: `Failed to delete experience: ${errorMessage}` }, { status: 500 });
   }
 }

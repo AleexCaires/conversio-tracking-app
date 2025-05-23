@@ -1,11 +1,11 @@
 "use client";
 
 import { ThemeProvider } from "styled-components";
-import { GlobalStyle } from "../../styles/globalStyles";
-import { theme } from "../../styles/theme";
-import Header from "@/components/Header/Header";
-import ExperienceDetails from "@/components/ExperienceDetails/ExperienceDetails";
-import EventDetails from "@/components/EventDetails/EventDetails";
+import { GlobalStyle } from "../styles/globalStyles";
+import { theme } from "../styles/theme";
+import Header from "../components/Header/Header";
+import ExperienceDetails from "../components/ExperienceDetails/ExperienceDetails";
+import EventDetails from "../components/EventDetails/EventDetails";
 import { ExperienceProvider, useExperience } from "../components/ExperienceContext/ExperienceContext";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, Suspense } from "react";

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { clients } from "@/lib/clients";
-
+import { connectToDatabase } from "../../../lib/mongodb";
+import { clients } from "../../../lib/clients";
 
 export async function POST(req: Request) {
   try {
@@ -27,13 +26,13 @@ export async function POST(req: Request) {
       let hash = 0;
       for (let i = 0; i < seed.length; i++) {
         const char = seed.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash; // Convert to 32bit integer
       }
-      
-      const availableLetters = letters.split('').filter(letter => !usedLetters.has(letter));
-      if (availableLetters.length === 0) return 'Q'; // fallback
-      
+
+      const availableLetters = letters.split("").filter((letter) => !usedLetters.has(letter));
+      if (availableLetters.length === 0) return "Q"; // fallback
+
       const index = Math.abs(hash) % availableLetters.length;
       const letter = availableLetters[index];
       usedLetters.add(letter);
@@ -240,7 +239,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Element saved successfully!", result });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     return NextResponse.json({ message: `Failed to save element: ${errorMessage}` }, { status: 500 });
   }
 }
