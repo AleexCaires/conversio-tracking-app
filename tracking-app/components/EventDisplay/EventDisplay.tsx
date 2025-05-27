@@ -33,7 +33,15 @@ interface ConversioEvent {
   codeCopied?: boolean;
 }
 
-type ParsedEventData = TargetClickEvent | ConversioEvent;
+interface SephoraEvent {
+  conversio_experiences: string;
+  conversio_events: string;
+  conversio_segment: string;
+  triggerEvent?: boolean;
+  codeCopied?: boolean;
+}
+
+type ParsedEventData = TargetClickEvent | ConversioEvent | SephoraEvent;
 
 interface EventDisplayProps {
   title: string;
@@ -119,19 +127,50 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
   if (!events || events.length === 0) return null;
 
+  const getEventLabel = (event: any) => {
+    // Sephora: use conversio_experiences as label
+    if (event.conversio && event.conversio.conversio_experiences) {
+      return event.conversio.conversio_experiences;
+    }
+    // Standard: use eventLabel
+    return event.eventLabel;
+  };
+
+  const getVariationNumber = (event: any) => {
+    // Sephora: extract from conversio_experiences
+    if (event.conversio && event.conversio.conversio_experiences) {
+      const match = event.conversio.conversio_experiences.match(/\(Variation (\d+)\)/);
+      if (match) return match[1];
+      // If not a variation, check for Control
+      if (event.conversio.conversio_experiences.includes("Control")) return "Control";
+    }
+    // Standard: extract from eventLabel
+    if (event.eventLabel) {
+      const match = event.eventLabel.match(/\(Variation (\d+)\)/);
+      if (match) return match[1];
+      if (event.eventLabel.includes("Control")) return "Control";
+    }
+    // Fallback: if not found, try to infer by position or return "Control"
+    return "Control";
+  };
+
+  // Group events by variation for display
+  const groupEventsByVariation = (events: Event[]) => {
+    const grouped: Record<string, Event[]> = {};
+    events.forEach((event) => {
+      const variation = getVariationNumber(event);
+      if (!grouped[variation]) grouped[variation] = [];
+      grouped[variation].push(event);
+    });
+    return Object.entries(grouped);
+  };
+
   const eventLabels = parsedEvents
     .map((event) => ({
-      label: event.eventLabel,
+      label: getEventLabel(event),
       triggerEvent: event.triggerEvent,
     }))
     .filter((item) => item.label && item.label.trim() !== "." && item.label.trim() !== "");
-
-  const handleCopy = (index: number, type: "code" | "segment", text: string) => {
-    const key = `${index}-${type}`;
-    onCopy(text);
-    setCopiedState((prev) => ({ ...prev, [key]: true }));
-    setActiveBorders((prev) => ({ ...prev, [key]: true }));
-  };
 
   return (
     <div style={{ marginTop: "2rem" }}>
@@ -161,18 +200,31 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
       <ChildrenWrapper>
         {parsedEvents.map((event, index) => {
-          const eventCode =
-            event.eventCategory === "Conversio CRO" && event.eventSegment
-              ? `window.dataLayer.push({
-  event: "conversioEvent",
-    conversio: {
-      "eventCategory": "${event.eventCategory}",
-      "eventAction": "${event.eventAction}",
-      "eventLabel": "${event.eventLabel}",
-      "eventSegment": "${event.eventSegment}"
-    }
-});`
-              : `adobeDataLayer.push({
+          // Detect Sephora event by presence of conversio property
+          const isSephoraFormat = !!(event as any).conversio;
+          
+          // Get segment value based on format (Sephora or standard)
+          const segmentValue = isSephoraFormat 
+            ? (event as any).conversio?.conversio_segment 
+            : event.eventSegment;
+
+          // Detect Adobe Target event
+          const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
+
+          let eventCode;
+
+          if (isSephoraFormat) {
+            const sephoraData = (event as any).conversio || {};
+            eventCode = `window.dataLayer.push({
+  "event": "conversioEvent", 
+  "conversio": {
+    "conversio_experiences": "${sephoraData.conversio_experiences || ''}",
+    "conversio_events": "${sephoraData.conversio_events || ''}",
+    "conversio_segment": "${sephoraData.conversio_segment || ''}"
+  }
+});`;
+          } else if (isAdobeTarget) {
+            eventCode = `adobeDataLayer.push({
   event: "targetClickEvent",
   eventData: {
     click: {
@@ -182,6 +234,17 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
     }
   }
 });`;
+          } else {
+            eventCode = `window.dataLayer.push({
+  event: "conversioEvent",
+    conversio: {
+      "eventCategory": "${event.eventCategory}",
+      "eventAction": "${event.eventAction}",
+      "eventLabel": "${event.eventLabel}",
+      "eventSegment": "${event.eventSegment}"
+    }
+});`;
+          }
 
           const codeKey = `${index}-code`;
           const segmentKey = `${index}-segment`;
@@ -190,7 +253,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
             <div key={index} style={{ marginBottom: "2rem" }} data-copied={!!copiedState[codeKey]}>
               {event.eventLabel && event.eventLabel.trim() !== "." && event.eventLabel.trim() !== "" && (
                 <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
-                  {event.eventLabel}
+                  {isSephoraFormat ? (event as unknown as SephoraEvent).conversio_experiences : event.eventLabel}
                   {event.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
                 </div>
               )}
@@ -230,9 +293,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
                   {copiedState[codeKey] ? "Copied!" : "Copy Code"}
                 </button>
 
-                {event.eventSegment && (
+                {segmentValue && (
                   <button
-                    onClick={() => handleCopy(index, "segment", event.eventSegment)}
+                    onClick={() => handleCopy(index, "segment", segmentValue)}
                     style={{
                       padding: "0.5rem 1rem",
                       fontSize: "0.9rem",

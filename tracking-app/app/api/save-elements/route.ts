@@ -66,24 +66,37 @@ export async function POST(req: Request) {
         ? elementData.controlEventsWithCopied.map((eventObj: unknown, idx: number) => {
             const description = elementData.eventDescriptions[idx];
             const eventSegment = generateEventSegment(description, "ECO");
-            const baseEvent =
-              clientCode === "LT"
-                ? {
-                    event: "targetClickEvent",
-                    eventData: {
-                      click: {
-                        clickLocation: "Conversio CRO",
-                        clickAction: `${fullClient} | Event Tracking`,
-                        clickText: `${fullClient} (Control Original) | ${description}`,
-                      },
-                    },
-                  }
-                : {
-                    eventCategory: "Conversio CRO",
-                    eventAction: `${fullClient} | Event Tracking`,
-                    eventLabel: `${fullClient} | (Control Original) | ${description}`,
-                    eventSegment: eventSegment,
-                  };
+            let baseEvent;
+            
+            if (clientCode === "LT") {
+              baseEvent = {
+                event: "targetClickEvent",
+                eventData: {
+                  click: {
+                    clickLocation: "Conversio CRO",
+                    clickAction: `${fullClient} | Event Tracking`,
+                    clickText: `${fullClient} (Control Original) | ${description}`,
+                  },
+                },
+              };
+            } else if (clientCode === "SA") {
+              baseEvent = {
+                event: "conversioEvent",
+                conversio: {
+                  conversio_experiences: `${fullClient} | (Control Original) | ${description}`,
+                  conversio_events: `${fullClient} | Event Tracking`,
+                  conversio_segment: eventSegment,
+                },
+              };
+            } else {
+              baseEvent = {
+                eventCategory: "Conversio CRO",
+                eventAction: `${fullClient} | Event Tracking`,
+                eventLabel: `${fullClient} | (Control Original) | ${description}`,
+                eventSegment: eventSegment,
+              };
+            }
+            
             // Only add triggerEvent: true if this is the trigger event
             return {
               ...baseEvent,
@@ -93,24 +106,37 @@ export async function POST(req: Request) {
           })
         : elementData.eventDescriptions.map((description: string, idx: number) => {
             const eventSegment = generateEventSegment(description, "ECO");
-            const baseEvent =
-              clientCode === "LT"
-                ? {
-                    event: "targetClickEvent",
-                    eventData: {
-                      click: {
-                        clickLocation: "Conversio CRO",
-                        clickAction: `${fullClient} | Event Tracking`,
-                        clickText: `${fullClient} (Control Original) | ${description}`,
-                      },
-                    },
-                  }
-                : {
-                    eventCategory: "Conversio CRO",
-                    eventAction: `${fullClient} | Event Tracking`,
-                    eventLabel: `${fullClient} | (Control Original) | ${description}`,
-                    eventSegment: eventSegment,
-                  };
+            let baseEvent;
+            
+            if (clientCode === "LT") {
+              baseEvent = {
+                event: "targetClickEvent",
+                eventData: {
+                  click: {
+                    clickLocation: "Conversio CRO",
+                    clickAction: `${fullClient} | Event Tracking`,
+                    clickText: `${fullClient} (Control Original) | ${description}`,
+                  },
+                },
+              };
+            } else if (clientCode === "SA") {
+              baseEvent = {
+                event: "conversioEvent",
+                conversio: {
+                  conversio_experiences: `${fullClient} | (Control Original) | ${description}`,
+                  conversio_events: `${fullClient} | Event Tracking`,
+                  conversio_segment: eventSegment,
+                },
+              };
+            } else {
+              baseEvent = {
+                eventCategory: "Conversio CRO",
+                eventAction: `${fullClient} | Event Tracking`,
+                eventLabel: `${fullClient} | (Control Original) | ${description}`,
+                eventSegment: eventSegment,
+              };
+            }
+            
             return {
               ...baseEvent,
               codeCopied: false,
@@ -126,24 +152,37 @@ export async function POST(req: Request) {
           ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj: unknown, idx: number) => {
               const description = elementData.eventDescriptions[idx];
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-              const baseEvent =
-                clientCode === "LT"
-                  ? {
-                      event: "targetClickEvent",
-                      eventData: {
-                        click: {
-                          clickLocation: "Conversio CRO",
-                          clickAction: `${fullClient} | Event Tracking`,
-                          clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
-                        },
-                      },
-                    }
-                  : {
-                      eventCategory: "Conversio CRO",
-                      eventAction: `${fullClient} | Event Tracking`,
-                      eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-                      eventSegment: eventSegment,
-                    };
+              let baseEvent;
+              
+              if (clientCode === "LT") {
+                baseEvent = {
+                  event: "targetClickEvent",
+                  eventData: {
+                    click: {
+                      clickLocation: "Conversio CRO",
+                      clickAction: `${fullClient} | Event Tracking`,
+                      clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+                    },
+                  },
+                };
+              } else if (clientCode === "SA") {
+                baseEvent = {
+                  event: "conversioEvent",
+                  conversio: {
+                    conversio_experiences: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                    conversio_events: `${fullClient} | Event Tracking`,
+                    conversio_segment: eventSegment,
+                  },
+                };
+              } else {
+                baseEvent = {
+                  eventCategory: "Conversio CRO",
+                  eventAction: `${fullClient} | Event Tracking`,
+                  eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                  eventSegment: eventSegment,
+                };
+              }
+              
               return {
                 ...baseEvent,
                 codeCopied: !!(eventObj as { codeCopied?: boolean })?.codeCopied,
@@ -152,24 +191,37 @@ export async function POST(req: Request) {
             })
           : elementData.eventDescriptions.map((description: string, idx: number) => {
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
-              const baseEvent =
-                clientCode === "LT"
-                  ? {
-                      event: "targetClickEvent",
-                      eventData: {
-                        click: {
-                          clickLocation: "Conversio CRO",
-                          clickAction: `${fullClient} | Event Tracking`,
-                          clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
-                        },
-                      },
-                    }
-                  : {
-                      eventCategory: "Conversio CRO",
-                      eventAction: `${fullClient} | Event Tracking`,
-                      eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-                      eventSegment: eventSegment,
-                    };
+              let baseEvent;
+              
+              if (clientCode === "LT") {
+                baseEvent = {
+                  event: "targetClickEvent",
+                  eventData: {
+                    click: {
+                      clickLocation: "Conversio CRO",
+                      clickAction: `${fullClient} | Event Tracking`,
+                      clickText: `${fullClient} (Variation ${variantIndex}) | ${description}`,
+                    },
+                  },
+                };
+              } else if (clientCode === "SA") {
+                baseEvent = {
+                  event: "conversioEvent",
+                  conversio: {
+                    conversio_experiences: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                    conversio_events: `${fullClient} | Event Tracking`,
+                    conversio_segment: eventSegment,
+                  },
+                };
+              } else {
+                baseEvent = {
+                  eventCategory: "Conversio CRO",
+                  eventAction: `${fullClient} | Event Tracking`,
+                  eventLabel: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
+                  eventSegment: eventSegment,
+                };
+              }
+              
               return {
                 ...baseEvent,
                 codeCopied: false,
