@@ -15,17 +15,21 @@ interface ExperienceDetailsProps {
 
 const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, onExperienceNumberChange, editData, isEditMode }) => {
   const { numVariants, setNumVariants } = useExperience();
+  const { selectedClient, setSelectedClient } = useExperience();
+  const { experienceNumber, setExperienceNumber } = useExperience();
+  const { experienceName, setExperienceName } = useExperience();
 
   const [platform, setPlatform] = useState("AB Tasty"); // Default platform for Finisterre
   const [platformOptions, setPlatformOptions] = useState<string[]>(["AB Tasty"]); // Options for the platform dropdown
+
+  // Add a ref to track initialization
+  const initializedRef = useRef(false);
+  const processedEdit = useRef(false);
 
   const handleNumVariantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setNumVariants(isNaN(value) ? 1 : Math.max(1, value));
   };
-
-  const { selectedClient, setSelectedClient } = useExperience();
-  const { experienceNumber, setExperienceNumber } = useExperience();
 
   const handleClientChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -65,13 +69,14 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
     [onClientChange, setSelectedClient]
   );
 
+  // Modify the useEffect to only run once at initialization if not in edit mode
   useEffect(() => {
-    handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
-  }, [handleClientChange]);
-
-  const { experienceName, setExperienceName } = useExperience();
-
-  const processedEdit = useRef(false);
+    // Only set default client if not in edit mode and not already initialized
+    if (!initializedRef.current && !isEditMode) {
+      handleClientChange({ target: { value: "FN" } } as React.ChangeEvent<HTMLSelectElement>);
+      initializedRef.current = true;
+    }
+  }, [handleClientChange, isEditMode]);
 
   // Apply edit data only once
   useEffect(() => {

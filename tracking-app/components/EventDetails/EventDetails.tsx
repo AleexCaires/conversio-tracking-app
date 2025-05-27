@@ -4,7 +4,7 @@ import React, { useState, useEffect, useImperativeHandle, forwardRef } from "rea
 import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
-import { EditData , EventGroup, Event } from "@/types";
+import { EditData, EventGroup, Event } from "@/types";
 
 interface EventDetailsProps {
   editData?: EditData;
@@ -45,21 +45,8 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     experienceNumber, 
     numVariants, 
     experienceName,
-    resetExperience
+    resetExperience,
   } = useExperience();
-
-  // const clients: Client[] = [
-  //   { name: "Finisterre", code: "FN" },
-  //   { name: "Liverpool FC", code: "LF" },
-  //   { name: "Phase Eight", code: "PH" },
-  //   { name: "Hobbs", code: "HO" },
-  //   { name: "Whistles", code: "WC" },
-  //   { name: "Laithwaites", code: "LT" },
-  //   { name: "Accessorize", code: "AS" },
-  //   { name: "Monsoon", code: "MS" },
-  //   { name: "Ocado", code: "OPT" },
-  //   { name: "Team Sport", code: "TS" },
-  // ];
 
   // Add effect to retrigger data generation when number of variants changes
   useEffect(() => {
