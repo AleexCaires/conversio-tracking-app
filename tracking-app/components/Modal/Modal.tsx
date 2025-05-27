@@ -57,13 +57,20 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
       try {
         let variation = "Unknown";
 
+        // Handle Sephora-specific events with conversio property
+        if ((event as any).conversio && (event as any).conversio.conversio_experiences) {
+          const expText = (event as any).conversio.conversio_experiences;
+          const labelMatch = expText.match(/\(Variation (\d+)\)/);
+          variation = labelMatch ? labelMatch[1] : "Unknown";
+        }
         // Handle Adobe-specific events
-        if (event.event === "targetClickEvent" && event.eventData?.click) {
+        else if (event.event === "targetClickEvent" && event.eventData?.click) {
           const clickText = event.eventData.click.clickText;
           const labelMatch = clickText?.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
-        } else if (event.eventLabel) {
-          // Handle standard events
+        } 
+        // Handle standard events
+        else if (event.eventLabel) {
           const labelMatch = event.eventLabel.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }
@@ -78,17 +85,50 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     return Object.entries(grouped);
   };
 
-  // Prepare flat event arrays for EventDisplay from the grouped content.events
-  // Ensure eventAction is always a string (fallback to empty string if undefined)
-  const controlEventsForDisplay: Event[] = (content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || []).map((e) => ({
-    ...e,
-    eventAction: e.eventAction ?? "",
-  }));
+  // Check if this is a Sephora client by client code
+  const isSephoraClient = clientValue === "SA";
 
-  const variationEventsForDisplay: Event[] = (content?.events?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))?.flatMap((g: EventGroup) => g.events || []) || []).map((e) => ({
-    ...e,
-    eventAction: e.eventAction ?? "",
-  }));
+  // Process events without transforming Sephora events
+  const processEventForDisplay = (event: Event): Event => {
+    if (isSephoraClient) {
+      // For Sephora, don't transform the event structure
+      return {
+        ...event,
+        eventAction: event.eventAction ?? "",
+        eventCategory: event.eventCategory ?? "",
+        eventLabel: event.eventLabel ?? "",
+        eventSegment: event.eventSegment ?? ""
+      };
+    } else if (isLaithwaites && event.event === "targetClickEvent") {
+      // For Laithwaites, transform to standard format
+      return {
+        eventAction: event.eventData?.click?.clickAction ?? "",
+        eventCategory: event.eventData?.click?.clickLocation ?? "",
+        eventLabel: event.eventData?.click?.clickText ?? "",
+        eventSegment: "",
+        codeCopied: event.codeCopied,
+        ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
+      };
+    } else {
+      // For other clients, just ensure properties are strings
+      return {
+        ...event,
+        eventAction: event.eventAction ?? "",
+        eventCategory: event.eventCategory ?? "",
+        eventLabel: event.eventLabel ?? "",
+        eventSegment: event.eventSegment ?? ""
+      };
+    }
+  };
+
+  // Prepare flat event arrays for EventDisplay from the grouped content.events
+  const controlEventsForDisplay: Event[] =
+    content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || [];
+
+  const variationEventsForDisplay: Event[] =
+    content?.events
+      ?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))
+      ?.flatMap((g: EventGroup) => g.events || []) || [];
 
   // Add delete handler
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -226,13 +266,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
         <ModalContent>
           <EventDisplay
             title="Control Events"
-            events={controlEventsForDisplay.map((e) => ({
-              ...e,
-              eventAction: e.eventAction ?? "",
-              eventCategory: e.eventCategory ?? "",
-              eventLabel: e.eventLabel ?? "",
-              eventSegment: e.eventSegment ?? "",
-            }))}
+            events={controlEventsForDisplay}
             onCopy={copyToClipboard}
           />
           {Array.isArray(variationEventsForDisplay) &&
@@ -240,13 +274,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
               <EventDisplay
                 key={variation}
                 title={`Variation ${variation}`}
-                events={events.map((e) => ({
-                  ...e,
-                  eventAction: e.eventAction ?? "",
-                  eventCategory: e.eventCategory ?? "",
-                  eventLabel: e.eventLabel ?? "",
-                  eventSegment: e.eventSegment ?? "",
-                }))}
+                events={events}
                 onCopy={copyToClipboard}
               />
             ))}

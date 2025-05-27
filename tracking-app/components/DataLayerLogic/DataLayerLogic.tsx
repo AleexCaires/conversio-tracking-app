@@ -114,6 +114,15 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         }
     }
 });`);
+      } else if (clientCode === "SA") {
+        newControlEvents.push(`window.dataLayer.push({
+    "event": "conversioEvent", 
+    "conversio": {
+        "conversio_experiences": "${fullClient} | (Control Original) | ${description}",
+        "conversio_events": "${fullClient} | Event Tracking",
+        "conversio_segment": "${eventSegment}"
+    }
+});`);
       } else {
         newControlEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
@@ -140,6 +149,15 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
             clickAction: '${fullClient} | Event Tracking',
             clickText: '${fullClient} (Variation ${variantIndex}) | ${description}'
         }
+    }
+});`);
+        } else if (clientCode === "SA") {
+          newVariationEvents.push(`window.dataLayer.push({
+    "event": "conversioEvent", 
+    "conversio": {
+        "conversio_experiences": "${fullClient} | (Variation ${variantIndex}) | ${description}",
+        "conversio_events": "${fullClient} | Event Tracking",
+        "conversio_segment": "${eventSegment}"
     }
 });`);
         } else {

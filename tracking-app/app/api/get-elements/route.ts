@@ -41,6 +41,7 @@ export async function GET() {
         }
 
         const isLaithwaites = element.client === "Laithwaites";
+        const isSephora = element.client === "Sephora" || element.client === "SA";
         const anyCopied = element.events.some((group: EventGroup) => group.events.some((event: Event) => event.codeCopied === true));
 
         let processedEventGroups: EventGroup[];
@@ -61,6 +62,10 @@ export async function GET() {
                       ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
                     };
                   }
+                  // For Sephora, return event as-is if it has conversio property
+                  if (isSephora && event.event === "conversioEvent" && event.conversio) {
+                    return event;
+                  }
                   return event;
                 });
                 return { ...group, events: formattedCopiedEvents };
@@ -80,6 +85,10 @@ export async function GET() {
                   codeCopied: event.codeCopied,
                   ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
                 };
+              }
+              // For Sephora, return event as-is if it has conversio property
+              if (isSephora && event.event === "conversioEvent" && event.conversio) {
+                return event;
               }
               return event;
             });
