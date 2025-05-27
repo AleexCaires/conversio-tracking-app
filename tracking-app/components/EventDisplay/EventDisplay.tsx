@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { ChildrenWrapper } from "./EventDisplay.styles";
+import { Event as TypedEvent } from "@/types"; // Import the Event type from your types file
 
+// Update your Event interface to match the one from types/index.ts
+// or remove it entirely if you're using the imported type
 interface Event {
-  eventAction: string;
-  eventCategory: string;
-  eventLabel: string;
-  eventSegment: string;
+  eventAction?: string; // Make this optional to match the type
+  eventCategory?: string; // Make this optional to match the type
+  eventLabel?: string; // Make this optional to match the type
+  eventSegment?: string; // Make this optional to match the type
   triggerEvent?: boolean;
   codeCopied?: boolean;
-}
-
-interface TargetClickEvent {
-  event: "targetClickEvent";
-  eventData: {
-    click: {
+  event?: string;
+  eventData?: {
+    click?: {
       clickAction?: string;
       clickLocation?: string;
       clickText?: string;
@@ -21,31 +21,16 @@ interface TargetClickEvent {
     };
     triggerEvent?: boolean;
   };
-  triggerEvent?: boolean;
+  conversio?: {
+    conversio_experiences?: string;
+    conversio_events?: string;
+    conversio_segment?: string;
+  };
 }
-
-interface ConversioEvent {
-  eventCategory: string;
-  eventAction: string;
-  eventLabel: string;
-  eventSegment: string;
-  triggerEvent?: boolean;
-  codeCopied?: boolean;
-}
-
-interface SephoraEvent {
-  conversio_experiences: string;
-  conversio_events: string;
-  conversio_segment: string;
-  triggerEvent?: boolean;
-  codeCopied?: boolean;
-}
-
-type ParsedEventData = TargetClickEvent | ConversioEvent | SephoraEvent;
 
 interface EventDisplayProps {
   title: string;
-  events: (Event | string)[];
+  events: (TypedEvent | string)[]; // Update to use TypedEvent instead of local Event
   onCopy: (text: string) => void;
 }
 
@@ -56,7 +41,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
   const parseEvent = useMemo(() => {
     return (event: Event | string): Event => {
       if (typeof event === "string") {
-        const parsed: ParsedEventData = JSON.parse(event);
+        const parsed: Event = JSON.parse(event);
         if ("event" in parsed && parsed.event === "targetClickEvent" && parsed.eventData?.click) {
           const { clickAction, clickLocation, clickText } = parsed.eventData.click;
           const triggerEvent =
@@ -75,13 +60,12 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
             triggerEvent,
           };
         }
-        const conversioEvent = parsed as ConversioEvent;
         return {
-          ...conversioEvent,
-          triggerEvent: Boolean(conversioEvent.triggerEvent),
+          ...parsed,
+          triggerEvent: Boolean(parsed.triggerEvent),
         };
       } else if (event && typeof event === "object") {
-        const eventObj = event as Event & { event?: string; eventData?: TargetClickEvent["eventData"] };
+        const eventObj = event as Event & { event?: string; eventData?: Event["eventData"] };
         if (eventObj.event === "targetClickEvent" && eventObj.eventData?.click) {
           const { clickAction, clickLocation, clickText } = eventObj.eventData.click;
           const triggerEvent =
@@ -127,43 +111,32 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
   if (!events || events.length === 0) return null;
 
-  const getEventLabel = (event: any) => {
+  const getEventLabel = (event: Event): string => {
     // Sephora: use conversio_experiences as label
     if (event.conversio && event.conversio.conversio_experiences) {
       return event.conversio.conversio_experiences;
     }
-    // Standard: use eventLabel
-    return event.eventLabel;
+    // Standard: use eventLabel with fallback to prevent undefined
+    return event.eventLabel ?? '';
   };
 
-  const getVariationNumber = (event: any) => {
-    // Sephora: extract from conversio_experiences
-    if (event.conversio && event.conversio.conversio_experiences) {
-      const match = event.conversio.conversio_experiences.match(/\(Variation (\d+)\)/);
-      if (match) return match[1];
-      // If not a variation, check for Control
-      if (event.conversio.conversio_experiences.includes("Control")) return "Control";
-    }
-    // Standard: extract from eventLabel
-    if (event.eventLabel) {
-      const match = event.eventLabel.match(/\(Variation (\d+)\)/);
-      if (match) return match[1];
-      if (event.eventLabel.includes("Control")) return "Control";
-    }
-    // Fallback: if not found, try to infer by position or return "Control"
-    return "Control";
-  };
-
-  // Group events by variation for display
-  const groupEventsByVariation = (events: Event[]) => {
-    const grouped: Record<string, Event[]> = {};
-    events.forEach((event) => {
-      const variation = getVariationNumber(event);
-      if (!grouped[variation]) grouped[variation] = [];
-      grouped[variation].push(event);
-    });
-    return Object.entries(grouped);
-  };
+  // const getVariationNumber = (event: Event): string => {
+  //   // Sephora: extract from conversio_experiences
+  //   if (event.conversio && event.conversio.conversio_experiences) {
+  //     const match = event.conversio.conversio_experiences.match(/\(Variation (\d+)\)/);
+  //     if (match) return match[1];
+  //     // If not a variation, check for Control
+  //     if (event.conversio.conversio_experiences.includes("Control")) return "Control";
+  //   }
+  //   // Standard: extract from eventLabel
+  //   if (event.eventLabel) {
+  //     const match = event.eventLabel.match(/\(Variation (\d+)\)/);
+  //     if (match) return match[1];
+  //     if (event.eventLabel.includes("Control")) return "Control";
+  //   }
+  //   // Fallback: if not found, try to infer by position or return "Control"
+  //   return "Control";
+  // };
 
   const eventLabels = parsedEvents
     .map((event) => ({
@@ -171,6 +144,13 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
       triggerEvent: event.triggerEvent,
     }))
     .filter((item) => item.label && item.label.trim() !== "." && item.label.trim() !== "");
+
+  const handleCopy = (index: number, type: "code" | "segment", text: string) => {
+    const key = `${index}-${type}`;
+    onCopy(text);
+    setCopiedState((prev) => ({ ...prev, [key]: true }));
+    setActiveBorders((prev) => ({ ...prev, [key]: true }));
+  };
 
   return (
     <div style={{ marginTop: "2rem" }}>
@@ -201,11 +181,11 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
       <ChildrenWrapper>
         {parsedEvents.map((event, index) => {
           // Detect Sephora event by presence of conversio property
-          const isSephoraFormat = !!(event as any).conversio;
+          const isSephoraFormat = !!event.conversio;
           
           // Get segment value based on format (Sephora or standard)
           const segmentValue = isSephoraFormat 
-            ? (event as any).conversio?.conversio_segment 
+            ? event.conversio?.conversio_segment 
             : event.eventSegment;
 
           // Detect Adobe Target event
@@ -213,8 +193,8 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
           let eventCode;
 
-          if (isSephoraFormat) {
-            const sephoraData = (event as any).conversio || {};
+          if (isSephoraFormat && event.conversio) {
+            const sephoraData = event.conversio;
             eventCode = `window.dataLayer.push({
   "event": "conversioEvent", 
   "conversio": {
@@ -253,7 +233,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
             <div key={index} style={{ marginBottom: "2rem" }} data-copied={!!copiedState[codeKey]}>
               {event.eventLabel && event.eventLabel.trim() !== "." && event.eventLabel.trim() !== "" && (
                 <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
-                  {isSephoraFormat ? (event as unknown as SephoraEvent).conversio_experiences : event.eventLabel}
+                  {isSephoraFormat ? event.conversio?.conversio_experiences : event.eventLabel}
                   {event.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
                 </div>
               )}

@@ -58,8 +58,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
         let variation = "Unknown";
 
         // Handle Sephora-specific events with conversio property
-        if ((event as any).conversio && (event as any).conversio.conversio_experiences) {
-          const expText = (event as any).conversio.conversio_experiences;
+        if (event.conversio && event.conversio.conversio_experiences) {
+          const expText = event.conversio.conversio_experiences;
           const labelMatch = expText.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }
@@ -85,41 +85,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     return Object.entries(grouped);
   };
 
-  // Check if this is a Sephora client by client code
-  const isSephoraClient = clientValue === "SA";
-
-  // Process events without transforming Sephora events
-  const processEventForDisplay = (event: Event): Event => {
-    if (isSephoraClient) {
-      // For Sephora, don't transform the event structure
-      return {
-        ...event,
-        eventAction: event.eventAction ?? "",
-        eventCategory: event.eventCategory ?? "",
-        eventLabel: event.eventLabel ?? "",
-        eventSegment: event.eventSegment ?? ""
-      };
-    } else if (isLaithwaites && event.event === "targetClickEvent") {
-      // For Laithwaites, transform to standard format
-      return {
-        eventAction: event.eventData?.click?.clickAction ?? "",
-        eventCategory: event.eventData?.click?.clickLocation ?? "",
-        eventLabel: event.eventData?.click?.clickText ?? "",
-        eventSegment: "",
-        codeCopied: event.codeCopied,
-        ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
-      };
-    } else {
-      // For other clients, just ensure properties are strings
-      return {
-        ...event,
-        eventAction: event.eventAction ?? "",
-        eventCategory: event.eventCategory ?? "",
-        eventLabel: event.eventLabel ?? "",
-        eventSegment: event.eventSegment ?? ""
-      };
-    }
-  };
+  // // Check if this is a Sephora client by client code
+  // const isSephoraClient = clientValue === "SA";
+  // const isLaithwaites = clientValue === "LT" || content?.client === "Laithwaites"; 
 
   // Prepare flat event arrays for EventDisplay from the grouped content.events
   const controlEventsForDisplay: Event[] =
