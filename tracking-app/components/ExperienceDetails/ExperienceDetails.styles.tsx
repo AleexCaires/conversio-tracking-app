@@ -4,8 +4,13 @@ export const Section = styled.section`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  background-color: #7948B31F;
+  border-radius: 16px;
+  padding: 2rem 5rem;
+`;
+export const SectionWrapper = styled.div`
   padding: 2rem;
-  background-color: #f0f6ff;
+   background-color: white;
 `;
 
 export const Heading = styled.h2`
@@ -16,24 +21,24 @@ export const Heading = styled.h2`
 export const FieldGroupMiddle = styled.div`
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: 2.5rem;
 `;
 export const FieldGroupEnd = styled.div`
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: 2.5rem;
   justify-content: start;
   align-items: center;
 `;
 
 export const FieldGroupFirst = styled.div`
-display: flex;
-flex-direction: row;
-justify-content: start;
-align-items: center;
-gap: 1rem;
-width: 100%;
-`
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  gap: 2.5rem;
+  width: 100%;
+`;
 
 export const Label = styled.label`
   font-weight: 700;
@@ -44,40 +49,55 @@ export const Select = styled.select`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
-
+  border-radius: 16px;
+  height: 40px;
 `;
 
 export const Input = styled.input`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 16px;
+  height: 40px;
 `;
 
 export const ExperimentNumber = styled.div`
-    display: flex;
-    align-items: center;
-    width: 30%;
-    label{
-        white-space: nowrap;
-    }
+  display: flex;
+  align-items: center;
+  label {
+    white-space: nowrap;
+  }
 
-    input{
-        width: 100%;
-    }
-`
+  input {
+    width: 100px;
+  }
+`;
 
 export const ExperimentName = styled.div`
-    display: flex;
-    align-items: center;
-    width: 70%;
-    label{
-        white-space: nowrap;
-    }
+  display: flex;
+  align-items: center;
+  width: 60%;
+  label {
+    white-space: nowrap;
+  }
 
-    input{
-        width: 90%;
-    }
+  input {
+    width: 90%;
+  }
+`;
+
+export const ExperienceVariations = styled.div`
+input{
+  width: 40px;
+  text-align: center;
+  &[type='number']::-webkit-outer-spin-button,
+  &[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
 `
-
