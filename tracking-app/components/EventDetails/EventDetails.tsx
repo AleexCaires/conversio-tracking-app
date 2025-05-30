@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
-import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol } from "./EventDetails.styles";
+import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol,SectionWrapper ,TriggerEventWrapper,TriggerButton} from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 import { EditData, EventGroup, Event } from "@/types";
@@ -302,6 +302,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   }));
 
   return (
+    <SectionWrapper>
     <Section>
       <Heading>Event Details</Heading>
 
@@ -310,31 +311,34 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           <Label htmlFor="numEvents">No. of Events:</Label>
           <Input type="number" id="numEvents" value={numEvents} min={1} max={20} onChange={handleNumEventsChange} />
         </div>
-        <div>
-          <Label>Event Category Name:</Label>
-          <Input type="text" value="Conversio CRO" readOnly />
-        </div>
+        <TriggerEventWrapper>
+          <label style={{ display: "flex", alignItems: "center" }}>
+            <input 
+              type="checkbox" 
+              checked={triggerEventEnabled} 
+              onChange={(e) => setTriggerEventEnabled(e.target.checked)} 
+              style={{ marginRight: "0.5rem" }} 
+            />
+            Trigger Event
+          </label>
+          
+          {triggerEventEnabled && (
+            <div>
+              <EventInput 
+                type="text" 
+                value={triggerEventDescription} 
+                onChange={(e) => setTriggerEventDescription(e.target.value)} 
+                placeholder="Trigger Event Description" 
+              />
+            </div>
+          )}
+        </TriggerEventWrapper>
       </FieldGroupInitial>
 
       <EventRow>
         <EventCol>
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "flex", alignItems: "center" }}>
-              <input type="checkbox" checked={triggerEventEnabled} onChange={(e) => setTriggerEventEnabled(e.target.checked)} style={{ marginRight: "0.5rem" }} />
-              Add Trigger Event
-            </label>
-          </div>
-
-          {triggerEventEnabled && (
-            <EventDescriptionRow>
-              <Label>Trigger Event Description:</Label>
-              <EventInput type="text" value={triggerEventDescription} onChange={(e) => setTriggerEventDescription(e.target.value)} placeholder="Describe the trigger event" />
-            </EventDescriptionRow>
-          )}
-
           {eventDescriptions.map((desc, idx) => (
             <EventDescriptionRow key={idx}>
-              {triggerEventEnabled && idx === 0 && <div style={{ marginBottom: "0.25rem", color: "#d35400", fontWeight: 600 }}>Trigger Event</div>}
               <Label>{`Event ${idx + 1} Description:`}</Label>
               <EventInput type="text" value={desc} onChange={(e) => handleDescriptionChange(idx, e.target.value)} />
             </EventDescriptionRow>
@@ -342,9 +346,9 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         </EventCol>
       </EventRow>
 
-      <button onClick={handleTriggerDataLayer} style={{ marginTop: "1rem" }} disabled={isTriggerButtonDisabled}>
-        Trigger DataLayer Logic
-      </button>
+      <TriggerButton onClick={handleTriggerDataLayer} disabled={isTriggerButtonDisabled}>
+        Build Events
+      </TriggerButton>
 
       {showDataLayerLogic && (
         <DataLayerLogic
@@ -368,6 +372,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       {successMessage && <div style={{ color: "green", marginTop: "1rem" }}>{successMessage}</div>}
       {errorMessage && <div style={{ color: "red", marginTop: "1rem" }}>{errorMessage}</div>}
     </Section>
+    </SectionWrapper>
   );
 });
 
