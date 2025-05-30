@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Section, Heading, FieldGroupMiddle, Label, Select, Input, FieldGroupFirst, FieldGroupEnd, ExperimentName, ExperimentNumber } from "./ExperienceDetails.styles";
+import { Section,SectionWrapper, Heading, FieldGroupMiddle, Label, Select, Input, FieldGroupFirst, FieldGroupEnd, ExperimentName, ExperimentNumber, ExperienceVariations } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { EditData } from "@/types";
@@ -117,6 +117,7 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
   }, [isEditMode, editData, onClientChange, onExperienceNumberChange, setSelectedClient, setExperienceNumber, setExperienceName, setNumVariants]);
 
   return (
+    <SectionWrapper>
     <Section>
       <Heading>Experience Details</Heading>
 
@@ -189,7 +190,7 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
       </FieldGroupMiddle>
 
       <FieldGroupEnd>
-        <div>
+        <ExperienceVariations>
           <Label htmlFor="numVariants">No. of Variants (not inc. control):*</Label>
           <Input
             type="number"
@@ -199,13 +200,14 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
             min={1}
             onChange={handleNumVariantsChange} // use direct handler
           />
-        </div>
-        <div>
+        </ExperienceVariations>
+        {/* <div>
           <Label htmlFor="experienceCategoryName">Experience Category Name:*</Label>
           <Input type="text" id="experienceCategoryName" name="experienceCategoryName" defaultValue="Conversio Experience" />
-        </div>
+        </div> */}
       </FieldGroupEnd>
     </Section>
+    </SectionWrapper>
   );
 };
 

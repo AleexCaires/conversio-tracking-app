@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Nav, HeaderWrapper, Logo, NavList, NavItemLink} from "./Header.styles";
+import { Nav, HeaderWrapper, Logo, NavList, NavItemLink, NavItem } from "./Header.styles";
 
 const navItems = [{ name: "See all", href: "/historyComp" }];
 
@@ -15,9 +15,9 @@ const Header = () => {
         </Logo>
         <NavList>
           {navItems.map((item) => (
-            <li key={item.name}>
+            <NavItem key={item.name}>
               <NavItemLink href={item.href}>{item.name}</NavItemLink>
-            </li>
+            </NavItem>
           ))}
         </NavList>
       </Nav>
