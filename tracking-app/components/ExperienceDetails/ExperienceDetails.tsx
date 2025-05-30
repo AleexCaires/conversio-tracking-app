@@ -201,10 +201,10 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
             onChange={handleNumVariantsChange} // use direct handler
           />
         </ExperienceVariations>
-        <div>
+        {/* <div>
           <Label htmlFor="experienceCategoryName">Experience Category Name:*</Label>
           <Input type="text" id="experienceCategoryName" name="experienceCategoryName" defaultValue="Conversio Experience" />
-        </div>
+        </div> */}
       </FieldGroupEnd>
     </Section>
     </SectionWrapper>

@@ -88,16 +88,6 @@ export const ExperimentName = styled.div`
 
 export const ExperienceVariations = styled.div`
 input{
-  width: 40px;
-  text-align: center;
-  &[type='number']::-webkit-outer-spin-button,
-  &[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  &[type='number'] {
-    -moz-appearance: textfield;
-  }
+  width: 55.5px;
 }
 `
