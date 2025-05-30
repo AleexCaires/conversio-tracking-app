@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
-import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol,SectionWrapper ,TriggerEventWrapper,TriggerButton} from "./EventDetails.styles";
+import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol,SectionWrapper ,TriggerEventWrapper,TriggerButton,SaveToDBbtn} from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 import { EditData, EventGroup, Event } from "@/types";
@@ -32,7 +32,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   const [successMessage, setSuccessMessage] = useState("");
   const [triggerEventEnabled, setTriggerEventEnabled] = useState(false);
   const [triggerEventDescription, setTriggerEventDescription] = useState("");
-  const [showDataLayerLogic, setShowDataLayerLogic] = useState(true);
+  const [showDataLayerLogic, setShowDataLayerLogic] = useState(false); // Changed initial state to false
 
   const [eventData, setEventData] = useState<EventData>({
     controlEvents: [],
@@ -265,7 +265,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     setTriggerEventEnabled(false);
     setTriggerEventDescription("");
     
-    // Only hide DataLayerLogic if it's triggered by cancel
+    // Hide DataLayerLogic when fields are cleaned, unless it's after a successful save
     if (!successMessage) {
       setShowDataLayerLogic(false);
     }
@@ -293,7 +293,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   // Expose a reset method and triggerDataGeneration to parent components
   useImperativeHandle(ref, () => ({
     reset: () => {
-      cleanAllFields();
+      cleanAllFields(); // This will set showDataLayerLogic to false
     },
     triggerDataGeneration: () => {
       setTrigger(true);
@@ -351,23 +351,25 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       </TriggerButton>
 
       {showDataLayerLogic && (
-        <DataLayerLogic
-          client={selectedClient}
-          experienceNumber={experienceNumber}
-          eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
-          trigger={trigger}
-          setTrigger={setTrigger}
-          onDataGenerated={handleDataGenerated}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-        />
-      )}
+        <>
+          <DataLayerLogic
+            client={selectedClient}
+            experienceNumber={experienceNumber}
+            eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
+            trigger={trigger}
+            setTrigger={setTrigger}
+            onDataGenerated={handleDataGenerated}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+          />
 
-      <div style={{ marginTop: "1rem" }}>
-        <button onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
-          {isLoading ? "Saving..." : "Save Element"}
-        </button>
-      </div>
+          <div>
+            <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
+              {isLoading ? "Saving..." : "Save to database"}
+            </SaveToDBbtn>
+          </div>
+        </>
+      )}
 
       {successMessage && <div style={{ color: "green", marginTop: "1rem" }}>{successMessage}</div>}
       {errorMessage && <div style={{ color: "red", marginTop: "1rem" }}>{errorMessage}</div>}

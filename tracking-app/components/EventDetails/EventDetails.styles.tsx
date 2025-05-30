@@ -82,12 +82,28 @@ export const TriggerEventWrapper = styled.div`
 display: flex;
 align-items: center;
 `
-export const TriggerButton = styled.button`
+export const TriggerButton = styled.button<{ disabled?: boolean }>`
   height: 48px;
   width: 115px;
   border-radius: 16px;
-  background-color: #67FF88;
-  color: #000;
+  background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#67FF88")}; // Grey out when disabled
+  color: ${({ disabled }) => (disabled ? "#666666" : "#000")}; // Darker text when disabled
+  font-weight: 700;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")}; // Change cursor when disabled
+  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)}; // Reduce opacity when disabled
+  border: none; // Assuming no border is desired, or adjust as needed
+
+  &:hover {
+    background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#52CC6D")}; // Darker green on hover if not disabled
+  }
+`;
+
+export const SaveToDBbtn = styled.button`
+  height: 48px;
+  width: 135px;
+  border-radius: 16px;
+  background: #582E89;
+  color: white;
   font-weight: 700;
   cursor: pointer;
 `
