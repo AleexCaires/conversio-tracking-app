@@ -4,7 +4,6 @@ import styled from "styled-components";
 export const HeaderWrapper = styled.header`
   background-color: #fff;
   padding: 1rem 2rem;
-  border-bottom: 1px solid #eee;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -43,12 +42,20 @@ export const NavList = styled.ul`
 
 export const NavItemLink = styled(Link)`
   text-decoration: none;
-  color: #333;
-  font-weight: 500;
+  color: white;
+  font-weight: 700;
   transition: color 0.2s ease-in-out;
 
-  &:hover {
-    color: #0070f3;
-  }
+
 `;
 
+export const NavItem = styled.li`
+  background: #582E89;
+  border-radius: 16px;
+  height: 48px;
+  width: 115px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+`
