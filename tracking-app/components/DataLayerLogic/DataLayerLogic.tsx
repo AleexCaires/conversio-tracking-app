@@ -2,6 +2,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { Client } from "@/types";
+import {
+  EventBlockWrapper,
+  SelectCheckbox,
+  EventCodePre,
+  CopyButton,
+  EventsGrid,
+  EventsSectionTitle
+} from "./DataLayerLogic.styles";
 
 interface EventDataWithCopied {
   controlEvents: string[];
@@ -239,74 +247,32 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
   };
 
   const renderEventBlock = (event: string, key: string) => (
-    <div key={key} style={{ position: "relative" }} data-copied={!!selectedStatus[key]}>
-      <input
-        type="checkbox"
+    <EventBlockWrapper key={key} data-copied={!!selectedStatus[key]} $activeBorder={!!activeBorders[key]}>
+      <SelectCheckbox
         checked={!!selectedStatus[key]}
         onChange={() => toggleSelection(key)}
-        style={{
-          position: "absolute",
-          top: "-10px",
-          right: "0px",
-          width: "20px",
-          height: "20px",
-          cursor: "pointer",
-        }}
         title={selectedStatus[key] ? "Unselect" : "Select"}
       />
-      <pre
-        style={{
-          backgroundColor: "#1e1e1e",
-          color: "#f5f5f5",
-          padding: "16px",
-          borderRadius: "8px",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          maxHeight: "300px",
-          overflowY: "auto",
-          border: activeBorders[key] ? "2px solid #007bff" : "2px solid transparent",
-          boxShadow: activeBorders[key] ? "0 0 10px #007bff, 0 0 20px #007bff" : "none",
-          transition: "box-shadow 0.3s ease, border 0.3s ease",
-        }}
-      >
+      <EventCodePre $activeBorder={!!activeBorders[key]}>
         {event}
-      </pre>
-      <button
+      </EventCodePre>
+      <CopyButton
         onClick={() => copyToClipboard(event, key)}
-        style={{
-          position: "absolute",
-          right: "16px",
-          bottom: "48px",
-          padding: "8px 12px",
-          fontSize: "14px",
-          backgroundColor: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
         title={"Copy Code"}
       >
         Copy Code
-      </button>
-    </div>
+      </CopyButton>
+    </EventBlockWrapper>
   );
 
   return (
     <div>
       {localEventData.controlEvents.length > 0 && (
         <>
-          <h3>Control Events</h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-              gap: "16px",
-              padding: "10px",
-            }}
-          >
+          <EventsSectionTitle>Control Events</EventsSectionTitle>
+          <EventsGrid>
             {localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}
-          </div>
+          </EventsGrid>
         </>
       )}
       {Array.from({ length: numVariants }, (_, variantIdx) => {
@@ -316,17 +282,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         if (events.length === 0) return null;
         return (
           <React.Fragment key={variantIdx + 1}>
-            <h3>{`Variation ${variantIdx + 1} Events`}</h3>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-                gap: "16px",
-                padding: "10px",
-              }}
-            >
+            <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
+            <EventsGrid>
               {events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}
-            </div>
+            </EventsGrid>
           </React.Fragment>
         );
       })}
