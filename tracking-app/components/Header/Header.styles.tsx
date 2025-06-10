@@ -53,7 +53,7 @@ export const NavItem = styled.li`
   background: #582E89;
   border-radius: 16px;
   height: 48px;
-  width: 115px;
+  width: 135px;
   display: flex;
   align-items: center;
   justify-content: center;

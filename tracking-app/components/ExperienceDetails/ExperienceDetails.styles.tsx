@@ -9,7 +9,7 @@ export const Section = styled.section`
   padding: 2rem 5rem;
 `;
 export const SectionWrapper = styled.div`
-  padding: 2rem;
+  padding: 0rem 2rem 2rem 2rem;
    background-color: white;
 `;
 
