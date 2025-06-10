@@ -10,4 +10,5 @@ export const clients = [
   { name: "Ocado", code: "OPT" },
   { name: "Team Sport", code: "TS" },
   { name: "Sephora", code: "SA" },
+   { name: "Belmond", code: "BM" },
 ];
