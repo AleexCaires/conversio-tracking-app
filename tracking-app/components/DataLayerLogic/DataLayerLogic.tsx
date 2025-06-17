@@ -34,9 +34,17 @@ interface DataLayerLogicProps {
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
-const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus }) => {
+const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
+  client,
+  experienceNumber,
+  eventDescriptions,
+  trigger,
+  setTrigger,
+  onDataGenerated,
+  selectedStatus,
+  setSelectedStatus,
+}) => {
   const { numVariants } = useExperience();
-
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<LocalEventData>({
     controlEvents: [],
@@ -49,12 +57,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
 
   const getRandomLetter = useCallback((usedLetters: Set<string>, seed: string): string => {
     const letters = "QRSTUVWXYZ";
-    // Create a simple hash from the seed to make it deterministic
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
       const char = seed.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = hash & hash; 
     }
 
     const availableLetters = letters.split("").filter((letter) => !usedLetters.has(letter));
@@ -71,13 +78,11 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     setActiveBorders((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Memoize the onDataGenerated callback to prevent unnecessary re-renders
   const memoizedOnDataGenerated = useCallback(onDataGenerated, [onDataGenerated]);
 
   useEffect(() => {
     if (!trigger) return;
 
-    // Clear existing events when trigger is activated
     setLocalEventData({
       controlEvents: [],
       variationEvents: [],
@@ -88,7 +93,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
 
     eventDescriptions.forEach((description, index) => {
       if (!descriptionLetters.has(description)) {
-        // Use description + index as seed for deterministic results
         const seed = `${description}-${index}-${fullClient}`;
         descriptionLetters.set(description, getRandomLetter(usedLetters, seed));
       }
@@ -123,14 +127,16 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     }
 });`);
       } else if (clientCode === "SA") {
-        newControlEvents.push(`window.dataLayer.push({
-    "event": "conversioEvent", 
-    "conversio": {
-        "conversio_experiences": "${fullClient} | (Control Original) | ${description}",
-        "conversio_events": "${fullClient} | Event Tracking",
-        "conversio_segment": "${eventSegment}"
+        newControlEvents.push(`dataLayer.push({
+    event: "conversioEvent", 
+    conversio: {
+      event_category: "Conversio CRO",
+      event_action: "${eventSegment} | Event Tracking",
+      event_label: "${eventSegment} | (Control Original) | ${description}",
+      event_segment: "${eventSegment}"
     }
-});`);
+  });`);
+
       } else {
         newControlEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
@@ -159,16 +165,17 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
         }
     }
 });`);
-        } else if (clientCode === "SA") {
-          newVariationEvents.push(`window.dataLayer.push({
-    "event": "conversioEvent", 
-    "conversio": {
-        "conversio_experiences": "${fullClient} | (Variation ${variantIndex}) | ${description}",
-        "conversio_events": "${fullClient} | Event Tracking",
-        "conversio_segment": "${eventSegment}"
+        }  else if (clientCode === "SA") {
+        newVariationEvents.push(`dataLayer.push({
+    event: "conversioEvent", 
+    conversio: {
+      event_category: "Conversio CRO",
+      event_action: "${eventSegment} | Event Tracking",
+      event_label: "${eventSegment} | (Variation ${variantIndex}) | ${description}",
+      event_segment: "${eventSegment}"
     }
-});`);
-        } else {
+  });`);
+      } else {
           newVariationEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
     'conversio' : {

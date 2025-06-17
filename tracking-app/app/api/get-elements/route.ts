@@ -64,7 +64,7 @@ export async function GET() {
                   }
                   // For Sephora, return event as-is if it has conversio property
                   if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                    return event;
+                    return event; // <-- Do not flatten, return as-is
                   }
                   return event;
                 });
@@ -88,7 +88,7 @@ export async function GET() {
               }
               // For Sephora, return event as-is if it has conversio property
               if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                return event;
+                return event; // <-- Do not flatten, return as-is
               }
               return event;
             });
