@@ -5,7 +5,7 @@ export const Section = styled.section`
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem 5rem;
-  background-color:#0000001F;;
+  background-color: #0000001f;
   border-radius: 16px;
 `;
 
@@ -79,9 +79,9 @@ export const EventColEnd = styled.div`
 `;
 
 export const TriggerEventWrapper = styled.div`
-display: flex;
-align-items: center;
-`
+  display: flex;
+  align-items: center;
+`;
 export const TriggerButton = styled.button<{ disabled?: boolean }>`
   height: 48px;
   width: 115px;
@@ -102,8 +102,8 @@ export const SaveToDBbtn = styled.button`
   height: 48px;
   width: 135px;
   border-radius: 16px;
-  background: #582E89;
+  background: #582e89;
   color: white;
   font-weight: 700;
   cursor: pointer;
-`
+`;
