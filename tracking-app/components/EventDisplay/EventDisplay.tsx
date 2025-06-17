@@ -3,10 +3,10 @@ import { ChildrenWrapper } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
 
 interface Event {
-  eventAction?: string; 
+  eventAction?: string;
   eventCategory?: string;
-  eventLabel?: string; 
-  eventSegment?: string; 
+  eventLabel?: string;
+  eventSegment?: string;
   triggerEvent?: boolean;
   codeCopied?: boolean;
   event?: string;
@@ -36,6 +36,15 @@ interface EventDisplayProps {
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Determine button label based on title
+  const getToggleLabel = () => {
+    if (isVisible) return `Hide ${title} Events`;
+    if (title.toLowerCase().includes("control")) return "Show Control Events";
+    if (title.toLowerCase().includes("variation")) return `Show ${title} Events`;
+    return "Show Events";
+  };
 
   const parseEvent = useMemo(() => {
     return (event: Event | string): Event => {
@@ -148,126 +157,129 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
               >
                 <span style={{ marginRight: "0.5em" }}>{idx + 1}.</span>
                 {item.label}
-                {item.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
+                {item.triggerEvent && (
+                  <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>
+                    (Trigger Event)
+                  </span>
+                )}
               </li>
             ))}
           </ul>
         </div>
       )}
 
+      <button
+        onClick={() => setIsVisible((prev) => !prev)}
+        style={{
+          padding: "0.5rem 1rem",
+          fontSize: "0.9rem",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "0.25rem",
+          cursor: "pointer",
+        }}
+      >
+        {getToggleLabel()}
+      </button>
+
       <ChildrenWrapper>
         {parsedEvents.map((event, index) => {
-          // Detect Sephora event by presence of conversio property with event_category
           const isSephoraFormat = !!(event.conversio && event.conversio.event_category);
-
-          // Get segment value based on format (Sephora or standard)
           const segmentValue = isSephoraFormat
             ? event.conversio?.event_segment
             : event.eventSegment;
-
-          // Detect Adobe Target event
           const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
 
-          let eventCode;
+          let eventCode: string;
 
           if (isSephoraFormat && event.conversio) {
-            eventCode = `dataLayer.push({
-  event: "conversioEvent", 
-  conversio: {
-    event_category: "${event.conversio.event_category ?? ""}",
-    event_action: "${event.conversio.event_action ?? ""}",
-    event_label: "${event.conversio.event_label ?? ""}",
-    event_segment: "${event.conversio.event_segment ?? ""}"
-  }
-});`;
+            eventCode = `dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${event.conversio.event_segment ?? ""}"\n  }\n});`;
           } else if (isAdobeTarget) {
-            eventCode = `adobeDataLayer.push({
-  event: "targetClickEvent",
-  eventData: {
-    click: {
-      clickLocation: "${event.eventCategory}",
-      clickAction: "${event.eventAction}",
-      clickText: "${event.eventLabel}"
-    }
-  }
-});`;
+            eventCode = `adobeDataLayer.push({\n  event: "targetClickEvent",\n  eventData: {\n    click: {\n      clickLocation: "${event.eventCategory}",\n      clickAction: "${event.eventAction}",\n      clickText: "${event.eventLabel}"\n    }\n  }\n});`;
           } else {
-            eventCode = `window.dataLayer.push({
-  event: "conversioEvent",
-    conversio: {
-      "eventCategory": "${event.eventCategory}",
-      "eventAction": "${event.eventAction}",
-      "eventLabel": "${event.eventLabel}",
-      "eventSegment": "${event.eventSegment}"
-    }
-});`;
+            eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    \"eventCategory\": \"${event.eventCategory}\",\n    \"eventAction\": \"${event.eventAction}\",\n    \"eventLabel\": \"${event.eventLabel}\",\n    \"eventSegment\": \"${event.eventSegment}\"\n  }\n});`;
           }
 
           const codeKey = `${index}-code`;
           const segmentKey = `${index}-segment`;
 
           return (
-            <div key={index} style={{ marginBottom: "2rem" }} data-copied={!!copiedState[codeKey]}>
-              {getEventLabel(event) && getEventLabel(event).trim() !== "." && getEventLabel(event).trim() !== "" && (
-                <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
-                  {getEventLabel(event)}
-                  {event.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
-                </div>
-              )}
+            <div key={index} style={{ marginBottom: "2rem" }}>
+              {isVisible && (
+                <>
+                  <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
+                    {getEventLabel(event)}
+                    {event.triggerEvent && (
+                      <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>
+                        (Trigger Event)
+                      </span>
+                    )}
+                  </div>
 
-              <pre
-                style={{
-                  background: "#1e1e1e",
-                  color: "#f5f5f5",
-                  padding: "1rem",
-                  borderRadius: "0.5rem",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  maxHeight: "300px",
-                  overflowY: "auto",
-                  border: activeBorders[codeKey] ? "2px solid #007bff" : activeBorders[segmentKey] ? "2px solid #28a745" : "2px solid transparent",
-                  boxShadow: activeBorders[codeKey] ? "0 0 10px #007bff, 0 0 20px #007bff" : activeBorders[segmentKey] ? "0 0 10px #28a745, 0 0 20px #28a745" : "none",
-                  transition: "box-shadow 0.3s ease, border 0.3s ease",
-                }}
-              >
-                {eventCode}
-              </pre>
-
-              <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
-                <button
-                  onClick={() => handleCopy(index, "code", eventCode)}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    fontSize: "0.9rem",
-                    backgroundColor: copiedState[codeKey] ? "#0056b3" : "#007bff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "0.25rem",
-                    cursor: "pointer",
-                    transition: "background 0.3s ease",
-                  }}
-                >
-                  {copiedState[codeKey] ? "Copied!" : "Copy Code"}
-                </button>
-
-                {segmentValue && (
-                  <button
-                    onClick={() => handleCopy(index, "segment", segmentValue)}
+                  <pre
                     style={{
-                      padding: "0.5rem 1rem",
-                      fontSize: "0.9rem",
-                      backgroundColor: copiedState[segmentKey] ? "#1c7c3e" : "#28a745",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "0.25rem",
-                      cursor: "pointer",
-                      transition: "background 0.3s ease",
+                      background: "#1e1e1e",
+                      color: "#f5f5f5",
+                      padding: "1rem",
+                      borderRadius: "0.5rem",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: activeBorders[codeKey]
+                        ? "2px solid #007bff"
+                        : activeBorders[segmentKey]
+                        ? "2px solid #28a745"
+                        : "2px solid transparent",
+                      boxShadow: activeBorders[codeKey]
+                        ? "0 0 10px #007bff, 0 0 20px #007bff"
+                        : activeBorders[segmentKey]
+                        ? "0 0 10px #28a745, 0 0 20px #28a745"
+                        : "none",
+                      transition: "box-shadow 0.3s ease, border 0.3s ease",
                     }}
                   >
-                    {copiedState[segmentKey] ? "Segment Copied!" : "Copy Segment"}
-                  </button>
-                )}
-              </div>
+                    {eventCode}
+                  </pre>
+
+                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
+                    <button
+                      onClick={() => handleCopy(index, "code", eventCode)}
+                      style={{
+                        padding: "0.5rem 1rem",
+                        fontSize: "0.9rem",
+                        backgroundColor: copiedState[codeKey] ? "#0056b3" : "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "0.25rem",
+                        cursor: "pointer",
+                        transition: "background 0.3s ease",
+                      }}
+                    >
+                      {copiedState[codeKey] ? "Copied!" : "Copy Code"}
+                    </button>
+
+                    {segmentValue && (
+                      <button
+                        onClick={() => handleCopy(index, "segment", segmentValue)}
+                        style={{
+                          padding: "0.5rem 1rem",
+                          fontSize: "0.9rem",
+                          backgroundColor: copiedState[segmentKey] ? "#1c7c3e" : "#28a745",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "0.25rem",
+                          cursor: "pointer",
+                          transition: "background 0.3s ease",
+                        }}
+                      >
+                        {copiedState[segmentKey] ? "Segment Copied!" : "Copy Segment"}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           );
         })}
