@@ -22,9 +22,10 @@ export interface Event {
   };
   // Add Sephora's special event structure
   conversio?: {
-    conversio_experiences?: string;
-    conversio_events?: string;
-    conversio_segment?: string;
+    event_category?: string;
+    event_action?: string;
+    event_label?: string;
+    event_segment?: string;
   };
 } 
 

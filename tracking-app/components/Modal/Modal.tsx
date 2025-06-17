@@ -21,7 +21,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
 
   if (!isOpen) return null;
 
-  // Extract client code from experienceNumber if not provided directly
   const extractClientCode = (expNumber: string | undefined): string => {
     if (!expNumber) return "";
 
@@ -32,13 +31,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
         return code;
       }
     }
-
     return "";
   };
 
   const clientValue = client || content?.client || extractClientCode(experienceNumber) || "";
-
-  console.log("Client value:", clientValue, "Experience number:", experienceNumber);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -57,20 +53,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
       try {
         let variation = "Unknown";
 
-        // Handle Sephora-specific events with conversio property
-        if (event.conversio && event.conversio.conversio_experiences) {
-          const expText = event.conversio.conversio_experiences;
-          const labelMatch = expText.match(/\(Variation (\d+)\)/);
-          variation = labelMatch ? labelMatch[1] : "Unknown";
-        }
         // Handle Adobe-specific events
-        else if (event.event === "targetClickEvent" && event.eventData?.click) {
+        if (event.event === "targetClickEvent" && event.eventData?.click) {
           const clickText = event.eventData.click.clickText;
           const labelMatch = clickText?.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
-        } 
-        // Handle standard events
-        else if (event.eventLabel) {
+        } else if (event.eventLabel) {
+          // Handle standard events
           const labelMatch = event.eventLabel.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }
@@ -85,18 +74,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     return Object.entries(grouped);
   };
 
-  // // Check if this is a Sephora client by client code
-  // const isSephoraClient = clientValue === "SA";
-  // const isLaithwaites = clientValue === "LT" || content?.client === "Laithwaites"; 
-
   // Prepare flat event arrays for EventDisplay from the grouped content.events
-  const controlEventsForDisplay: Event[] =
-    content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || [];
+  // Ensure eventAction is always a string (fallback to empty string if undefined)
+  const controlEventsForDisplay: Event[] = (content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || []).map((e) => ({
+    ...e,
+    eventAction: e.eventAction ?? "",
+  }));
 
-  const variationEventsForDisplay: Event[] =
-    content?.events
-      ?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))
-      ?.flatMap((g: EventGroup) => g.events || []) || [];
+  const variationEventsForDisplay: Event[] = (content?.events?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))?.flatMap((g: EventGroup) => g.events || []) || []).map((e) => ({
+    ...e,
+    eventAction: e.eventAction ?? "",
+  }));
 
   // Add delete handler
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -105,7 +93,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     // Use the content._id directly since it's already the full identifier
     const documentId = content?._id || experienceNumber;
 
-    console.log("Delete clicked. Values:", { documentId, clientValue, experienceNumber });
+    //console.log("Delete clicked. Values:", { documentId, clientValue, experienceNumber });
 
     if (!documentId) {
       alert("Missing document ID.");
@@ -115,7 +103,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     if (!window.confirm("Are you sure you want to delete this experience?")) return;
 
     try {
-      console.log("Deleting experience with ID:", documentId);
+      //console.log("Deleting experience with ID:", documentId);
       const res = await fetch("/api/delete-element", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -234,7 +222,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
         <ModalContent>
           <EventDisplay
             title="Control Events"
-            events={controlEventsForDisplay}
+            events={controlEventsForDisplay.map((e) => ({
+              ...e,
+              eventAction: e.eventAction ?? "",
+              eventCategory: e.eventCategory ?? "",
+              eventLabel: e.eventLabel ?? "",
+              eventSegment: e.eventSegment ?? "",
+            }))}
             onCopy={copyToClipboard}
           />
           {Array.isArray(variationEventsForDisplay) &&
@@ -242,7 +236,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
               <EventDisplay
                 key={variation}
                 title={`Variation ${variation}`}
-                events={events}
+                events={events.map((e) => ({
+                  ...e,
+                  eventAction: e.eventAction ?? "",
+                  eventCategory: e.eventCategory ?? "",
+                  eventLabel: e.eventLabel ?? "",
+                  eventSegment: e.eventSegment ?? "",
+                }))}
                 onCopy={copyToClipboard}
               />
             ))}

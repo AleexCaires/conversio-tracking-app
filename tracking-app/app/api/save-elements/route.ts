@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const clientCode = clients.find((c) => c.name === elementData.client)?.code || elementData.client;
     const fullClient = `${clientCode}${elementData.experienceNumber}`;
 
-    console.log("Saving document with _id:", fullClient);
+    //console.log("Saving document with _id:", fullClient);
 
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
             const description = elementData.eventDescriptions[idx];
             const eventSegment = generateEventSegment(description, "ECO");
             let baseEvent;
-            
+
             if (clientCode === "LT") {
               baseEvent = {
                 event: "targetClickEvent",
@@ -83,9 +83,10 @@ export async function POST(req: Request) {
               baseEvent = {
                 event: "conversioEvent",
                 conversio: {
-                  conversio_experiences: `${fullClient} | (Control Original) | ${description}`,
-                  conversio_events: `${fullClient} | Event Tracking`,
-                  conversio_segment: eventSegment,
+                  event_category: "Conversio CRO",
+                  event_action: `${eventSegment} | Event Tracking`,
+                  event_label: `${eventSegment} | (Control Original) | ${description}`,
+                  event_segment: `${eventSegment}`,
                 },
               };
             } else {
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
                 eventSegment: eventSegment,
               };
             }
-            
+
             // Only add triggerEvent: true if this is the trigger event
             return {
               ...baseEvent,
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
         : elementData.eventDescriptions.map((description: string, idx: number) => {
             const eventSegment = generateEventSegment(description, "ECO");
             let baseEvent;
-            
+
             if (clientCode === "LT") {
               baseEvent = {
                 event: "targetClickEvent",
@@ -123,9 +124,10 @@ export async function POST(req: Request) {
               baseEvent = {
                 event: "conversioEvent",
                 conversio: {
-                  conversio_experiences: `${fullClient} | (Control Original) | ${description}`,
-                  conversio_events: `${fullClient} | Event Tracking`,
-                  conversio_segment: eventSegment,
+                  event_category: "Conversio CRO",
+                  event_action: `${eventSegment} | Event Tracking`,
+                  event_label: `${eventSegment} | (Control Original) | ${description}`,
+                  event_segment: `${eventSegment}`,
                 },
               };
             } else {
@@ -136,7 +138,7 @@ export async function POST(req: Request) {
                 eventSegment: eventSegment,
               };
             }
-            
+
             return {
               ...baseEvent,
               codeCopied: false,
@@ -153,7 +155,7 @@ export async function POST(req: Request) {
               const description = elementData.eventDescriptions[idx];
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
               let baseEvent;
-              
+
               if (clientCode === "LT") {
                 baseEvent = {
                   event: "targetClickEvent",
@@ -169,9 +171,10 @@ export async function POST(req: Request) {
                 baseEvent = {
                   event: "conversioEvent",
                   conversio: {
-                    conversio_experiences: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-                    conversio_events: `${fullClient} | Event Tracking`,
-                    conversio_segment: eventSegment,
+                    event_category: "Conversio CRO",
+                    event_action: `${eventSegment} | Event Tracking`,
+                    event_label: `${eventSegment} | (Variation ${variantIndex}) | ${description}`,
+                    event_segment: `${eventSegment}`,
                   },
                 };
               } else {
@@ -182,7 +185,7 @@ export async function POST(req: Request) {
                   eventSegment: eventSegment,
                 };
               }
-              
+
               return {
                 ...baseEvent,
                 codeCopied: !!(eventObj as { codeCopied?: boolean })?.codeCopied,
@@ -192,7 +195,7 @@ export async function POST(req: Request) {
           : elementData.eventDescriptions.map((description: string, idx: number) => {
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
               let baseEvent;
-              
+
               if (clientCode === "LT") {
                 baseEvent = {
                   event: "targetClickEvent",
@@ -208,9 +211,10 @@ export async function POST(req: Request) {
                 baseEvent = {
                   event: "conversioEvent",
                   conversio: {
-                    conversio_experiences: `${fullClient} | (Variation ${variantIndex}) | ${description}`,
-                    conversio_events: `${fullClient} | Event Tracking`,
-                    conversio_segment: eventSegment,
+                    event_category: "Conversio CRO",
+                    event_action: `${eventSegment} | Event Tracking`,
+                    event_label: `${eventSegment} | (Variation ${variantIndex}) | ${description}`,
+                    event_segment: `${eventSegment}`,
                   },
                 };
               } else {
@@ -221,7 +225,7 @@ export async function POST(req: Request) {
                   eventSegment: eventSegment,
                 };
               }
-              
+
               return {
                 ...baseEvent,
                 codeCopied: false,
@@ -271,7 +275,7 @@ export async function POST(req: Request) {
 
     const now = new Date().toISOString();
 
-    console.log("About to save/update document with _id:", fullClient);
+    //console.log("About to save/update document with _id:", fullClient);
 
     // Use string _id consistently
     const result = await collection.updateOne(
@@ -287,7 +291,7 @@ export async function POST(req: Request) {
       { upsert: true }
     );
 
-    console.log("Save operation result:", result);
+    //console.log("Save operation result:", result);
 
     return NextResponse.json({ message: "Element saved successfully!", result });
   } catch (error) {

@@ -3,12 +3,12 @@
 import React from "react";
 import Image from "next/image";
 import { Nav, HeaderWrapper, Logo, NavList, NavItemLink, NavItem } from "./Header.styles";
-import { usePathname } from "next/navigation"; // Import usePathname
+import { usePathname } from "next/navigation";
 
 const navItems = [{ name: "Saved Events", href: "/historyComp" }];
 
 const Header = () => {
-  const pathname = usePathname(); // Get current pathname
+  const pathname = usePathname();
 
   return (
     <HeaderWrapper>
@@ -18,9 +18,12 @@ const Header = () => {
         </Logo>
         <NavList>
           {navItems.map((item) => {
-            // Conditionally render the item
             if (item.href === "/historyComp" && pathname === "/historyComp") {
-              return null; // Don't render if on /historyComp page
+              return (
+                <NavItem key="build-events">
+                  <NavItemLink href="/">Build Events</NavItemLink>
+                </NavItem>
+              );
             }
             return (
               <NavItem key={item.name}>

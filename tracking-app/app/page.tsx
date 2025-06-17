@@ -41,7 +41,7 @@ function EditModeWrapper() {
           const parsedData: EditData = JSON.parse(storedData);
           setEditData(parsedData);
           setIsEditMode(true);
-          console.log("Loaded edit data:", parsedData);
+          //console.log("Loaded edit data:", parsedData);
         }
       } catch (error) {
         console.error("Error loading edit data:", error);
