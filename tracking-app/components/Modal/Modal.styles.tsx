@@ -31,8 +31,8 @@ export const ModalHeader = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  position: relative; /* Keep for potential absolute positioning inside */
-  flex-shrink: 0; /* Prevent header from shrinking */
+  position: relative; 
+  flex-shrink: 0; 
 `;
 
 export const CloseButton = styled.button`
@@ -40,13 +40,13 @@ export const CloseButton = styled.button`
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  line-height: 1; /* Ensure button doesn't take extra vertical space */
-  padding: 0; /* Remove default padding */
-  margin: 0; /* Remove default margin */
+  line-height: 1; 
+  padding: 0; 
+  margin: 0; 
 `;
 
 export const ModalContent = styled.div`
   padding: 1rem 2rem 2rem 2rem;
-  overflow-y: auto; /* Make content scrollable */
-  flex-grow: 1; /* Allow content to take available space */
+  overflow-y: auto; 
+  flex-grow: 1;
 `;
