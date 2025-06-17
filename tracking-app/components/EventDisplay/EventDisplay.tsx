@@ -125,7 +125,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
     if (event.conversio && event.conversio.event_label) {
       return event.conversio.event_label;
     }
-    return event.eventLabel ?? '';
+    return event.eventLabel ?? "";
   };
 
   const eventLabels = parsedEvents
@@ -161,11 +161,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
               >
                 <span style={{ marginRight: "0.5em" }}>{idx + 1}.</span>
                 {item.label}
-                {item.triggerEvent && (
-                  <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>
-                    (Trigger Event)
-                  </span>
-                )}
+                {item.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
               </li>
             ))}
           </ul>
@@ -187,73 +183,87 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
         {getToggleLabel()}
       </button>
 
-      <ChildrenWrapper>
-        {parsedEvents.map((event, index) => {
-          const isSephoraFormat = !!(event.conversio && event.conversio.event_category);
-          const segmentValue = isSephoraFormat
-            ? event.conversio?.event_segment
-            : event.eventSegment;
-          const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
+      {isVisible && (
+        <ChildrenWrapper>
+          {parsedEvents.map((event, index) => {
+            const isSephoraFormat = !!(event.conversio && event.conversio.event_category);
+            const segmentValue = isSephoraFormat ? event.conversio?.event_segment : event.eventSegment;
+            const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
 
-          let eventCode: string;
+            let eventCode: string;
 
-          if (isSephoraFormat && event.conversio) {
-            eventCode = `dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${event.conversio.event_segment ?? ""}"\n  }\n});`;
-          } else if (isAdobeTarget) {
-            eventCode = `adobeDataLayer.push({\n  event: "targetClickEvent",\n  eventData: {\n    click: {\n      clickLocation: "${event.eventCategory}",\n      clickAction: "${event.eventAction}",\n      clickText: "${event.eventLabel}"\n    }\n  }\n});`;
-          } else {
-            eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    \"eventCategory\": \"${event.eventCategory}\",\n    \"eventAction\": \"${event.eventAction}\",\n    \"eventLabel\": \"${event.eventLabel}\",\n    \"eventSegment\": \"${event.eventSegment}\"\n  }\n});`;
-          }
+            if (isSephoraFormat && event.conversio) {
+              eventCode = `dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${
+                event.conversio.event_segment ?? ""
+              }"\n  }\n});`;
+            } else if (isAdobeTarget) {
+              eventCode = `adobeDataLayer.push({\n  event: "targetClickEvent",\n  eventData: {\n    click: {\n      clickLocation: "${event.eventCategory}",\n      clickAction: "${event.eventAction}",\n      clickText: "${event.eventLabel}"\n    }\n  }\n});`;
+            } else {
+              eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    \"eventCategory\": \"${event.eventCategory}\",\n    \"eventAction\": \"${event.eventAction}\",\n    \"eventLabel\": \"${event.eventLabel}\",\n    \"eventSegment\": \"${event.eventSegment}\"\n  }\n});`;
+            }
 
-          const codeKey = `${index}-code`;
-          const segmentKey = `${index}-segment`;
+            const codeKey = `${index}-code`;
+            const segmentKey = `${index}-segment`;
 
-          return (
-            <div key={index} style={{ marginBottom: "2rem" }}>
-              {isVisible && (
-                <>
-                  <div style={{ marginBottom: "0.5rem", color: "#444", fontWeight: 500 }}>
-                    {getEventLabel(event)}
-                    {event.triggerEvent && (
-                      <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>
-                        (Trigger Event)
-                      </span>
-                    )}
-                  </div>
-
-                  <pre
+            return (
+              <div key={index} style={{ marginBottom: "2rem" }}>
+                {/* ...existing code for event label, pre, and buttons... */}
+                <div
+                  style={{
+                    marginBottom: "0.5rem",
+                    color: "#444",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    width: "100%",
+                    display: "block",
+                  }}
+                  title={getEventLabel(event) + (event.triggerEvent ? " (Trigger Event)" : "")}
+                >
+                  {getEventLabel(event)}
+                  {event.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
+                </div>
+                <pre
+                  style={{
+                    background: "#1e1e1e",
+                    color: "#f5f5f5",
+                    padding: "1rem",
+                    borderRadius: "0.5rem",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                    border: activeBorders[codeKey] ? "2px solid #007bff" : activeBorders[segmentKey] ? "2px solid #28a745" : "2px solid transparent",
+                    boxShadow: activeBorders[codeKey] ? "0 0 10px #007bff, 0 0 20px #007bff" : activeBorders[segmentKey] ? "0 0 10px #28a745, 0 0 20px #28a745" : "none",
+                    transition: "box-shadow 0.3s ease, border 0.3s ease",
+                  }}
+                >
+                  {eventCode}
+                </pre>
+                <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
+                  <button
+                    onClick={() => handleCopy(index, "code", eventCode)}
                     style={{
-                      background: "#1e1e1e",
-                      color: "#f5f5f5",
-                      padding: "1rem",
-                      borderRadius: "0.5rem",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      border: activeBorders[codeKey]
-                        ? "2px solid #007bff"
-                        : activeBorders[segmentKey]
-                        ? "2px solid #28a745"
-                        : "2px solid transparent",
-                      boxShadow: activeBorders[codeKey]
-                        ? "0 0 10px #007bff, 0 0 20px #007bff"
-                        : activeBorders[segmentKey]
-                        ? "0 0 10px #28a745, 0 0 20px #28a745"
-                        : "none",
-                      transition: "box-shadow 0.3s ease, border 0.3s ease",
+                      padding: "0.5rem 1rem",
+                      fontSize: "0.9rem",
+                      backgroundColor: copiedState[codeKey] ? "#0056b3" : "#007bff",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.25rem",
+                      cursor: "pointer",
+                      transition: "background 0.3s ease",
                     }}
                   >
-                    {eventCode}
-                  </pre>
-
-                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
+                    {copiedState[codeKey] ? "Copied!" : "Copy Code"}
+                  </button>
+                  {segmentValue && (
                     <button
-                      onClick={() => handleCopy(index, "code", eventCode)}
+                      onClick={() => handleCopy(index, "segment", segmentValue)}
                       style={{
                         padding: "0.5rem 1rem",
                         fontSize: "0.9rem",
-                        backgroundColor: copiedState[codeKey] ? "#0056b3" : "#007bff",
+                        backgroundColor: copiedState[segmentKey] ? "#1c7c3e" : "#28a745",
                         color: "white",
                         border: "none",
                         borderRadius: "0.25rem",
@@ -261,33 +271,15 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
                         transition: "background 0.3s ease",
                       }}
                     >
-                      {copiedState[codeKey] ? "Copied!" : "Copy Code"}
+                      {copiedState[segmentKey] ? "Segment Copied!" : "Copy Segment"}
                     </button>
-
-                    {segmentValue && (
-                      <button
-                        onClick={() => handleCopy(index, "segment", segmentValue)}
-                        style={{
-                          padding: "0.5rem 1rem",
-                          fontSize: "0.9rem",
-                          backgroundColor: copiedState[segmentKey] ? "#1c7c3e" : "#28a745",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "0.25rem",
-                          cursor: "pointer",
-                          transition: "background 0.3s ease",
-                        }}
-                      >
-                        {copiedState[segmentKey] ? "Segment Copied!" : "Copy Segment"}
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </ChildrenWrapper>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </ChildrenWrapper>
+      )}
     </div>
   );
 };

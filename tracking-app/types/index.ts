@@ -27,7 +27,7 @@ export interface Event {
     event_label?: string;
     event_segment?: string;
   };
-} 
+}
 
 export interface EventGroup {
   label: string;
