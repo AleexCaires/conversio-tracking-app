@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Section,SectionWrapper, Heading, FieldGroupMiddle, Label, Select, Input, FieldGroupFirst, FieldGroupEnd, ExperimentName, ExperimentNumber, ExperienceVariations } from "./ExperienceDetails.styles";
+import { Section,SectionWrapper, Heading, FieldGroupMiddle, Label, Select, Input, FieldGroupFirst, FieldGroupEnd, ExperimentName, ExperimentNumber, ExperienceVariations, SinglePlatformDisplay, SinglePlatformDisplayWrapper } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { EditData } from "@/types";
@@ -78,13 +78,10 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
     }
   }, [handleClientChange, isEditMode]);
 
-  // Apply edit data only once
   useEffect(() => {
     if (isEditMode && editData && !processedEdit.current) {
       processedEdit.current = true;
-      console.log("Processing edit data for ExperienceDetails:", editData);
 
-      // Set client
       if (editData.client) {
         const clientEntry = clients.find((c) => c.name === editData.client || c.code === editData.client);
         if (clientEntry) {
@@ -93,7 +90,6 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
         }
       }
 
-      // Set experience number
       if (editData.id) {
         const clientPrefix = clients.find((c) => editData.id.startsWith(c.code))?.code;
         const expNumber = clientPrefix ? editData.id.substring(clientPrefix.length) : editData.id;
@@ -102,7 +98,6 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
         onExperienceNumberChange(expNumber);
       }
 
-      // Set experience name
       if (editData.name) {
         setExperienceName(editData.name);
       }
@@ -128,23 +123,36 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
             <option value="" disabled>
               Select a client
             </option>
-            {clients.map((client) => (
-              <option key={client.code} value={client.code}>
-                {client.name}
-              </option>
-            ))}
+            {[...clients]
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((client) => (
+                <option key={client.code} value={client.code}>
+                  {client.name}
+                </option>
+              ))}
           </Select>
         </div>
-        <div>
+        <SinglePlatformDisplayWrapper>
           <Label htmlFor="platform">Platform</Label>
-          <Select id="platform" name="platform" value={platform} onChange={(e) => setPlatform(e.target.value)}>
-            {platformOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </Select>
-        </div>
+          {platformOptions.length === 1 ? (
+            <SinglePlatformDisplay>
+              {platformOptions[0]}
+            </SinglePlatformDisplay>
+          ) : (
+            <Select
+              id="platform"
+              name="platform"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+            >
+              {platformOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+          )}
+        </SinglePlatformDisplayWrapper>
       </FieldGroupFirst>
 
       <FieldGroupMiddle>

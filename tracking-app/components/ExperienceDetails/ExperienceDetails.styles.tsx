@@ -4,13 +4,13 @@ export const Section = styled.section`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  background-color: #7948B31F;
+  background-color: #7948b31f;
   border-radius: 16px;
   padding: 2rem 5rem;
 `;
 export const SectionWrapper = styled.div`
   padding: 0rem 2rem 2rem 2rem;
-   background-color: white;
+  background-color: white;
 `;
 
 export const Heading = styled.h2`
@@ -87,7 +87,29 @@ export const ExperimentName = styled.div`
 `;
 
 export const ExperienceVariations = styled.div`
-input{
-  width: 55.5px;
-}
-`
+  input {
+    width: 55.5px;
+  }
+`;
+
+export const SinglePlatformDisplayWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const SinglePlatformDisplay = styled.div`
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  height: 40px;
+  background: #ededed;
+  color: #b0b0b0;
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+  opacity: 1;
+  cursor: not-allowed;
+  user-select: none;
+`;
