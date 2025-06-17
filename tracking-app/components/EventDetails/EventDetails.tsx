@@ -361,7 +361,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           <DataLayerLogic
             client={selectedClient}
             experienceNumber={experienceNumber}
-            experienceName={experienceName} // Pass experienceName here
             eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
             trigger={trigger}
             setTrigger={setTrigger}
