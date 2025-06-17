@@ -5,20 +5,21 @@ import Header from "@/components/Header/Header";
 import Modal from "@/components/Modal/Modal";
 import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper, ItemCard } from "./page.styles";
 import { ExperienceData, ModalContent as ModalContentType } from "@/types";
+import {clients} from '../../lib/clients'; // Adjust the import path as necessary
 
-const clients = [
-  { name: "Finisterre", code: "FN" },
-  { name: "Liverpool FC", code: "LF" },
-  { name: "Phase Eight", code: "PH" },
-  { name: "Hobbs", code: "HO" },
-  { name: "Whistles", code: "WC" },
-  { name: "Laithwaites", code: "LT" },
-  { name: "Accessorize", code: "AS" },
-  { name: "Monsoon", code: "MS" },
-  { name: "Ocado", code: "OPT" },
-  { name: "Team Sport", code: "TS" },
-  { name: "Sephora", code: "SA" },
-];
+// const clients = [
+//   { name: "Finisterre", code: "FN" },
+//   { name: "Liverpool FC", code: "LF" },
+//   { name: "Phase Eight", code: "PH" },
+//   { name: "Hobbs", code: "HO" },
+//   { name: "Whistles", code: "WC" },
+//   { name: "Laithwaites", code: "LT" },
+//   { name: "Accessorize", code: "AS" },
+//   { name: "Monsoon", code: "MS" },
+//   { name: "Ocado", code: "OPT" },
+//   { name: "Team Sport", code: "TS" },
+//   { name: "Sephora", code: "SA" },
+// ];
 
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -142,11 +143,13 @@ const History = () => {
             <h1>Filter by client:</h1>
             <select value={selectedClient} onChange={handleClientChange} className="clientSelector">
               <option value="">All Clients</option>
-              {clients.map((client) => (
-                <option key={client.code} value={client.name}>
-                  {client.name}
-                </option>
-              ))}
+              {[...clients]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((client) => (
+                  <option key={client.code} value={client.name}>
+                    {client.name}
+                  </option>
+                ))}
             </select>
           </FilterWrapper>
           <ExperienceNameWrapper>
