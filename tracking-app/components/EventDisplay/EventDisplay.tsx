@@ -40,7 +40,11 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
   // Determine button label based on title
   const getToggleLabel = () => {
-    if (isVisible) return `Hide ${title} Events`;
+    if (isVisible) {
+      if (title.toLowerCase().includes("control")) return "Hide Control Events";
+      if (title.toLowerCase().includes("variation")) return `Hide ${title} Events`;
+      return `Hide ${title}`;
+    }
     if (title.toLowerCase().includes("control")) return "Show Control Events";
     if (title.toLowerCase().includes("variation")) return `Show ${title} Events`;
     return "Show Events";
