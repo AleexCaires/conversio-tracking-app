@@ -5,6 +5,7 @@ import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow,
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 import { EditData, EventGroup, Event } from "@/types";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 interface EventDetailsProps {
   editData?: EditData;
@@ -24,6 +25,7 @@ interface EventDataWithCopied {
 }
 
 const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () => void }, EventDetailsProps>(({ editData, isEditMode }, ref) => {
+  const router = useRouter(); // Initialize useRouter
   const [numEvents, setNumEvents] = useState(2);
   const [eventDescriptions, setEventDescriptions] = useState<string[]>(Array(2).fill(""));
   const [trigger, setTrigger] = useState(false);
@@ -56,7 +58,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         selectedClient && 
         experienceNumber && 
         numVariants > 0) {
-      console.log("Retriggering data generation due to numVariants change:", numVariants);
+      //console.log("Retriggering data generation due to numVariants change:", numVariants);
       // Set a small delay to let React update state first
       setTimeout(() => {
         setTrigger(true);
@@ -78,7 +80,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
 
   useEffect(() => {
     if (isEditMode && editData && Array.isArray(editData.events)) {
-      console.log("Processing edit data for EventDetails:", editData);
+      //console.log("Processing edit data for EventDetails:", editData);
       
       const allEvents: Event[] = [];
       editData.events.forEach((group: EventGroup) => {
@@ -94,13 +96,16 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       
       // Process all events to get descriptions
       allEvents.forEach((event: Event) => {
-        const label = event.eventLabel || event.eventData?.click?.clickText;
+        // Add support for Sephora's event_label
+        const label =
+          event.conversio?.event_label ||
+          event.eventLabel ||
+          event.eventData?.click?.clickText;
         if (label) {
           // Extract the description part (after the last pipe)
           const lastPipeIndex = label.lastIndexOf('|');
           if (lastPipeIndex !== -1) {
             const description = label.substring(lastPipeIndex + 1).trim();
-            
             if (description) {
               if (event.triggerEvent) {
                 triggerDescription = description;
@@ -145,7 +150,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         }
       });
       
-      console.log("Initialized selectedStatus:", newSelectedStatus);
+      //console.log("Initialized selectedStatus:", newSelectedStatus);
       setSelectedStatus(newSelectedStatus);
       
       // Trigger data layer logic after a short delay
@@ -210,8 +215,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           },
     };
 
-    console.log("Saving Element Data:", elementDataPayload);
-
     setIsLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -231,11 +234,14 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         
         setSuccessMessage(successMsg);
         
-        if (isEditMode && window) {
+        if (isEditMode) {
           window.history.replaceState({}, '', '/');
         }
         
         cleanAllFields(successMsg);
+
+        // Navigate to /historyComp after successful save
+        router.push("/historyComp");
       } else {
         const errorData = await res.json();
         setErrorMessage(errorData.message || "An error occurred while saving.");
@@ -249,7 +255,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   
   // Function to clean all form fields (used after successful save)
   const cleanAllFields = (successMessage?: string) => {
-    console.log("Cleaning all fields...");
+    //console.log("Cleaning all fields...");
     
     // Reset Experience context (will reset ExperienceDetails)
     resetExperience();
@@ -355,6 +361,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           <DataLayerLogic
             client={selectedClient}
             experienceNumber={experienceNumber}
+            experienceName={experienceName} // Pass experienceName here
             eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
             trigger={trigger}
             setTrigger={setTrigger}
