@@ -90,16 +90,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
   };
 
   // Prepare flat event arrays for EventDisplay from the grouped content.events
-  // Ensure eventAction is always a string (fallback to empty string if undefined)
-  const controlEventsForDisplay: Event[] = (content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || []).map((e) => ({
-    ...e,
-    eventAction: e.eventAction ?? "",
-  }));
+  const controlEventsForDisplay: Event[] = content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || [];
 
-  const variationEventsForDisplay: Event[] = (content?.events?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))?.flatMap((g: EventGroup) => g.events || []) || []).map((e) => ({
-    ...e,
-    eventAction: e.eventAction ?? "",
-  }));
+  const variationEventsForDisplay: Event[] = content?.events?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))?.flatMap((g: EventGroup) => g.events || []) || [];
 
   // Add delete handler
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -108,7 +101,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     // Use the content._id directly since it's already the full identifier
     const documentId = content?._id || experienceNumber;
 
-    //console.log("Delete clicked. Values:", { documentId, clientValue, experienceNumber });
 
     if (!documentId) {
       alert("Missing document ID.");
@@ -211,13 +203,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
           </ToggleWrapper>
           <EventDisplay
             title="Control Events"
-            events={controlEventsForDisplay.map((e) => ({
-              ...e,
-              eventAction: e.eventAction ?? "",
-              eventCategory: e.eventCategory ?? "",
-              eventLabel: e.eventLabel ?? "",
-              eventSegment: e.eventSegment ?? "",
-            }))}
+            events={controlEventsForDisplay}
             onCopy={copyToClipboard}
             showMode={showMode}
           />
@@ -226,13 +212,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
               <EventDisplay
                 key={variation}
                 title={`Variation ${variation}`}
-                events={events.map((e) => ({
-                  ...e,
-                  eventAction: e.eventAction ?? "",
-                  eventCategory: e.eventCategory ?? "",
-                  eventLabel: e.eventLabel ?? "",
-                  eventSegment: e.eventSegment ?? "",
-                }))}
+                events={events}
                 onCopy={copyToClipboard}
                 showMode={showMode}
               />

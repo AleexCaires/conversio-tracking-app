@@ -114,14 +114,14 @@ const iconBaseStyles = `
   transition: color 0.2s;
 `;
 
-export const StyledSegmentIcon = styled(SegmentIcon)<{ $active: boolean }>`
+export const StyledSegmentIcon = styled(SegmentIcon)<{ $active: boolean; title: string; onClick: () => void; }>`
   ${iconBaseStyles}
   color: ${({ $active }) => ($active ? "#582E89" : "#b0b0b0")};
   width: 1.3rem;
   height: 1.3rem;
 `;
 
-export const StyledCodeIcon = styled(CodeIcon)<{ $active: boolean }>`
+export const StyledCodeIcon = styled(CodeIcon)<{ $active: boolean; title: string; onClick: () => void; }>`
   ${iconBaseStyles}
   color: ${({ $active }) => ($active ? "#582E89" : "#b0b0b0")};
   width: 1.3rem;

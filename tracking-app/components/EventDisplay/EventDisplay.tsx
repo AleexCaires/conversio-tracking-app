@@ -1,32 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, EventLabelsList, EventLabelItem, EventLabelIndex, TriggerEventText, EventItemWrapper, EventItemLabel, CodeWrapper, CodeBlock, ButtonsWrapper, CopyButtonStyled } from "./EventDisplay.styles";
+import {
+  ChildrenWrapper,
+  EventDisplayWrapper,
+  EventTitle,
+  EventLabelsWrapper,
+  EventLabelsList,
+  EventLabelItem,
+  EventLabelIndex,
+  TriggerEventText,
+  EventItemWrapper,
+  EventItemLabel,
+  CodeWrapper,
+  CodeBlock,
+  ButtonsWrapper,
+  CopyButtonStyled,
+} from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
 import { FaCopy } from "react-icons/fa";
-
-interface Event {
-  eventAction?: string;
-  eventCategory?: string;
-  eventLabel?: string;
-  eventSegment?: string;
-  triggerEvent?: boolean;
-  codeCopied?: boolean;
-  event?: string;
-  eventData?: {
-    click?: {
-      clickAction?: string;
-      clickLocation?: string;
-      clickText?: string;
-      triggerEvent?: boolean;
-    };
-    triggerEvent?: boolean;
-  };
-  conversio?: {
-    event_category?: string;
-    event_action?: string;
-    event_label?: string;
-    event_segment?: string;
-  };
-}
 
 interface EventDisplayProps {
   title: string;
@@ -47,9 +37,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
   // };
 
   const parseEvent = useMemo(() => {
-    return (event: Event | string): Event => {
+    return (event: TypedEvent | string): TypedEvent => {
       if (typeof event === "string") {
-        const parsed: Event = JSON.parse(event);
+        const parsed: TypedEvent = JSON.parse(event);
         if ("event" in parsed && parsed.event === "targetClickEvent" && parsed.eventData?.click) {
           const { clickAction, clickLocation, clickText } = parsed.eventData.click;
           const triggerEvent =
@@ -73,7 +63,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
           triggerEvent: Boolean(parsed.triggerEvent),
         };
       } else if (event && typeof event === "object") {
-        const eventObj = event as Event & { event?: string; eventData?: Event["eventData"] };
+        const eventObj = event as TypedEvent & { event?: string; eventData?: TypedEvent["eventData"] };
         if (eventObj.event === "targetClickEvent" && eventObj.eventData?.click) {
           const { clickAction, clickLocation, clickText } = eventObj.eventData.click;
           const triggerEvent =
@@ -97,11 +87,11 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
           triggerEvent: Boolean(eventObj.triggerEvent),
         };
       }
-      return event as Event;
+      return event as TypedEvent;
     };
   }, []);
 
-  const parsedEvents: Event[] = useMemo(() => events.map(parseEvent), [events, parseEvent]);
+  const parsedEvents: TypedEvent[] = useMemo(() => events.map(parseEvent), [events, parseEvent]);
 
   const getInitialCopiedState = useMemo(() => {
     const state: Record<string, boolean> = {};
@@ -117,7 +107,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
 
   if (!events || events.length === 0) return null;
 
-  const getEventLabel = (event: Event): string => {
+  const getEventLabel = (event: TypedEvent): string => {
     if (event.conversio && event.conversio.event_label) {
       return event.conversio.event_label;
     }
