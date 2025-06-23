@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import SegmentIcon from "../Icons/SegmentIcon";
 import CodeIcon from "../Icons/CodeIcon";
+import ActiveIcon from "../Icons/ActiveIcon";
 
 export const ModalOverlay = styled.div`
   position: fixed;
@@ -103,6 +104,10 @@ export const ToggleWrapper = styled.div`
   gap: 1rem;
 `;
 
+export const IconWrapper = styled.div`
+  position: relative;
+`;
+
 export const ToggleLabel = styled.span`
   font-weight: 700;
   font-size: 1.1rem;
@@ -112,6 +117,17 @@ const iconBaseStyles = `
   font-size: 1.3rem;
   cursor: pointer;
   transition: color 0.2s;
+`;
+
+export const ActiveIndicatorIcon = styled(ActiveIcon)`
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  color: #28a745;
+  background-color: white;
+  border-radius: 50%;
 `;
 
 export const StyledSegmentIcon = styled(SegmentIcon)<{ $active: boolean; title: string; onClick: () => void; }>`

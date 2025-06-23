@@ -13,6 +13,8 @@ import {
   ToggleLabel,
   StyledSegmentIcon,
   StyledCodeIcon,
+  IconWrapper,
+  ActiveIndicatorIcon,
 } from "./Modal.styles";
 import EditIcon from "../Icons/EditIcon";
 import DeleteIcon from "../Icons/DeleteIcon";
@@ -198,8 +200,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
         <ModalContent>
           <ToggleWrapper>
             <ToggleLabel>Event Labels</ToggleLabel>
-            <StyledSegmentIcon $active={showMode === "labels"} title="Show only event labels" onClick={() => setShowMode("labels")} />
-            <StyledCodeIcon $active={showMode === "code"} title="Show event code" onClick={() => setShowMode("code")} />
+            <IconWrapper>
+              <StyledSegmentIcon $active={showMode === "labels"} title="Show only event labels" onClick={() => setShowMode("labels")} />
+              {showMode === "labels" && <ActiveIndicatorIcon />}
+            </IconWrapper>
+            <IconWrapper>
+              <StyledCodeIcon $active={showMode === "code"} title="Show event code" onClick={() => setShowMode("code")} />
+              {showMode === "code" && <ActiveIndicatorIcon />}
+            </IconWrapper>
           </ToggleWrapper>
           <EventDisplay
             title="Control Events"
