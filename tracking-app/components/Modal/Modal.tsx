@@ -1,6 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import EventDisplay from "../EventDisplay/EventDisplay";
-import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles";
+import {
+  ModalOverlay,
+  ModalContainer,
+  ModalHeader,
+  CloseButton,
+  ModalContent,
+  HeaderTitle,
+  EditButton,
+  DeleteButton,
+  ToggleWrapper,
+  ToggleLabel,
+  StyledFaList,
+  StyledFaCode,
+} from "./Modal.styles";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { clients } from "../../lib/clients";
@@ -18,6 +31,7 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumber, experienceName, client, onRefresh }) => {
   const router = useRouter();
+  const [showMode, setShowMode] = useState<"labels" | "code">("code");
 
   if (!isOpen) return null;
 
@@ -168,58 +182,33 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         {/* Header Section */}
         <ModalHeader>
-          <div style={{ flex: 1, fontWeight: 600, fontSize: "1.1rem", textAlign: "left" }}>
+          <HeaderTitle>
             {(experienceNumber || experienceName) && (
-              <span style={{ color: "inherit" }}>
+              <span>
                 {experienceNumber ? experienceNumber : ""}
                 {experienceNumber && experienceName ? " - " : ""}
                 {experienceName ? experienceName : ""}
               </span>
             )}
-          </div>
+          </HeaderTitle>
           {/* Add edit button */}
-          <button
-            onClick={handleEdit}
-            type="button"
-            style={{
-              background: "none",
-              border: "none",
-              color: "#4CAF50",
-              cursor: "pointer",
-              marginRight: "0.5rem",
-              fontSize: "1.2rem",
-              display: "flex",
-              alignItems: "center",
-              zIndex: 2,
-            }}
-            title="Edit this experience"
-          >
+          <EditButton onClick={handleEdit} type="button" title="Edit this experience">
             <FaEdit />
-          </button>
+          </EditButton>
           {/* Add bin icon button */}
-          <button
-            onClick={handleDelete}
-            type="button"
-            style={{
-              background: "none",
-              border: "none",
-              color: "#d32f2f",
-              cursor: "pointer",
-              marginRight: "0.5rem",
-              fontSize: "1.2rem",
-              display: "flex",
-              alignItems: "center",
-              zIndex: 2,
-            }}
-            title="Delete this experience"
-          >
+          <DeleteButton onClick={handleDelete} type="button" title="Delete this experience">
             <FaTrash />
-          </button>
+          </DeleteButton>
           <CloseButton onClick={onClose}>&times;</CloseButton>
         </ModalHeader>
 
         {/* Content Section */}
         <ModalContent>
+          <ToggleWrapper>
+            <ToggleLabel>Event Labels</ToggleLabel>
+            <StyledFaList $active={showMode === "labels"} title="Show only event labels" onClick={() => setShowMode("labels")} />
+            <StyledFaCode $active={showMode === "code"} title="Show event code" onClick={() => setShowMode("code")} />
+          </ToggleWrapper>
           <EventDisplay
             title="Control Events"
             events={controlEventsForDisplay.map((e) => ({
@@ -230,6 +219,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
               eventSegment: e.eventSegment ?? "",
             }))}
             onCopy={copyToClipboard}
+            showMode={showMode}
           />
           {Array.isArray(variationEventsForDisplay) &&
             groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => (
@@ -244,6 +234,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
                   eventSegment: e.eventSegment ?? "",
                 }))}
                 onCopy={copyToClipboard}
+                showMode={showMode}
               />
             ))}
         </ModalContent>
