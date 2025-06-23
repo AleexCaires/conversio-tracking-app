@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  ChildrenWrapper,
-  EventDisplayWrapper,
-  EventTitle,
-  EventLabelsWrapper,
-  EventLabelsList,
-  EventLabelItem,
-  EventLabelIndex,
-  TriggerEventText,
-  EventItemWrapper,
-  EventItemLabel,
-  CodeWrapper,
-  CodeBlock,
-  ButtonsWrapper,
-  CopyButtonStyled,
-} from "./EventDisplay.styles";
+import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, EventLabelsList, EventLabelItem, EventLabelIndex, TriggerEventText, EventItemWrapper, EventItemLabel, CodeWrapper, CodeBlock, ButtonsWrapper, CopyButtonStyled } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
 import { FaCopy } from "react-icons/fa";
 
@@ -54,12 +39,12 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
 
-  // Determine button label based on title
-  const getToggleLabel = () => {
-    if (title.toLowerCase().includes("control")) return "Hide Control Events";
-    if (title.toLowerCase().includes("variation")) return `Hide ${title} Events`;
-    return `Hide ${title}`;
-  };
+  // // Determine button label based on title
+  // const getToggleLabel = () => {
+  //   if (title.toLowerCase().includes("control")) return "Hide Control Events";
+  //   if (title.toLowerCase().includes("variation")) return `Hide ${title} Events`;
+  //   return `Hide ${title}`;
+  // };
 
   const parseEvent = useMemo(() => {
     return (event: Event | string): Event => {

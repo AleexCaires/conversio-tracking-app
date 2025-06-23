@@ -1,5 +1,6 @@
 import styled from "styled-components";
-import { FaList, FaCode } from "react-icons/fa";
+import SegmentIcon from "../Icons/SegmentIcon";
+import CodeIcon from "../Icons/CodeIcon";
 
 export const ModalOverlay = styled.div`
   position: fixed;
@@ -19,7 +20,7 @@ export const ModalContainer = styled.div`
   border-radius: 8px;
   max-width: 90vw;
   width: 90%;
-  max-height: 90vh;
+  height: 90%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
@@ -53,13 +54,21 @@ export const ModalContent = styled.div`
 `;
 
 export const HeaderTitle = styled.div`
-  flex: 1;
-  font-weight: 600;
-  font-size: 1.1rem;
+  display: flex;
+  font-weight: normal;
+  font-size: 20px;
   text-align: left;
+  flex-direction: row;
+  width: 100%;
 
   span {
     color: inherit;
+    width: 100%;
+    text-align: center;
+  }
+
+  strong {
+    font-weight: 600;
   }
 `;
 
@@ -72,16 +81,19 @@ const iconButtonBase = `
   display: flex;
   align-items: center;
   z-index: 2;
+  position: absolute;
+
 `;
 
 export const EditButton = styled.button`
   ${iconButtonBase}
-  color: #4CAF50;
+  position: absolute;
+  right: 16%;
 `;
 
 export const DeleteButton = styled.button`
   ${iconButtonBase}
-  color: #d32f2f;
+  right: 13%;
 `;
 
 export const ToggleWrapper = styled.div`
@@ -102,12 +114,16 @@ const iconBaseStyles = `
   transition: color 0.2s;
 `;
 
-export const StyledFaList = styled(FaList)<{ $active: boolean }>`
+export const StyledSegmentIcon = styled(SegmentIcon)<{ $active: boolean }>`
   ${iconBaseStyles}
   color: ${({ $active }) => ($active ? "#582E89" : "#b0b0b0")};
+  width: 1.3rem;
+  height: 1.3rem;
 `;
 
-export const StyledFaCode = styled(FaCode)<{ $active: boolean }>`
+export const StyledCodeIcon = styled(CodeIcon)<{ $active: boolean }>`
   ${iconBaseStyles}
   color: ${({ $active }) => ($active ? "#582E89" : "#b0b0b0")};
+  width: 1.3rem;
+  height: 1.3rem;
 `;

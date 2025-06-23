@@ -47,7 +47,7 @@ export const TriggerEventText = styled.span`
 `;
 
 export const EventItemWrapper = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 `;
 
 export const EventItemLabel = styled.div`
@@ -59,6 +59,7 @@ export const EventItemLabel = styled.div`
   text-overflow: ellipsis;
   width: 100%;
   display: block;
+  max-width: 436px;
 `;
 
 export const CodeWrapper = styled.div`
@@ -69,7 +70,7 @@ export const CodeBlock = styled.pre<{ $activeBorder?: boolean; $activeSegmentBor
   background: #1e1e1e;
   color: #f5f5f5;
   padding: 1rem;
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
   border-radius: 0.5rem;
   white-space: pre-wrap;
   word-break: break-word;
@@ -89,6 +90,7 @@ export const CodeBlock = styled.pre<{ $activeBorder?: boolean; $activeSegmentBor
       : "none"};
   transition: box-shadow 0.3s ease, border 0.3s ease;
   width: 400px;
+  height: 170px;
 
 `;
 
@@ -117,5 +119,5 @@ height: 33px;
   border-radius: 1rem;
   cursor: pointer;
   transition: background 0.3s ease;
-  width: ${({ $isSegment }) => ($isSegment ? "auto" : "80%")};
+  width: ${({ $isSegment }) => ($isSegment ? "auto" : "80px")};
 `;

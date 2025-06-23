@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { Client } from "@/types";
+import { FaCopy } from "react-icons/fa";
 import {
   EventBlockWrapper,
   SelectCheckbox,
@@ -267,7 +268,13 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         onClick={() => copyToClipboard(event, key)}
         title={"Copy Code"}
       >
-        Copy Code
+        {selectedStatus[key] ? (
+          "Copied!"
+        ) : (
+          <>
+            <FaCopy /> Code
+          </>
+        )}
       </CopyButton>
     </EventBlockWrapper>
   );

@@ -11,10 +11,11 @@ import {
   DeleteButton,
   ToggleWrapper,
   ToggleLabel,
-  StyledFaList,
-  StyledFaCode,
+  StyledSegmentIcon,
+  StyledCodeIcon,
 } from "./Modal.styles";
-import { FaTrash, FaEdit } from "react-icons/fa";
+import EditIcon from "../Icons/EditIcon";
+import DeleteIcon from "../Icons/DeleteIcon";
 import { useRouter } from "next/navigation";
 import { clients } from "../../lib/clients";
 import { ModalContent as ModalContentType, Event, EventGroup } from "@/types";
@@ -178,36 +179,35 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
 
   return (
     <ModalOverlay onClick={handleOverlayClick}>
-      {/* Prevent clicks inside the container from closing the modal */}
       <ModalContainer onClick={(e) => e.stopPropagation()}>
-        {/* Header Section */}
         <ModalHeader>
           <HeaderTitle>
             {(experienceNumber || experienceName) && (
               <span>
-                {experienceNumber ? experienceNumber : ""}
+                {experienceNumber ? <strong>{experienceNumber}</strong> : ""}
                 {experienceNumber && experienceName ? " - " : ""}
                 {experienceName ? experienceName : ""}
               </span>
             )}
-          </HeaderTitle>
-          {/* Add edit button */}
           <EditButton onClick={handleEdit} type="button" title="Edit this experience">
-            <FaEdit />
+            <EditIcon width="1.2rem" height="1.2rem" />
           </EditButton>
           {/* Add bin icon button */}
           <DeleteButton onClick={handleDelete} type="button" title="Delete this experience">
-            <FaTrash />
+            <DeleteIcon width="1.2rem" height="1.2rem" />
           </DeleteButton>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
+           <CloseButton onClick={onClose}>&times;</CloseButton>
+          </HeaderTitle>
+
+         
         </ModalHeader>
 
         {/* Content Section */}
         <ModalContent>
           <ToggleWrapper>
             <ToggleLabel>Event Labels</ToggleLabel>
-            <StyledFaList $active={showMode === "labels"} title="Show only event labels" onClick={() => setShowMode("labels")} />
-            <StyledFaCode $active={showMode === "code"} title="Show event code" onClick={() => setShowMode("code")} />
+            <StyledSegmentIcon $active={showMode === "labels"} title="Show only event labels" onClick={() => setShowMode("labels")} />
+            <StyledCodeIcon $active={showMode === "code"} title="Show event code" onClick={() => setShowMode("code")} />
           </ToggleWrapper>
           <EventDisplay
             title="Control Events"
