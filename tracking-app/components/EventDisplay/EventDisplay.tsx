@@ -16,7 +16,7 @@ import {
   CopyButtonStyled,
 } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
-import { FaCopy } from "react-icons/fa";
+import CopyIcon from "../Icons/CopyIcon"; // <-- Import your SVG icon
 
 interface EventDisplayProps {
   title: string;
@@ -186,7 +186,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
                           "Segment Copied!"
                         ) : (
                           <>
-                            <FaCopy /> Segment
+                            <CopyIcon width="1em" height="1em" /> Segment
                           </>
                         )}
                       </CopyButtonStyled>
@@ -196,7 +196,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
                         "Copied!"
                       ) : (
                         <>
-                          <FaCopy /> Code
+                          <CopyIcon width="1em" height="1em" /> Code
                         </>
                       )}
                     </CopyButtonStyled>
