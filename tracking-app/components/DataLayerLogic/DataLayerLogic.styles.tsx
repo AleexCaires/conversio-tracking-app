@@ -3,16 +3,19 @@ import styled from "styled-components";
 export const EventBlockWrapper = styled.div<{ "data-copied": boolean; $activeBorder: boolean }>`
   position: relative;
   margin-bottom: 1rem; // Added for spacing between blocks if they stack
+      width: 470px;
+    max-width: 470px;
+    height: 190px;
 `;
 
 export const SelectCheckbox = styled.input.attrs({ type: "checkbox" })`
   position: absolute;
-  top: 5px;
-  right: 0px;
+    top: 1px;
+    right: 1px;
   width: 20px;
   height: 20px;
   cursor: pointer;
-  z-index: 1; // Ensure it's above the pre block
+  z-index: 1;
 `;
 
 export const CopyButton = styled.button`
@@ -33,7 +36,7 @@ export const CopyButton = styled.button`
 `;
 export const EventsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 16px;
   padding: 10px;
   margin-bottom: 1.5rem; // Add some space below each grid
