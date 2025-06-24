@@ -70,13 +70,23 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
       try {
         let variation = "Unknown";
 
-        // Handle Adobe-specific events
-        if (event.event === "targetClickEvent" && event.eventData?.click) {
+        // Sephora/SA: variation number is in conversio.event_label
+        if (
+          (event.event === "conversioEvent" || event.event === undefined) &&
+          event.conversio &&
+          typeof event.conversio.event_label === "string"
+        ) {
+          const labelMatch = event.conversio.event_label.match(/\(Variation (\d+)\)/);
+          variation = labelMatch ? labelMatch[1] : "Unknown";
+        }
+        // Adobe-specific events
+        else if (event.event === "targetClickEvent" && event.eventData?.click) {
           const clickText = event.eventData.click.clickText;
           const labelMatch = clickText?.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
-        } else if (event.eventLabel) {
-          // Handle standard events
+        }
+        // Standard events
+        else if (event.eventLabel) {
           const labelMatch = event.eventLabel.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }
