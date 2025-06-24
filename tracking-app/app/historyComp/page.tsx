@@ -148,58 +148,60 @@ const History = () => {
                 }}
                 autoComplete="off"
               />
-              {searchTerm === "" && (
-                <span
-                  className="search-icon"
-                  style={{
-                    position: "absolute",
-                    left: "0.7rem",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    display: "flex",
-                    alignItems: "center",
-                    height: "100%",
-                    pointerEvents: "none"
-                  }}
+              <span
+                className="search-icon"
+                style={{
+                  position: "absolute",
+                  left: "0.7rem",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  display: "flex",
+                  alignItems: "center",
+                  height: "100%",
+                  pointerEvents: "none"
+                }}
+              >
+                {/* Outlined search SVG */}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#888"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ display: "block" }}
                 >
-                  {/* Outlined search SVG */}
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#888"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ display: "block" }}
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <span
-                    style={{
-                      margin: "0 0.15rem 0 0.3rem", // reduced right margin, left margin for spacing from icon
-                      color: "#ccc",
-                      fontWeight: 400,
-                      fontSize: "1.1rem",
-                      userSelect: "none"
-                    }}
-                  >
-                    |
-                  </span>
-                  <span
-                    style={{
-                      color: "#bbb",
-                      fontSize: "1rem",
-                      fontWeight: 400,
-                      userSelect: "none"
-                    }}
-                  >
-                    ID, or Experience Name
-                  </span>
-                </span>
-              )}
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                {searchTerm === "" && (
+                  <>
+                    <span
+                      style={{
+                        margin: "0 0.15rem 0 0.3rem",
+                        color: "#ccc",
+                        fontWeight: 400,
+                        fontSize: "1.1rem",
+                        userSelect: "none"
+                      }}
+                    >
+                      |
+                    </span>
+                    <span
+                      style={{
+                        color: "#bbb",
+                        fontSize: "1rem",
+                        fontWeight: 400,
+                        userSelect: "none"
+                      }}
+                    >
+                      Search
+                    </span>
+                  </>
+                )}
+              </span>
             </div>
           </InputWrapper>
           <FilterWrapper>
