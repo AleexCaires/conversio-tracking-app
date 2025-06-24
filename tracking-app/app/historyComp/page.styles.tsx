@@ -11,7 +11,8 @@ export const SearchWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
 
   .clientSelector {
     max-width: 200px;
@@ -30,12 +31,11 @@ export const InputWrapper = styled.div`
 
   input {
     padding: 0.5rem;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 1rem;
+    width: 260px;
+    max-width: 390px;
     border: 1px solid #ccc;
     border-radius: 16px;
-    text-align: center;
+    text-align: start;
   }
 `;
 
@@ -47,8 +47,7 @@ export const FilterWrapper = styled.div`
   select {
     padding: 0.5rem;
     width: 100%;
-    max-width: 400px;
-    margin-bottom: 1rem;
+    max-width: 390px;
     border: 1px solid #ccc;
     border-radius: 16px;
     background-color: #7948b324;
@@ -56,27 +55,9 @@ export const FilterWrapper = styled.div`
   }
 `;
 
-export const ExperienceNameWrapper = styled.div`
-  align-items: center;
-
-  h1 {
-    margin-bottom: 0.5rem;
-  }
-
-  input {
-    padding: 0.5rem;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 16px;
-    text-align: center;
-  }
-`;
-
 export const ItemCard = styled.div`
   padding: 1rem;
-  border: 1px solid #4A049C;
+  border: 1px solid #4a049c;
   border-radius: 16px;
   background-color: #7948b324;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -106,20 +87,15 @@ export const ItemCard = styled.div`
       font-size: 16px;
     }
   }
-   .clientName{
-    color: black!important;
-   }
+  .clientName {
+    color: black !important;
+  }
   .itemCode {
     text-align: start;
     width: 25%;
     align-items: center;
     text-align: center;
-    background: linear-gradient(
-      to bottom,
-      #714c8a 0%,
-      #483057 50%,
-      #4c305e 100%
-    );
+    background: linear-gradient(to bottom, #714c8a 0%, #483057 50%, #4c305e 100%);
     padding: 0px 5px;
     border-radius: 16px;
     color: white !important;
