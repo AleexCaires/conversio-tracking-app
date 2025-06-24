@@ -66,41 +66,13 @@ export const CodeWrapper = styled.div`
   position: relative;
 `;
 
-export const CodeBlock = styled.pre<{ $activeBorder?: boolean; $activeSegmentBorder?: boolean }>`
-  background: #1e1e1e;
-  color: #f5f5f5;
-  padding: 1rem;
-  padding-bottom: 1rem;
-  border-radius: 0.5rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 300px;
-  overflow-y: auto;
-  border: ${({ $activeBorder, $activeSegmentBorder }) =>
-    $activeBorder
-      ? "2px solid #007bff"
-      : $activeSegmentBorder
-      ? "2px solid #28a745"
-      : "2px solid transparent"};
-  box-shadow: ${({ $activeBorder, $activeSegmentBorder }) =>
-    $activeBorder
-      ? "0 0 10px #007bff, 0 0 20px #007bff"
-      : $activeSegmentBorder
-      ? "0 0 10px #28a745, 0 0 20px #28a745"
-      : "none"};
-  transition: box-shadow 0.3s ease, border 0.3s ease;
-  width: 400px;
-  height: 170px;
-
-`;
-
 export const ButtonsWrapper = styled.div`
   position: absolute;
   bottom: 0.8rem;
   right: 1rem;
   display: flex;
   gap: 0.35rem;
-  flex-direction: column;
+  flex-direction: row;
   align-items: end;
 `;
 

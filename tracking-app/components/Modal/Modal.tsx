@@ -1,21 +1,6 @@
 import React, { useState } from "react";
 import EventDisplay from "../EventDisplay/EventDisplay";
-import {
-  ModalOverlay,
-  ModalContainer,
-  ModalHeader,
-  CloseButton,
-  ModalContent,
-  HeaderTitle,
-  EditButton,
-  DeleteButton,
-  ToggleWrapper,
-  ToggleLabel,
-  StyledSegmentIcon,
-  StyledCodeIcon,
-  IconWrapper,
-  ActiveIndicatorIcon,
-} from "./Modal.styles";
+import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent, HeaderTitle, EditButton, DeleteButton, ToggleWrapper, ToggleLabel, StyledSegmentIcon, StyledCodeIcon, IconWrapper, ActiveIndicatorIcon } from "./Modal.styles";
 import EditIcon from "../Icons/EditIcon";
 import DeleteIcon from "../Icons/DeleteIcon";
 import { useRouter } from "next/navigation";
@@ -71,11 +56,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
         let variation = "Unknown";
 
         // Sephora/SA: variation number is in conversio.event_label
-        if (
-          (event.event === "conversioEvent" || event.event === undefined) &&
-          event.conversio &&
-          typeof event.conversio.event_label === "string"
-        ) {
+        if ((event.event === "conversioEvent" || event.event === undefined) && event.conversio && typeof event.conversio.event_label === "string") {
           const labelMatch = event.conversio.event_label.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }
@@ -112,7 +93,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
 
     // Use the content._id directly since it's already the full identifier
     const documentId = content?._id || experienceNumber;
-
 
     if (!documentId) {
       alert("Missing document ID.");
@@ -193,17 +173,15 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
                 {experienceName ? experienceName : ""}
               </span>
             )}
-          <EditButton onClick={handleEdit} type="button" title="Edit this experience">
-            <EditIcon width="1.2rem" height="1.2rem" />
-          </EditButton>
-          {/* Add bin icon button */}
-          <DeleteButton onClick={handleDelete} type="button" title="Delete this experience">
-            <DeleteIcon width="1.2rem" height="1.2rem" />
-          </DeleteButton>
-           <CloseButton onClick={onClose}>&times;</CloseButton>
+            <EditButton onClick={handleEdit} type="button" title="Edit this experience">
+              <EditIcon width="1.2rem" height="1.2rem" />
+            </EditButton>
+            {/* Add bin icon button */}
+            <DeleteButton onClick={handleDelete} type="button" title="Delete this experience">
+              <DeleteIcon width="1.2rem" height="1.2rem" />
+            </DeleteButton>
+            <CloseButton onClick={onClose}>&times;</CloseButton>
           </HeaderTitle>
-
-         
         </ModalHeader>
 
         {/* Content Section */}
@@ -219,22 +197,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
               {showMode === "code" && <ActiveIndicatorIcon />}
             </IconWrapper>
           </ToggleWrapper>
-          <EventDisplay
-            title="Control Events"
-            events={controlEventsForDisplay}
-            onCopy={copyToClipboard}
-            showMode={showMode}
-          />
-          {Array.isArray(variationEventsForDisplay) &&
-            groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => (
-              <EventDisplay
-                key={variation}
-                title={`Variation ${variation}`}
-                events={events}
-                onCopy={copyToClipboard}
-                showMode={showMode}
-              />
-            ))}
+          <EventDisplay title="Control Events" events={controlEventsForDisplay} onCopy={copyToClipboard} showMode={showMode} />
+          {Array.isArray(variationEventsForDisplay) && groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => <EventDisplay key={variation} title={`Variation ${variation}`} events={events} onCopy={copyToClipboard} showMode={showMode} />)}
         </ModalContent>
       </ModalContainer>
     </ModalOverlay>

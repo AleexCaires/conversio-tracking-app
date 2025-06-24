@@ -1,22 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  ChildrenWrapper,
-  EventDisplayWrapper,
-  EventTitle,
-  EventLabelsWrapper,
-  EventLabelsList,
-  EventLabelItem,
-  EventLabelIndex,
-  TriggerEventText,
-  EventItemWrapper,
-  EventItemLabel,
-  CodeWrapper,
-  CodeBlock,
-  ButtonsWrapper,
-  CopyButtonStyled,
-} from "./EventDisplay.styles";
+import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, EventLabelsList, EventLabelItem, EventLabelIndex, TriggerEventText, EventItemWrapper, EventItemLabel, CodeWrapper, ButtonsWrapper, CopyButtonStyled } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
-import CopyIcon from "../Icons/CopyIcon"; // <-- Import your SVG icon
+import CopyIcon from "../Icons/CopyIcon";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface EventDisplayProps {
   title: string;
@@ -176,9 +163,36 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
                   {event.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
                 </EventItemLabel>
                 <CodeWrapper>
-                  <CodeBlock $activeBorder={activeBorders[codeKey]} $activeSegmentBorder={activeBorders[segmentKey]}>
+                  <SyntaxHighlighter
+                    language="javascript"
+                    style={vscDarkPlus}
+                    customStyle={{
+                      margin: 0,
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      border: activeBorders[codeKey] 
+                        ? '2px solid #007bff' 
+                        : activeBorders[segmentKey] 
+                        ? '2px solid #28a745' 
+                        : '1px solid #e5e7eb',
+                      boxShadow: activeBorders[codeKey]
+                        ? '0 0 10px #007bff, 0 0 20px #007bff'
+                        : activeBorders[segmentKey]
+                        ? '0 0 10px #28a745, 0 0 20px #28a745'
+                        : 'none',
+                      transition: 'box-shadow 0.3s ease, border 0.3s ease',
+                      width: '470px',
+                      maxWidth:'470px',
+                      height: '190px',
+                      overflow: 'auto'
+                    }}
+                    showLineNumbers={false}
+                    wrapLines={true}
+                  >
                     {eventCode}
-                  </CodeBlock>
+                  </SyntaxHighlighter>
                   <ButtonsWrapper>
                     {segmentValue && (
                       <CopyButtonStyled onClick={() => handleCopy(index, "segment", segmentValue)} $copied={copiedState[segmentKey]} $isSegment>

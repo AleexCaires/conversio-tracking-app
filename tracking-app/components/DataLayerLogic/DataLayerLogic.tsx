@@ -3,14 +3,9 @@ import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { Client } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
-import {
-  EventBlockWrapper,
-  SelectCheckbox,
-  EventCodePre,
-  CopyButton,
-  EventsGrid,
-  EventsSectionTitle
-} from "./DataLayerLogic.styles";
+import { EventBlockWrapper, SelectCheckbox, CopyButton, EventsGrid, EventsSectionTitle } from "./DataLayerLogic.styles";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface EventDataWithCopied {
   controlEvents: string[];
@@ -35,16 +30,7 @@ interface DataLayerLogicProps {
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
-const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
-  client,
-  experienceNumber,
-  eventDescriptions,
-  trigger,
-  setTrigger,
-  onDataGenerated,
-  selectedStatus,
-  setSelectedStatus,
-}) => {
+const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus }) => {
   const { numVariants } = useExperience();
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<LocalEventData>({
@@ -62,7 +48,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     for (let i = 0; i < seed.length; i++) {
       const char = seed.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; 
+      hash = hash & hash;
     }
 
     const availableLetters = letters.split("").filter((letter) => !usedLetters.has(letter));
@@ -137,7 +123,6 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       event_segment: "${eventSegment}"
     }
   });`);
-
       } else {
         newControlEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
@@ -166,8 +151,8 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         }
     }
 });`);
-        }  else if (clientCode === "SA") {
-        newVariationEvents.push(`window.dataLayer.push({
+        } else if (clientCode === "SA") {
+          newVariationEvents.push(`window.dataLayer.push({
     event: "conversioEvent", 
     conversio: {
       event_category: "Conversio CRO",
@@ -176,7 +161,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       event_segment: "${eventSegment}"
     }
   });`);
-      } else {
+        } else {
           newVariationEvents.push(`window.dataLayer.push({
     'event': 'conversioEvent',
     'conversio' : {
@@ -256,18 +241,24 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
 
   const renderEventBlock = (event: string, key: string) => (
     <EventBlockWrapper key={key} data-copied={!!selectedStatus[key]} $activeBorder={!!activeBorders[key]}>
-      <SelectCheckbox
-        checked={!!selectedStatus[key]}
-        onChange={() => toggleSelection(key)}
-        title={selectedStatus[key] ? "Unselect" : "Select"}
-      />
-      <EventCodePre $activeBorder={!!activeBorders[key]}>
-        {event}
-      </EventCodePre>
-      <CopyButton
-        onClick={() => copyToClipboard(event, key)}
-        title={"Copy Code"}
+      <SelectCheckbox checked={!!selectedStatus[key]} onChange={() => toggleSelection(key)} title={selectedStatus[key] ? "Unselect" : "Select"} />
+      <SyntaxHighlighter
+        language="javascript"
+        style={vscDarkPlus}
+        customStyle={{
+          margin: 0,
+          padding: '12px',
+          borderRadius: '6px',
+          fontSize: '14px',
+          lineHeight: '1.5',
+          border: activeBorders[key] ? '2px solid #22c55e' : '1px solid #e5e7eb'
+        }}
+        showLineNumbers={false}
+        wrapLines={true}
       >
+        {event}
+      </SyntaxHighlighter>
+      <CopyButton onClick={() => copyToClipboard(event, key)} title={"Copy Code"}>
         {selectedStatus[key] ? (
           "Copied!"
         ) : (
@@ -284,9 +275,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
       {localEventData.controlEvents.length > 0 && (
         <>
           <EventsSectionTitle>Control Events</EventsSectionTitle>
-          <EventsGrid>
-            {localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}
-          </EventsGrid>
+          <EventsGrid>{localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}</EventsGrid>
         </>
       )}
       {Array.from({ length: numVariants }, (_, variantIdx) => {
@@ -297,9 +286,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
         return (
           <React.Fragment key={variantIdx + 1}>
             <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
-            <EventsGrid>
-              {events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}
-            </EventsGrid>
+            <EventsGrid>{events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}</EventsGrid>
           </React.Fragment>
         );
       })}

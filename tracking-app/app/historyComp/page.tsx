@@ -3,27 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header/Header";
 import Modal from "@/components/Modal/Modal";
-import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceNameWrapper, ItemCard } from "./page.styles";
+import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ItemCard } from "./page.styles";
 import { ExperienceData, ModalContent as ModalContentType } from "@/types";
-import {clients} from '../../lib/clients'; // Adjust the import path as necessary
-
-// const clients = [
-//   { name: "Finisterre", code: "FN" },
-//   { name: "Liverpool FC", code: "LF" },
-//   { name: "Phase Eight", code: "PH" },
-//   { name: "Hobbs", code: "HO" },
-//   { name: "Whistles", code: "WC" },
-//   { name: "Laithwaites", code: "LT" },
-//   { name: "Accessorize", code: "AS" },
-//   { name: "Monsoon", code: "MS" },
-//   { name: "Ocado", code: "OPT" },
-//   { name: "Team Sport", code: "TS" },
-//   { name: "Sephora", code: "SA" },
-// ];
+import { clients } from "../../lib/clients";
 
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [nameSearchTerm, setNameSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
   const [originalItems, setOriginalItems] = useState<ExperienceData[]>([]);
   const [filteredItems, setFilteredItems] = useState<ExperienceData[]>([]);
@@ -69,48 +54,62 @@ const History = () => {
     });
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUnifiedSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = originalItems.filter((item) => {
-      const matchesId = item._id.toLowerCase().includes(value);
-      const matchesClientName = item.client.toLowerCase().includes(value);
-      const matchesClientFilter = selectedClient === "" || item.client.toLowerCase() === selectedClient.toLowerCase();
+    if (value === "") {
+      // If search is empty, apply only client filter
+      const filtered = originalItems.filter((item) => {
+        return selectedClient === "" || item.client.toLowerCase() === selectedClient.toLowerCase();
+      });
+      setFilteredItems(sortByNewestFirst(filtered));
+    } else {
+      const searchWords = value.split(/\s+/).filter((word) => word !== "");
 
-      return (matchesId || matchesClientName) && matchesClientFilter;
-    });
+      const filtered = originalItems.filter((item) => {
+        // Search in ID and client name (original search logic)
+        const matchesId = item._id.toLowerCase().includes(value);
+        const matchesClientName = item.client.toLowerCase().includes(value);
 
-    setFilteredItems(sortByNewestFirst(filtered));
+        // Search in experience name (support multiple words)
+        const expName = item.experienceName?.toLowerCase() || "";
+        const matchesExperienceName = searchWords.every((word) => expName.includes(word));
+
+        // Apply client filter
+        const matchesClientFilter = selectedClient === "" || item.client.toLowerCase() === selectedClient.toLowerCase();
+
+        return (matchesId || matchesClientName || matchesExperienceName) && matchesClientFilter;
+      });
+
+      setFilteredItems(sortByNewestFirst(filtered));
+    }
   };
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSelectedClient(value);
 
-    const filtered = originalItems.filter((item) => {
-      const matchesId = item._id.toLowerCase().includes(searchTerm);
-      const matchesClientName = item.client.toLowerCase().includes(searchTerm);
-      const matchesClientFilter = value === "" || item.client.toLowerCase() === value.toLowerCase();
-
-      return (matchesId || matchesClientName) && matchesClientFilter;
-    });
-
-    setFilteredItems(sortByNewestFirst(filtered));
-  };
-
-  const handleExperienceNameSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setNameSearchTerm(value);
-
-    if (value === "") {
-      setFilteredItems([...originalItems]);
-    } else {
-      const searchWords = value.split(/\s+/).filter((word) => word !== "");
+    if (searchTerm === "") {
+      // If no search term, just filter by client
       const filtered = originalItems.filter((item) => {
-        const expName = item.experienceName?.toLowerCase() || "";
-        return searchWords.every((word) => expName.includes(word));
+        return value === "" || item.client.toLowerCase() === value.toLowerCase();
       });
+      setFilteredItems(sortByNewestFirst(filtered));
+    } else {
+      // Re-apply the unified search with new client filter
+      const searchWords = searchTerm.split(/\s+/).filter((word) => word !== "");
+
+      const filtered = originalItems.filter((item) => {
+        const matchesId = item._id.toLowerCase().includes(searchTerm);
+        const matchesClientName = item.client.toLowerCase().includes(searchTerm);
+        const expName = item.experienceName?.toLowerCase() || "";
+        const matchesExperienceName = searchWords.every((word) => expName.includes(word));
+        const matchesClientFilter = value === "" || item.client.toLowerCase() === value.toLowerCase();
+
+        return (matchesId || matchesClientName || matchesExperienceName) && matchesClientFilter;
+      });
+
       setFilteredItems(sortByNewestFirst(filtered));
     }
   };
@@ -136,11 +135,74 @@ const History = () => {
       <ContentWrapper>
         <SearchWrapper>
           <InputWrapper>
-            <h1>Search for specific Events:</h1>
-            <input type="text" placeholder="For Example: OPT100" value={searchTerm} onChange={handleSearch} />
+            <div style={{ position: "relative", width: "100%" }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleUnifiedSearch}
+                style={{
+                  paddingLeft: "2.2rem",
+                  height: "40px",
+                  lineHeight: "40px",
+                  boxSizing: "border-box"
+                }}
+                autoComplete="off"
+              />
+              {searchTerm === "" && (
+                <span
+                  className="search-icon"
+                  style={{
+                    position: "absolute",
+                    left: "0.7rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    display: "flex",
+                    alignItems: "center",
+                    height: "100%",
+                    pointerEvents: "none"
+                  }}
+                >
+                  {/* Outlined search SVG */}
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#888"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ display: "block" }}
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <span
+                    style={{
+                      margin: "0 0.15rem 0 0.3rem", // reduced right margin, left margin for spacing from icon
+                      color: "#ccc",
+                      fontWeight: 400,
+                      fontSize: "1.1rem",
+                      userSelect: "none"
+                    }}
+                  >
+                    |
+                  </span>
+                  <span
+                    style={{
+                      color: "#bbb",
+                      fontSize: "1rem",
+                      fontWeight: 400,
+                      userSelect: "none"
+                    }}
+                  >
+                    ID, or Experience Name
+                  </span>
+                </span>
+              )}
+            </div>
           </InputWrapper>
           <FilterWrapper>
-            <h1>Filter by client:</h1>
             <select value={selectedClient} onChange={handleClientChange} className="clientSelector">
               <option value="">All Clients</option>
               {[...clients]
@@ -152,10 +214,6 @@ const History = () => {
                 ))}
             </select>
           </FilterWrapper>
-          <ExperienceNameWrapper>
-            <h1>Experience Name:</h1>
-            <input type="text" placeholder="Search by Experience Name" value={nameSearchTerm} onChange={handleExperienceNameSearch} />
-          </ExperienceNameWrapper>
         </SearchWrapper>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between" }}>
           {filteredItems.length > 0 ? (
