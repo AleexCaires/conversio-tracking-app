@@ -7,20 +7,6 @@ import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ExperienceN
 import { ExperienceData, ModalContent as ModalContentType } from "@/types";
 import {clients} from '../../lib/clients'; // Adjust the import path as necessary
 
-// const clients = [
-//   { name: "Finisterre", code: "FN" },
-//   { name: "Liverpool FC", code: "LF" },
-//   { name: "Phase Eight", code: "PH" },
-//   { name: "Hobbs", code: "HO" },
-//   { name: "Whistles", code: "WC" },
-//   { name: "Laithwaites", code: "LT" },
-//   { name: "Accessorize", code: "AS" },
-//   { name: "Monsoon", code: "MS" },
-//   { name: "Ocado", code: "OPT" },
-//   { name: "Team Sport", code: "TS" },
-//   { name: "Sephora", code: "SA" },
-// ];
-
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [nameSearchTerm, setNameSearchTerm] = useState("");
