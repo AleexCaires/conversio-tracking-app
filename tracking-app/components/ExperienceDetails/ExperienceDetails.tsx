@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Section,SectionWrapper, Heading, FieldGroupMiddle, Label, Select, Input, FieldGroupFirst, FieldGroupEnd, ExperimentName, ExperimentNumber, ExperienceVariations, SinglePlatformDisplay, SinglePlatformDisplayWrapper } from "./ExperienceDetails.styles";
+import { Section, SectionWrapper, Heading, FieldGroupMiddle, Label, Select, Input, FieldGroupFirst, FieldGroupEnd, ExperimentName, ExperimentNumber, ExperienceVariations, SinglePlatformDisplay, SinglePlatformDisplayWrapper } from "./ExperienceDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { EditData } from "@/types";
@@ -114,103 +114,75 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
 
   return (
     <SectionWrapper>
-    <Section>
-      <Heading>Experience Details</Heading>
+      <Section>
+        <Heading>Experience Details</Heading>
 
-      <FieldGroupFirst>
-        <div>
-          <Label htmlFor="client">Client</Label>
-          <Select id="client" name="client" value={selectedClient} onChange={handleClientChange}>
-            <option value="" disabled>
-              Select a client
-            </option>
-            {[...clients]
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((client) => (
-                <option key={client.code} value={client.code}>
-                  {client.name}
-                </option>
-              ))}
-          </Select>
-        </div>
-        <SinglePlatformDisplayWrapper>
-          <Label htmlFor="platform">Platform</Label>
-          {platformOptions.length === 1 ? (
-            <SinglePlatformDisplay>
-              {platformOptions[0]}
-            </SinglePlatformDisplay>
-          ) : (
-            <Select
-              id="platform"
-              name="platform"
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-            >
-              {platformOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
+        <FieldGroupFirst>
+          <div>
+            <Label htmlFor="client">Client</Label>
+            <Select id="client" name="client" value={selectedClient} onChange={handleClientChange}>
+              <option value="" disabled>
+                Select a client
+              </option>
+              {[...clients]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((client) => (
+                  <option key={client.code} value={client.code}>
+                    {client.name}
+                  </option>
+                ))}
             </Select>
-          )}
-        </SinglePlatformDisplayWrapper>
-      </FieldGroupFirst>
+          </div>
+          <SinglePlatformDisplayWrapper>
+            <Label htmlFor="platform">Platform</Label>
+            {platformOptions.length === 1 ? (
+              <SinglePlatformDisplay>{platformOptions[0]}</SinglePlatformDisplay>
+            ) : (
+              <Select id="platform" name="platform" value={platform} onChange={(e) => setPlatform(e.target.value)}>
+                {platformOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </SinglePlatformDisplayWrapper>
+        </FieldGroupFirst>
 
-      <FieldGroupMiddle>
-        <ExperimentNumber>
-          <Label htmlFor="experienceNumber">Experience Number:*</Label>
-          <Input
-            id="experienceNumber"
-            type="text"
-            value={experienceNumber}
-            onKeyDown={(e) => {
-            
-              if (
-                !/[0-9.]/.test(e.key) && 
-                e.key !== "Backspace" &&
-                e.key !== "Delete" &&
-                e.key !== "ArrowLeft" &&
-                e.key !== "ArrowRight" &&
-                e.key !== "Tab"
-              ) {
-                e.preventDefault();
-              }
-            }}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (/^[0-9.]*$/.test(value)) {
-                setExperienceNumber(value);
-              }
-            }}
-          />
-        </ExperimentNumber>
+        <FieldGroupMiddle>
+          <ExperimentNumber>
+            <Label htmlFor="experienceNumber">Experience Number:*</Label>
+            <Input
+              id="experienceNumber"
+              type="text"
+              value={experienceNumber}
+              onKeyDown={(e) => {
+                if (!/[0-9.]/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Tab") {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[0-9.]*$/.test(value)) {
+                  setExperienceNumber(value);
+                }
+              }}
+            />
+          </ExperimentNumber>
 
-        <ExperimentName>
-          <Label htmlFor="experienceName">Experience Name:*</Label>
-          <Input
-            type="text"
-            id="experienceName"
-            name="experienceName"
-            value={experienceName}
-            onChange={(e) => setExperienceName(e.target.value)} 
-          />
-        </ExperimentName>
-      </FieldGroupMiddle>
+          <ExperimentName>
+            <Label htmlFor="experienceName">Experience Name:*</Label>
+            <Input type="text" id="experienceName" name="experienceName" value={experienceName} onChange={(e) => setExperienceName(e.target.value)} />
+          </ExperimentName>
+        </FieldGroupMiddle>
 
-      <FieldGroupEnd>
-        <ExperienceVariations>
-          <Label htmlFor="numVariants">No. of Variants (not inc. control):*</Label>
-          <Input
-            type="number"
-            id="numVariants"
-            name="numVariants"
-            value={numVariants}
-            min={1}
-            onChange={handleNumVariantsChange} 
-          />
-        </ExperienceVariations>
-      </FieldGroupEnd>
-    </Section>
+        <FieldGroupEnd>
+          <ExperienceVariations>
+            <Label htmlFor="numVariants">No. of Variants (not inc. control):*</Label>
+            <Input type="number" id="numVariants" name="numVariants" value={numVariants} min={1} onChange={handleNumVariantsChange} />
+          </ExperienceVariations>
+        </FieldGroupEnd>
+      </Section>
     </SectionWrapper>
   );
 };
