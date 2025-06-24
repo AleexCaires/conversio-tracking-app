@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
-import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol,SectionWrapper ,TriggerEventWrapper,TriggerButton,SaveToDBbtn} from "./EventDetails.styles";
+import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol, SectionWrapper, TriggerEventWrapper, TriggerButton, SaveToDBbtn } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 import { EditData, EventGroup, Event } from "@/types";
@@ -42,22 +42,12 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   });
   const [selectedStatus, setSelectedStatus] = useState<Record<string, boolean>>({});
 
-  const { 
-    selectedClient, 
-    experienceNumber, 
-    numVariants, 
-    experienceName,
-    resetExperience,
-  } = useExperience();
+  const { selectedClient, experienceNumber, numVariants, experienceName, resetExperience } = useExperience();
 
   // Add effect to retrigger data generation when number of variants changes
   useEffect(() => {
     // Only run when we have valid data and we're in edit mode
-    if (isEditMode && 
-        eventDescriptions.length > 0 && 
-        selectedClient && 
-        experienceNumber && 
-        numVariants > 0) {
+    if (isEditMode && eventDescriptions.length > 0 && selectedClient && experienceNumber && numVariants > 0) {
       //console.log("Retriggering data generation due to numVariants change:", numVariants);
       // Set a small delay to let React update state first
       setTimeout(() => {
@@ -81,29 +71,26 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   useEffect(() => {
     if (isEditMode && editData && Array.isArray(editData.events)) {
       //console.log("Processing edit data for EventDetails:", editData);
-      
+
       const allEvents: Event[] = [];
       editData.events.forEach((group: EventGroup) => {
         if (Array.isArray(group.events)) {
           allEvents.push(...group.events);
         }
       });
-      
+
       // Find trigger event if any
       const triggerEvent = allEvents.find((event: Event) => event.triggerEvent === true);
       let triggerDescription = "";
       const standardDescriptions: string[] = [];
-      
+
       // Process all events to get descriptions
       allEvents.forEach((event: Event) => {
         // Add support for Sephora's event_label
-        const label =
-          event.conversio?.event_label ||
-          event.eventLabel ||
-          event.eventData?.click?.clickText;
+        const label = event.conversio?.event_label || event.eventLabel || event.eventData?.click?.clickText;
         if (label) {
           // Extract the description part (after the last pipe)
-          const lastPipeIndex = label.lastIndexOf('|');
+          const lastPipeIndex = label.lastIndexOf("|");
           if (lastPipeIndex !== -1) {
             const description = label.substring(lastPipeIndex + 1).trim();
             if (description) {
@@ -116,13 +103,13 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           }
         }
       });
-      
+
       // Update state based on extracted data
       if (triggerEvent && triggerDescription) {
         setTriggerEventEnabled(true);
         setTriggerEventDescription(triggerDescription);
       }
-      
+
       if (standardDescriptions.length > 0) {
         setEventDescriptions(standardDescriptions);
         setNumEvents(standardDescriptions.length);
@@ -130,7 +117,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
 
       // Initialize selectedStatus based on codeCopied
       const newSelectedStatus: Record<string, boolean> = {};
-      
+
       // Process Control events
       const controlGroup = editData.events.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control");
       if (controlGroup && Array.isArray(controlGroup.events)) {
@@ -138,7 +125,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           newSelectedStatus[`control-${idx}`] = !!event.codeCopied;
         });
       }
-      
+
       // Process Variation events
       let variationOffset = 0;
       editData.events.forEach((group: EventGroup) => {
@@ -149,10 +136,10 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           variationOffset += group.events.length;
         }
       });
-      
+
       //console.log("Initialized selectedStatus:", newSelectedStatus);
       setSelectedStatus(newSelectedStatus);
-      
+
       // Trigger data layer logic after a short delay
       setTimeout(() => {
         setTrigger(true);
@@ -183,7 +170,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       variationEvents: data.variationEvents,
     });
   };
-  
+
   // Define isTriggerButtonDisabled - this was missing
   const isTriggerButtonDisabled = !selectedClient || !experienceNumber || eventDescriptions.some((desc) => desc.trim() === "");
 
@@ -231,13 +218,13 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       if (res.ok) {
         const data = await res.json();
         const successMsg = data.message || "Element saved successfully!";
-        
+
         setSuccessMessage(successMsg);
-        
+
         if (isEditMode) {
-          window.history.replaceState({}, '', '/');
+          window.history.replaceState({}, "", "/");
         }
-        
+
         cleanAllFields(successMsg);
 
         // Navigate to /historyComp after successful save
@@ -252,14 +239,14 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       setIsLoading(false);
     }
   };
-  
+
   // Function to clean all form fields (used after successful save)
   const cleanAllFields = (successMessage?: string) => {
     //console.log("Cleaning all fields...");
-    
+
     // Reset Experience context (will reset ExperienceDetails)
     resetExperience();
-    
+
     // Reset EventDetails fields
     setNumEvents(2);
     setEventDescriptions(Array(2).fill(""));
@@ -270,28 +257,28 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     }
     setTriggerEventEnabled(false);
     setTriggerEventDescription("");
-    
+
     // Hide DataLayerLogic when fields are cleaned, unless it's after a successful save
     if (!successMessage) {
       setShowDataLayerLogic(false);
     }
-    
+
     // Reset event data
     setEventData({
       controlEvents: [],
       variationEvents: [],
     });
-    
+
     // Reset selected status
     setSelectedStatus({});
-    
+
     // Clear any generated events
     setTimeout(() => {
       handleDataGenerated({
         controlEvents: [],
         variationEvents: [],
         controlEventsWithCopied: [],
-        variationEventsWithCopied: []
+        variationEventsWithCopied: [],
       });
     }, 50);
   };
@@ -304,86 +291,76 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     triggerDataGeneration: () => {
       setTrigger(true);
       setShowDataLayerLogic(true);
-    }
+    },
   }));
 
   return (
     <SectionWrapper>
-    <Section>
-      <Heading>Event Details</Heading>
+      <Section>
+        <Heading>Event Details</Heading>
 
-      <FieldGroupInitial>
-        <div>
-          <Label htmlFor="numEvents">No. of Events:</Label>
-          <Input type="number" id="numEvents" value={numEvents} min={1} max={20} onChange={handleNumEventsChange} />
-        </div>
-        <TriggerEventWrapper>
-          <label style={{ display: "flex", alignItems: "center" }}>
-            <input 
-              type="checkbox" 
-              checked={triggerEventEnabled} 
-              onChange={(e) => setTriggerEventEnabled(e.target.checked)} 
-              style={{ marginRight: "0.5rem" }} 
-            />
-            Trigger Event
-          </label>
-          
-          {triggerEventEnabled && (
-            <div>
-              <EventInput 
-                type="text" 
-                value={triggerEventDescription} 
-                onChange={(e) => setTriggerEventDescription(e.target.value)} 
-                placeholder="Trigger Event Description" 
-              />
-            </div>
-          )}
-        </TriggerEventWrapper>
-      </FieldGroupInitial>
-
-      <EventRow>
-        <EventCol>
-          {eventDescriptions.map((desc, idx) => (
-            <EventDescriptionRow key={idx}>
-              <Label>{`Event ${idx + 1} Description:`}</Label>
-              <EventInput type="text" value={desc} onChange={(e) => handleDescriptionChange(idx, e.target.value)} />
-            </EventDescriptionRow>
-          ))}
-        </EventCol>
-      </EventRow>
-
-      <TriggerButton onClick={handleTriggerDataLayer} disabled={isTriggerButtonDisabled}>
-        Build Events
-      </TriggerButton>
-
-      {showDataLayerLogic && (
-        <>
-          <DataLayerLogic
-            client={selectedClient}
-            experienceNumber={experienceNumber}
-            eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
-            trigger={trigger}
-            setTrigger={setTrigger}
-            onDataGenerated={handleDataGenerated}
-            selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
-          />
-
+        <FieldGroupInitial>
           <div>
-            <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
-              {isLoading ? "Saving..." : "Save to database"}
-            </SaveToDBbtn>
+            <Label htmlFor="numEvents">No. of Events:</Label>
+            <Input type="number" id="numEvents" value={numEvents} min={1} max={20} onChange={handleNumEventsChange} />
           </div>
-        </>
-      )}
+          <TriggerEventWrapper>
+            <label style={{ display: "flex", alignItems: "center" }}>
+              <input type="checkbox" checked={triggerEventEnabled} onChange={(e) => setTriggerEventEnabled(e.target.checked)} style={{ marginRight: "0.5rem" }} />
+              Trigger Event
+            </label>
 
-      {successMessage && <div style={{ color: "green", marginTop: "1rem" }}>{successMessage}</div>}
-      {errorMessage && <div style={{ color: "red", marginTop: "1rem" }}>{errorMessage}</div>}
-    </Section>
+            {triggerEventEnabled && (
+              <div>
+                <EventInput type="text" value={triggerEventDescription} onChange={(e) => setTriggerEventDescription(e.target.value)} placeholder="Trigger Event Description" />
+              </div>
+            )}
+          </TriggerEventWrapper>
+        </FieldGroupInitial>
+
+        <EventRow>
+          <EventCol>
+            {eventDescriptions.map((desc, idx) => (
+              <EventDescriptionRow key={idx}>
+                <Label>{`Event ${idx + 1} Description:`}</Label>
+                <EventInput type="text" value={desc} onChange={(e) => handleDescriptionChange(idx, e.target.value)} />
+              </EventDescriptionRow>
+            ))}
+          </EventCol>
+        </EventRow>
+
+        <TriggerButton onClick={handleTriggerDataLayer} disabled={isTriggerButtonDisabled}>
+          Build Events
+        </TriggerButton>
+
+        {showDataLayerLogic && (
+          <>
+            <DataLayerLogic
+              client={selectedClient}
+              experienceNumber={experienceNumber}
+              eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
+              trigger={trigger}
+              setTrigger={setTrigger}
+              onDataGenerated={handleDataGenerated}
+              selectedStatus={selectedStatus}
+              setSelectedStatus={setSelectedStatus}
+            />
+
+            <div>
+              <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
+                {isLoading ? "Saving..." : "Save to database"}
+              </SaveToDBbtn>
+            </div>
+          </>
+        )}
+
+        {successMessage && <div style={{ color: "green", marginTop: "1rem" }}>{successMessage}</div>}
+        {errorMessage && <div style={{ color: "red", marginTop: "1rem" }}>{errorMessage}</div>}
+      </Section>
     </SectionWrapper>
   );
 });
 
-EventDetails.displayName = 'EventDetails';
+EventDetails.displayName = "EventDetails";
 
 export default EventDetails;

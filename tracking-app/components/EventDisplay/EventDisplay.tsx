@@ -1,59 +1,45 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { ChildrenWrapper } from "./EventDisplay.styles";
+import {
+  ChildrenWrapper,
+  EventDisplayWrapper,
+  EventTitle,
+  EventLabelsWrapper,
+  EventLabelsList,
+  EventLabelItem,
+  EventLabelIndex,
+  TriggerEventText,
+  EventItemWrapper,
+  EventItemLabel,
+  CodeWrapper,
+  CodeBlock,
+  ButtonsWrapper,
+  CopyButtonStyled,
+} from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
-
-interface Event {
-  eventAction?: string;
-  eventCategory?: string;
-  eventLabel?: string;
-  eventSegment?: string;
-  triggerEvent?: boolean;
-  codeCopied?: boolean;
-  event?: string;
-  eventData?: {
-    click?: {
-      clickAction?: string;
-      clickLocation?: string;
-      clickText?: string;
-      triggerEvent?: boolean;
-    };
-    triggerEvent?: boolean;
-  };
-  conversio?: {
-    event_category?: string;
-    event_action?: string;
-    event_label?: string;
-    event_segment?: string;
-  };
-}
+import CopyIcon from "../Icons/CopyIcon"; // <-- Import your SVG icon
 
 interface EventDisplayProps {
   title: string;
   events: (TypedEvent | string)[];
   onCopy: (text: string) => void;
+  showMode: "labels" | "code";
 }
 
-const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) => {
+const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, showMode }) => {
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
-  const [isVisible, setIsVisible] = useState(false);
 
-  // Determine button label based on title
-  const getToggleLabel = () => {
-    if (isVisible) {
-      if (title.toLowerCase().includes("control")) return "Hide Control Events";
-      if (title.toLowerCase().includes("variation")) return `Hide ${title} Events`;
-      return `Hide ${title}`;
-    }
-    if (title.toLowerCase().includes("control")) return "Show Control Events";
-    if (title.toLowerCase().includes("variation")) return `Show ${title} Events`;
-    return "Show Events";
-  };
+  // // Determine button label based on title
+  // const getToggleLabel = () => {
+  //   if (title.toLowerCase().includes("control")) return "Hide Control Events";
+  //   if (title.toLowerCase().includes("variation")) return `Hide ${title} Events`;
+  //   return `Hide ${title}`;
+  // };
 
   const parseEvent = useMemo(() => {
-    return (event: Event | string): Event => {
+    return (event: TypedEvent | string): TypedEvent => {
       if (typeof event === "string") {
-        const parsed: Event = JSON.parse(event);
+        const parsed: TypedEvent = JSON.parse(event);
         if ("event" in parsed && parsed.event === "targetClickEvent" && parsed.eventData?.click) {
           const { clickAction, clickLocation, clickText } = parsed.eventData.click;
           const triggerEvent =
@@ -77,7 +63,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           triggerEvent: Boolean(parsed.triggerEvent),
         };
       } else if (event && typeof event === "object") {
-        const eventObj = event as Event & { event?: string; eventData?: Event["eventData"] };
+        const eventObj = event as TypedEvent & { event?: string; eventData?: TypedEvent["eventData"] };
         if (eventObj.event === "targetClickEvent" && eventObj.eventData?.click) {
           const { clickAction, clickLocation, clickText } = eventObj.eventData.click;
           const triggerEvent =
@@ -101,11 +87,11 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
           triggerEvent: Boolean(eventObj.triggerEvent),
         };
       }
-      return event as Event;
+      return event as TypedEvent;
     };
   }, []);
 
-  const parsedEvents: Event[] = useMemo(() => events.map(parseEvent), [events, parseEvent]);
+  const parsedEvents: TypedEvent[] = useMemo(() => events.map(parseEvent), [events, parseEvent]);
 
   const getInitialCopiedState = useMemo(() => {
     const state: Record<string, boolean> = {};
@@ -121,7 +107,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
 
   if (!events || events.length === 0) return null;
 
-  const getEventLabel = (event: Event): string => {
+  const getEventLabel = (event: TypedEvent): string => {
     if (event.conversio && event.conversio.event_label) {
       return event.conversio.event_label;
     }
@@ -143,47 +129,25 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
   };
 
   return (
-    <div style={{ marginTop: "2rem" }}>
-      <h3 style={{ marginBottom: "1rem", fontSize: "1.25rem", color: "#222" }}>{title}</h3>
+    <EventDisplayWrapper>
+      <EventTitle>{title}</EventTitle>
 
-      {eventLabels.length > 0 && (
-        <div style={{ marginBottom: "1rem", color: "#555", fontSize: "1rem" }}>
+      {showMode === "labels" && eventLabels.length > 0 && (
+        <EventLabelsWrapper>
           <strong>Event Labels:</strong>
-          <ul style={{ margin: 0, paddingLeft: "1.25rem", listStyle: "none" }}>
+          <EventLabelsList>
             {eventLabels.map((item, idx) => (
-              <li
-                key={idx}
-                style={{
-                  lineHeight: "2",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ marginRight: "0.5em" }}>{idx + 1}.</span>
+              <EventLabelItem key={idx}>
+                <EventLabelIndex>{idx + 1}.</EventLabelIndex>
                 {item.label}
-                {item.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
-              </li>
+                {item.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
+              </EventLabelItem>
             ))}
-          </ul>
-        </div>
+          </EventLabelsList>
+        </EventLabelsWrapper>
       )}
 
-      <button
-        onClick={() => setIsVisible((prev) => !prev)}
-        style={{
-          padding: "0.5rem 1rem",
-          fontSize: "0.9rem",
-          backgroundColor: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "0.25rem",
-          cursor: "pointer",
-        }}
-      >
-        {getToggleLabel()}
-      </button>
-
-      {isVisible && (
+      {showMode === "code" && (
         <ChildrenWrapper>
           {parsedEvents.map((event, index) => {
             const isSephoraFormat = !!(event.conversio && event.conversio.event_category);
@@ -206,81 +170,44 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy }) =>
             const segmentKey = `${index}-segment`;
 
             return (
-              <div key={index} style={{ marginBottom: "2rem" }}>
-                {/* ...existing code for event label, pre, and buttons... */}
-                <div
-                  style={{
-                    marginBottom: "0.5rem",
-                    color: "#444",
-                    fontWeight: 500,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    width: "100%",
-                    display: "block",
-                  }}
-                  title={getEventLabel(event) + (event.triggerEvent ? " (Trigger Event)" : "")}
-                >
+              <EventItemWrapper key={index}>
+                <EventItemLabel title={getEventLabel(event) + (event.triggerEvent ? " (Trigger Event)" : "")}>
                   {getEventLabel(event)}
-                  {event.triggerEvent && <span style={{ color: "#d35400", fontWeight: 600, marginLeft: "0.5em" }}>(Trigger Event)</span>}
-                </div>
-                <pre
-                  style={{
-                    background: "#1e1e1e",
-                    color: "#f5f5f5",
-                    padding: "1rem",
-                    borderRadius: "0.5rem",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    border: activeBorders[codeKey] ? "2px solid #007bff" : activeBorders[segmentKey] ? "2px solid #28a745" : "2px solid transparent",
-                    boxShadow: activeBorders[codeKey] ? "0 0 10px #007bff, 0 0 20px #007bff" : activeBorders[segmentKey] ? "0 0 10px #28a745, 0 0 20px #28a745" : "none",
-                    transition: "box-shadow 0.3s ease, border 0.3s ease",
-                  }}
-                >
-                  {eventCode}
-                </pre>
-                <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
-                  <button
-                    onClick={() => handleCopy(index, "code", eventCode)}
-                    style={{
-                      padding: "0.5rem 1rem",
-                      fontSize: "0.9rem",
-                      backgroundColor: copiedState[codeKey] ? "#0056b3" : "#007bff",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "0.25rem",
-                      cursor: "pointer",
-                      transition: "background 0.3s ease",
-                    }}
-                  >
-                    {copiedState[codeKey] ? "Copied!" : "Copy Code"}
-                  </button>
-                  {segmentValue && (
-                    <button
-                      onClick={() => handleCopy(index, "segment", segmentValue)}
-                      style={{
-                        padding: "0.5rem 1rem",
-                        fontSize: "0.9rem",
-                        backgroundColor: copiedState[segmentKey] ? "#1c7c3e" : "#28a745",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "0.25rem",
-                        cursor: "pointer",
-                        transition: "background 0.3s ease",
-                      }}
-                    >
-                      {copiedState[segmentKey] ? "Segment Copied!" : "Copy Segment"}
-                    </button>
-                  )}
-                </div>
-              </div>
+                  {event.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
+                </EventItemLabel>
+                <CodeWrapper>
+                  <CodeBlock $activeBorder={activeBorders[codeKey]} $activeSegmentBorder={activeBorders[segmentKey]}>
+                    {eventCode}
+                  </CodeBlock>
+                  <ButtonsWrapper>
+                    {segmentValue && (
+                      <CopyButtonStyled onClick={() => handleCopy(index, "segment", segmentValue)} $copied={copiedState[segmentKey]} $isSegment>
+                        {copiedState[segmentKey] ? (
+                          "Segment Copied!"
+                        ) : (
+                          <>
+                            <CopyIcon width="1em" height="1em" /> Segment
+                          </>
+                        )}
+                      </CopyButtonStyled>
+                    )}
+                    <CopyButtonStyled onClick={() => handleCopy(index, "code", eventCode)} $copied={copiedState[codeKey]}>
+                      {copiedState[codeKey] ? (
+                        "Copied!"
+                      ) : (
+                        <>
+                          <CopyIcon width="1em" height="1em" /> Code
+                        </>
+                      )}
+                    </CopyButtonStyled>
+                  </ButtonsWrapper>
+                </CodeWrapper>
+              </EventItemWrapper>
             );
           })}
         </ChildrenWrapper>
       )}
-    </div>
+    </EventDisplayWrapper>
   );
 };
 

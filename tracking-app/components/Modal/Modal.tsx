@@ -1,7 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import EventDisplay from "../EventDisplay/EventDisplay";
-import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent } from "./Modal.styles";
-import { FaTrash, FaEdit } from "react-icons/fa";
+import {
+  ModalOverlay,
+  ModalContainer,
+  ModalHeader,
+  CloseButton,
+  ModalContent,
+  HeaderTitle,
+  EditButton,
+  DeleteButton,
+  ToggleWrapper,
+  ToggleLabel,
+  StyledSegmentIcon,
+  StyledCodeIcon,
+  IconWrapper,
+  ActiveIndicatorIcon,
+} from "./Modal.styles";
+import EditIcon from "../Icons/EditIcon";
+import DeleteIcon from "../Icons/DeleteIcon";
 import { useRouter } from "next/navigation";
 import { clients } from "../../lib/clients";
 import { ModalContent as ModalContentType, Event, EventGroup } from "@/types";
@@ -18,6 +34,7 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumber, experienceName, client, onRefresh }) => {
   const router = useRouter();
+  const [showMode, setShowMode] = useState<"labels" | "code">("code");
 
   if (!isOpen) return null;
 
@@ -75,16 +92,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
   };
 
   // Prepare flat event arrays for EventDisplay from the grouped content.events
-  // Ensure eventAction is always a string (fallback to empty string if undefined)
-  const controlEventsForDisplay: Event[] = (content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || []).map((e) => ({
-    ...e,
-    eventAction: e.eventAction ?? "",
-  }));
+  const controlEventsForDisplay: Event[] = content?.events?.find((g: EventGroup) => g.label === "Dummy Control" || g.label === "Control")?.events || [];
 
-  const variationEventsForDisplay: Event[] = (content?.events?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))?.flatMap((g: EventGroup) => g.events || []) || []).map((e) => ({
-    ...e,
-    eventAction: e.eventAction ?? "",
-  }));
+  const variationEventsForDisplay: Event[] = content?.events?.filter((g: EventGroup) => typeof g.label === "string" && g.label.startsWith("Variation "))?.flatMap((g: EventGroup) => g.events || []) || [];
 
   // Add delete handler
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -93,7 +103,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
     // Use the content._id directly since it's already the full identifier
     const documentId = content?._id || experienceNumber;
 
-    //console.log("Delete clicked. Values:", { documentId, clientValue, experienceNumber });
 
     if (!documentId) {
       alert("Missing document ID.");
@@ -164,86 +173,56 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
 
   return (
     <ModalOverlay onClick={handleOverlayClick}>
-      {/* Prevent clicks inside the container from closing the modal */}
       <ModalContainer onClick={(e) => e.stopPropagation()}>
-        {/* Header Section */}
         <ModalHeader>
-          <div style={{ flex: 1, fontWeight: 600, fontSize: "1.1rem", textAlign: "left" }}>
+          <HeaderTitle>
             {(experienceNumber || experienceName) && (
-              <span style={{ color: "inherit" }}>
-                {experienceNumber ? experienceNumber : ""}
+              <span>
+                {experienceNumber ? <strong>{experienceNumber}</strong> : ""}
                 {experienceNumber && experienceName ? " - " : ""}
                 {experienceName ? experienceName : ""}
               </span>
             )}
-          </div>
-          {/* Add edit button */}
-          <button
-            onClick={handleEdit}
-            type="button"
-            style={{
-              background: "none",
-              border: "none",
-              color: "#4CAF50",
-              cursor: "pointer",
-              marginRight: "0.5rem",
-              fontSize: "1.2rem",
-              display: "flex",
-              alignItems: "center",
-              zIndex: 2,
-            }}
-            title="Edit this experience"
-          >
-            <FaEdit />
-          </button>
+          <EditButton onClick={handleEdit} type="button" title="Edit this experience">
+            <EditIcon width="1.2rem" height="1.2rem" />
+          </EditButton>
           {/* Add bin icon button */}
-          <button
-            onClick={handleDelete}
-            type="button"
-            style={{
-              background: "none",
-              border: "none",
-              color: "#d32f2f",
-              cursor: "pointer",
-              marginRight: "0.5rem",
-              fontSize: "1.2rem",
-              display: "flex",
-              alignItems: "center",
-              zIndex: 2,
-            }}
-            title="Delete this experience"
-          >
-            <FaTrash />
-          </button>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
+          <DeleteButton onClick={handleDelete} type="button" title="Delete this experience">
+            <DeleteIcon width="1.2rem" height="1.2rem" />
+          </DeleteButton>
+           <CloseButton onClick={onClose}>&times;</CloseButton>
+          </HeaderTitle>
+
+         
         </ModalHeader>
 
         {/* Content Section */}
         <ModalContent>
+          <ToggleWrapper>
+            <ToggleLabel>Event Labels</ToggleLabel>
+            <IconWrapper>
+              <StyledSegmentIcon $active={showMode === "labels"} title="Show only event labels" onClick={() => setShowMode("labels")} />
+              {showMode === "labels" && <ActiveIndicatorIcon />}
+            </IconWrapper>
+            <IconWrapper>
+              <StyledCodeIcon $active={showMode === "code"} title="Show event code" onClick={() => setShowMode("code")} />
+              {showMode === "code" && <ActiveIndicatorIcon />}
+            </IconWrapper>
+          </ToggleWrapper>
           <EventDisplay
             title="Control Events"
-            events={controlEventsForDisplay.map((e) => ({
-              ...e,
-              eventAction: e.eventAction ?? "",
-              eventCategory: e.eventCategory ?? "",
-              eventLabel: e.eventLabel ?? "",
-              eventSegment: e.eventSegment ?? "",
-            }))}
+            events={controlEventsForDisplay}
             onCopy={copyToClipboard}
+            showMode={showMode}
           />
           {Array.isArray(variationEventsForDisplay) &&
             groupEventsByVariation(variationEventsForDisplay).map(([variation, events]) => (
               <EventDisplay
                 key={variation}
                 title={`Variation ${variation}`}
-                events={events.map((e) => ({
-                  ...e,
-                  eventAction: e.eventAction ?? "",
-                  eventCategory: e.eventCategory ?? "",
-                  eventLabel: e.eventLabel ?? "",
-                  eventSegment: e.eventSegment ?? "",
-                }))}
+                events={events}
                 onCopy={copyToClipboard}
+                showMode={showMode}
               />
             ))}
         </ModalContent>

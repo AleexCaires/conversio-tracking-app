@@ -50,6 +50,7 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
         case "AS": // Accessorize
         case "MS": // Monsoon
         case "LF": // Liverpool FC
+        case "BM": // Belmond
           setPlatform("Dynamic Yield");
           setPlatformOptions(["Dynamic Yield"]);
           break;

@@ -5,7 +5,7 @@ export const Section = styled.section`
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem 5rem;
-  background-color: #0000001f;
+  background-color: #7948b33f;
   border-radius: 16px;
 `;
 
