@@ -164,9 +164,9 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
             type="text"
             value={experienceNumber}
             onKeyDown={(e) => {
-              // Allow only numbers, '.', and control keys (e.g., Backspace, Delete, Arrow keys)
+            
               if (
-                !/[0-9.]/.test(e.key) && // Allow digits and '.'
+                !/[0-9.]/.test(e.key) && 
                 e.key !== "Backspace" &&
                 e.key !== "Delete" &&
                 e.key !== "ArrowLeft" &&
@@ -177,7 +177,6 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
               }
             }}
             onChange={(e) => {
-              // Validate input to ensure it only contains numbers and '.'
               const value = e.target.value;
               if (/^[0-9.]*$/.test(value)) {
                 setExperienceNumber(value);
@@ -192,8 +191,8 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
             type="text"
             id="experienceName"
             name="experienceName"
-            value={experienceName} // Bind to experimentName state
-            onChange={(e) => setExperienceName(e.target.value)} // Update state on input change
+            value={experienceName}
+            onChange={(e) => setExperienceName(e.target.value)} 
           />
         </ExperimentName>
       </FieldGroupMiddle>
@@ -207,13 +206,9 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
             name="numVariants"
             value={numVariants}
             min={1}
-            onChange={handleNumVariantsChange} // use direct handler
+            onChange={handleNumVariantsChange} 
           />
         </ExperienceVariations>
-        {/* <div>
-          <Label htmlFor="experienceCategoryName">Experience Category Name:*</Label>
-          <Input type="text" id="experienceCategoryName" name="experienceCategoryName" defaultValue="Conversio Experience" />
-        </div> */}
       </FieldGroupEnd>
     </Section>
     </SectionWrapper>

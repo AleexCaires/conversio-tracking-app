@@ -128,7 +128,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     }
 });`);
       } else if (clientCode === "SA") {
-        newControlEvents.push(`dataLayer.push({
+        newControlEvents.push(`window.dataLayer.push({
     event: "conversioEvent", 
     conversio: {
       event_category: "Conversio CRO",
@@ -167,7 +167,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     }
 });`);
         }  else if (clientCode === "SA") {
-        newVariationEvents.push(`dataLayer.push({
+        newVariationEvents.push(`window.dataLayer.push({
     event: "conversioEvent", 
     conversio: {
       event_category: "Conversio CRO",
