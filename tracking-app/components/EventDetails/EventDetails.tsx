@@ -305,7 +305,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
             <Input type="number" id="numEvents" value={numEvents} min={1} max={20} onChange={handleNumEventsChange} />
           </div>
           <TriggerEventWrapper>
-            <label style={{ display: "flex", alignItems: "center" }}>
+            <label style={{ display: "flex", alignItems: "center", marginRight: "1rem" }}>
               <input type="checkbox" checked={triggerEventEnabled} onChange={(e) => setTriggerEventEnabled(e.target.checked)} style={{ marginRight: "0.5rem" }} />
               Trigger Event
             </label>
@@ -346,7 +346,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
               setSelectedStatus={setSelectedStatus}
             />
 
-            <div>
+            <div style={{ margin: "0 auto" }}>
               <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
                 {isLoading ? "Saving..." : "Save to database"}
               </SaveToDBbtn>

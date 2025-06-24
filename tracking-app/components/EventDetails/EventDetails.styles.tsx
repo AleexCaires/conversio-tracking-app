@@ -81,6 +81,7 @@ export const EventColEnd = styled.div`
 export const TriggerEventWrapper = styled.div`
   display: flex;
   align-items: center;
+
 `;
 export const TriggerButton = styled.button<{ disabled?: boolean }>`
   height: 48px;
@@ -92,10 +93,12 @@ export const TriggerButton = styled.button<{ disabled?: boolean }>`
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")}; // Change cursor when disabled
   opacity: ${({ disabled }) => (disabled ? 0.6 : 1)}; // Reduce opacity when disabled
   border: none; // Assuming no border is desired, or adjust as needed
+  margin: 0 auto;
 
   &:hover {
     background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#52CC6D")}; // Darker green on hover if not disabled
   }
+
 `;
 
 export const SaveToDBbtn = styled.button`
@@ -106,4 +109,5 @@ export const SaveToDBbtn = styled.button`
   color: white;
   font-weight: 700;
   cursor: pointer;
+  margin: 0 auto;
 `;
