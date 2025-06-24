@@ -157,7 +157,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
             let eventCode: string;
 
             if (isSephoraFormat && event.conversio) {
-              eventCode = `dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${
+              eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${
                 event.conversio.event_segment ?? ""
               }"\n  }\n});`;
             } else if (isAdobeTarget) {
