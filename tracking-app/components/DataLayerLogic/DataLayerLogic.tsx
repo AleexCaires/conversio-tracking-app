@@ -3,7 +3,7 @@ import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
 import { Client } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
-import { EventBlockWrapper, SelectCheckbox, CopyButton, EventsGrid, EventsSectionTitle } from "./DataLayerLogic.styles";
+import { EventBlockWrapper, SelectCheckbox, CopyButton, EventsGrid, EventsSectionTitle, SelectAllButton } from "./DataLayerLogic.styles";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -369,10 +369,52 @@ conversio: {
     </EventBlockWrapper>
   );
 
+  const selectAllEvents = () => {
+    const newSelectedStatus = { ...selectedStatus };
+    
+    // Select all control events
+    localEventData.controlEvents.forEach((_, idx) => {
+      newSelectedStatus[`control-${idx}`] = true;
+    });
+    
+    // Select all variation events
+    localEventData.variationEvents.forEach((_, idx) => {
+      newSelectedStatus[`variation-${idx}`] = true;
+    });
+    
+    // Update the selected status
+    setSelectedStatus(newSelectedStatus);
+    
+    // Update the data with new copied status
+    const controlEventsWithCopied = localEventData.controlEvents.map((event) => ({
+      code: event,
+      codeCopied: true,
+    }));
+    
+    const variationEventsWithCopied = localEventData.variationEvents.map((event) => ({
+      code: event,
+      codeCopied: true,
+    }));
+    
+    memoizedOnDataGenerated({
+      controlEvents: localEventData.controlEvents,
+      variationEvents: localEventData.variationEvents,
+      controlEventsWithCopied,
+      variationEventsWithCopied,
+    });
+  };
+
   return (
     <div>
       {localEventData.controlEvents.length > 0 && (
         <>
+          <SelectAllButton 
+            onClick={selectAllEvents} 
+            disabled={localEventData.controlEvents.length === 0 && localEventData.variationEvents.length === 0}
+          >
+            <CopyIcon width="1em" height="1em" /> Select All Events
+          </SelectAllButton>
+          
           <EventsSectionTitle>Control Events</EventsSectionTitle>
           <EventsGrid>{localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}</EventsGrid>
         </>
