@@ -28,9 +28,22 @@ interface DataLayerLogicProps {
   onDataGenerated: (data: EventDataWithCopied) => void;
   selectedStatus: Record<string, boolean>;
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  includeExperienceEvent?: boolean;
+  experienceName?: string;
 }
 
-const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus }) => {
+const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
+  client,
+  experienceNumber,
+  eventDescriptions,
+  trigger,
+  setTrigger,
+  onDataGenerated,
+  selectedStatus,
+  setSelectedStatus,
+  includeExperienceEvent,
+  experienceName
+}) => {
   const { numVariants } = useExperience();
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<LocalEventData>({
@@ -97,8 +110,43 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     };
 
     const newControlEvents: string[] = [];
-    const newVariationEvents: string[] = [];
+    let newVariationEvents: string[] = [];
 
+    // Insert special event at the top if needed (for Control)
+    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+      const expId = `${fullClient}`;
+      const expName = experienceName || "";
+      
+      // Different format for Sephora
+      if (clientCode === "SA") {
+        newControlEvents.push(
+          `window.dataLayer.push({
+event: "conversioExperience",
+conversio: {
+    experience_category: "Conversio Experience",
+    experience_action: "${expId} | A/B/n | ${expName}",
+    experience_label: "${expId} | Control Original",
+    experience_segment: "${expId}.XCO"
+}
+});`
+        );
+      } else {
+        // Original format for Liverpool
+        newControlEvents.push(
+          `window.dataLayer.push({
+    'event': 'conversioExperience',
+    'conversio' : {
+        'experienceCategory': 'Conversio Experience',
+        'experienceAction': '${expId} | ${expName}',
+        'experienceLabel': '${expId} | Control Original',
+        'experience_segment': '${expId}.XCO'
+    }
+});`
+        );
+      }
+    }
+
+    // Always generate normal control events
     for (let idx = 0; idx < eventDescriptions.length; idx++) {
       const description = eventDescriptions[idx];
       const eventSegment = generateEventSegment(description, "ECO");
@@ -136,6 +184,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
       }
     }
 
+    // Always generate normal variation events
     for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
       for (let idx = 0; idx < eventDescriptions.length; idx++) {
         const description = eventDescriptions[idx];
@@ -175,6 +224,56 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
       }
     }
 
+    // Insert special event for each variation if needed
+    // Create a new array to hold all variation events in the correct order
+    const finalVariationEvents: string[] = [];
+    
+    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+      const expId = `${fullClient}`;
+      const expName = experienceName || "";
+      
+      // Loop through each variation
+      for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
+        // Add the experience event first for this variation with different format for Sephora
+        if (clientCode === "SA") {
+          finalVariationEvents.push(
+            `window.dataLayer.push({
+event: "conversioExperience",
+conversio: {
+    experience_category: "Conversio Experience",
+    experience_action: "${expId} | A/B/n | ${expName}",
+    experience_label: "${expId} | Variation ${variantIndex}",
+    experience_segment: "${expId}.XV${variantIndex}"
+}
+});`
+          );
+        } else {
+          // Original format for Liverpool
+          finalVariationEvents.push(
+            `window.dataLayer.push({
+    'event': 'conversioExperience',
+    'conversio' : {
+        'experienceCategory': 'Conversio Experience',
+        'experienceAction': '${expId} | ${expName}',
+        'experienceLabel': '${expId} | Variation ${variantIndex}',
+        'experience_segment': '${expId}.XV${variantIndex}'
+    }
+});`
+          );
+        }
+        
+        // Then add all the normal events for this variation
+        const startIdx = (variantIndex - 1) * eventDescriptions.length;
+        const endIdx = startIdx + eventDescriptions.length;
+        for (let i = startIdx; i < endIdx; i++) {
+          finalVariationEvents.push(newVariationEvents[i]);
+        }
+      }
+      
+      // Replace the variation events with our correctly ordered final array
+      newVariationEvents = finalVariationEvents;
+    }
+
     setLocalEventData({
       controlEvents: newControlEvents,
       variationEvents: newVariationEvents,
@@ -198,7 +297,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     });
 
     Promise.resolve().then(() => setTrigger(false));
-  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus, clientCode, fullClient, memoizedOnDataGenerated, setTrigger, getRandomLetter]);
+  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus, clientCode, fullClient, memoizedOnDataGenerated, setTrigger, getRandomLetter, includeExperienceEvent, experienceName]);
 
   useEffect(() => {
     // Reset local event data when eventDescriptions is reset (e.g., after cancel edit)
@@ -278,20 +377,46 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
           <EventsGrid>{localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}</EventsGrid>
         </>
       )}
-      {Array.from({ length: numVariants }, (_, variantIdx) => {
-        const start = variantIdx * eventDescriptions.length;
-        const end = start + eventDescriptions.length;
-        const events = localEventData.variationEvents.slice(start, end);
-        if (events.length === 0) return null;
-        return (
-          <React.Fragment key={variantIdx + 1}>
-            <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
-            <EventsGrid>{events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}</EventsGrid>
-          </React.Fragment>
-        );
-      })}
+      
+      {includeExperienceEvent && (clientCode === "SA" || clientCode === "LF") ? (
+        // Special rendering for clients with experience events
+        Array.from({ length: numVariants }, (_, variantIdx) => {
+          // For special clients with experience events, calculate positions differently
+          const eventsPerVariation = eventDescriptions.length + 1; // +1 for the experience event
+          const start = variantIdx * eventsPerVariation;
+          const end = start + eventsPerVariation;
+          const events = localEventData.variationEvents.slice(start, end);
+
+          if (events.length === 0) return null;
+          return (
+            <React.Fragment key={variantIdx + 1}>
+              <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
+              <EventsGrid>
+                {events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}
+              </EventsGrid>
+            </React.Fragment>
+          );
+        })
+      ) : (
+        // Regular rendering for standard clients
+        Array.from({ length: numVariants }, (_, variantIdx) => {
+          const start = variantIdx * eventDescriptions.length;
+          const end = start + eventDescriptions.length;
+          const events = localEventData.variationEvents.slice(start, end);
+          if (events.length === 0) return null;
+          return (
+            <React.Fragment key={variantIdx + 1}>
+              <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
+              <EventsGrid>
+                {events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}
+              </EventsGrid>
+            </React.Fragment>
+          );
+        })
+      )}
     </div>
   );
 };
 
 export default DataLayerLogic;
+
