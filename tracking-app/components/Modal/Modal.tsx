@@ -55,8 +55,25 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
       try {
         let variation = "Unknown";
 
+        // Check for experience events first
+        if (event.event === "conversioExperience" && event.conversio) {
+          // Check for experience segment to determine variation
+          const segment = event.conversio.experience_segment || "";
+          if (segment.includes(".XV")) {
+            // Extract variation number from segment (e.g., SA123.XV1 -> 1)
+            const match = segment.match(/\.XV(\d+)$/);
+            variation = match && match[1] ? match[1] : "Unknown";
+          } else {
+            // Check label as fallback
+            const label = event.conversio.experienceLabel || event.conversio.experience_label || "";
+            if (label.includes("Variation")) {
+              const varMatch = label.match(/Variation\s+(\d+)/);
+              variation = varMatch && varMatch[1] ? varMatch[1] : "Unknown";
+            }
+          }
+        }
         // Sephora/SA: variation number is in conversio.event_label
-        if ((event.event === "conversioEvent" || event.event === undefined) && event.conversio && typeof event.conversio.event_label === "string") {
+        else if ((event.event === "conversioEvent" || event.event === undefined) && event.conversio && typeof event.conversio.event_label === "string") {
           const labelMatch = event.conversio.event_label.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
         }

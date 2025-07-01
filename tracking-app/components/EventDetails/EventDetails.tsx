@@ -200,6 +200,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
             enabled: false,
             description: "",
           },
+      includeExperienceEvent: isSpecialClient && specialEventEnabled, // Add this flag to the payload
     };
 
     setIsLoading(true);
@@ -294,6 +295,29 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     },
   }));
 
+  const isSpecialClient = selectedClient === "SA" || selectedClient === "LF";
+  // Initialize with true if special client is selected
+  const [specialEventEnabled, setSpecialEventEnabled] = useState(isSpecialClient);
+  
+  // Add effect to update specialEventEnabled when client changes
+  useEffect(() => {
+    // Auto-select the experience event checkbox when special client is selected
+    if (selectedClient === "SA" || selectedClient === "LF") {
+      setSpecialEventEnabled(true);
+    } else {
+      setSpecialEventEnabled(false);
+    }
+  }, [selectedClient]);
+
+  // When saving or building, just pass the flag, don't add to eventDescriptions
+  const getAllEventDescriptions = () => {
+    let descs = [...eventDescriptions];
+    if (triggerEventEnabled) {
+      descs = [triggerEventDescription, ...descs];
+    }
+    return descs;
+  };
+
   return (
     <SectionWrapper>
       <Section>
@@ -309,13 +333,25 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
               <input type="checkbox" checked={triggerEventEnabled} onChange={(e) => setTriggerEventEnabled(e.target.checked)} style={{ marginRight: "0.5rem" }} />
               Trigger Event
             </label>
-
             {triggerEventEnabled && (
               <div>
                 <EventInput type="text" value={triggerEventDescription} onChange={(e) => setTriggerEventDescription(e.target.value)} placeholder="Trigger Event Description" />
               </div>
             )}
           </TriggerEventWrapper>
+          {isSpecialClient && (
+            <div style={{ display: "flex", alignItems: "center", marginLeft: "2rem" }}>
+              <label style={{ display: "flex", alignItems: "center", marginRight: "1rem" }}>
+                <input
+                  type="checkbox"
+                  checked={specialEventEnabled}
+                  onChange={(e) => setSpecialEventEnabled(e.target.checked)}
+                  style={{ marginRight: "0.5rem" }}
+                />
+                Experience Tracking Event
+              </label>
+            </div>
+          )}
         </FieldGroupInitial>
 
         <EventRow>
@@ -338,14 +374,15 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
             <DataLayerLogic
               client={selectedClient}
               experienceNumber={experienceNumber}
-              eventDescriptions={triggerEventEnabled ? [triggerEventDescription, ...eventDescriptions] : eventDescriptions}
+              eventDescriptions={getAllEventDescriptions()}
               trigger={trigger}
               setTrigger={setTrigger}
               onDataGenerated={handleDataGenerated}
               selectedStatus={selectedStatus}
               setSelectedStatus={setSelectedStatus}
+              includeExperienceEvent={isSpecialClient && specialEventEnabled}
+              experienceName={experienceName}
             />
-
             <div style={{ margin: "0 auto" }}>
               <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
                 {isLoading ? "Saving..." : "Save to database"}
@@ -361,6 +398,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   );
 });
 
+// Add this line to fix the warning
 EventDetails.displayName = "EventDetails";
 
 export default EventDetails;

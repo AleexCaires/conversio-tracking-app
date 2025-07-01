@@ -61,7 +61,25 @@ export async function POST(req: Request) {
     const isTriggerEvent = (idx: number) => elementData.triggerEvent && elementData.triggerEvent.enabled && idx === 0;
 
     // Generate Dummy Control events
-    const controlEvents =
+    const controlEvents = [];
+    
+    // Add experience event if needed
+    if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+      controlEvents.push({
+        event: "conversioExperience",
+        experienceEvent: true, // Mark as experience event
+        conversio: {
+          experienceCategory: "Conversio Experience",
+          experienceAction: `${fullClient} | ${elementData.experienceName}`,
+          experienceLabel: `${fullClient} | Control Original`,
+          experience_segment: `${fullClient}.XCO`
+        },
+        codeCopied: false
+      });
+    }
+    
+    // Add regular control events
+    const regularControlEvents =
       elementData.controlEventsWithCopied && elementData.controlEventsWithCopied.length === elementData.eventDescriptions.length
         ? elementData.controlEventsWithCopied.map((eventObj: unknown, idx: number) => {
             const description = elementData.eventDescriptions[idx];
@@ -146,11 +164,30 @@ export async function POST(req: Request) {
             };
           });
 
+    controlEvents.push(...regularControlEvents);
+
     // Generate Variation events dynamically based on numVariants
     const variationEvents = [];
     for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
-      const eventsForVariant =
-        elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
+      const eventsForVariant = [];
+      
+      // Add experience event if needed
+      if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+        eventsForVariant.push({
+          event: "conversioExperience",
+          experienceEvent: true, // Mark as experience event
+          conversio: {
+            experienceCategory: "Conversio Experience",
+            experienceAction: `${fullClient} | ${elementData.experienceName}`,
+            experienceLabel: `${fullClient} | Variation ${variantIndex}`,
+            experience_segment: `${fullClient}.XV${variantIndex}`
+          },
+          codeCopied: false
+        });
+      }
+      
+      // Add regular variation events
+      const regularVariationEvents = elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
           ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj: unknown, idx: number) => {
               const description = elementData.eventDescriptions[idx];
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
@@ -233,6 +270,8 @@ export async function POST(req: Request) {
               };
             });
 
+      eventsForVariant.push(...regularVariationEvents);
+      
       variationEvents.push({ label: `Variation ${variantIndex}`, events: eventsForVariant });
     }
 

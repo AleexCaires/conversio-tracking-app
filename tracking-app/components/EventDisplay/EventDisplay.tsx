@@ -4,6 +4,7 @@ import { Event as TypedEvent } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import styled from "styled-components";
 
 interface EventDisplayProps {
   title: string;
@@ -12,16 +13,15 @@ interface EventDisplayProps {
   showMode: "labels" | "code";
 }
 
+// Add a styled component for the Experience Event label
+const ExperienceEventLabel = styled.span`
+  color: #ff8c00; /* Orange color */
+  font-weight: 500;
+`;
+
 const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, showMode }) => {
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
-
-  // // Determine button label based on title
-  // const getToggleLabel = () => {
-  //   if (title.toLowerCase().includes("control")) return "Hide Control Events";
-  //   if (title.toLowerCase().includes("variation")) return `Hide ${title} Events`;
-  //   return `Hide ${title}`;
-  // };
 
   const parseEvent = useMemo(() => {
     return (event: TypedEvent | string): TypedEvent => {
@@ -92,9 +92,13 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     setCopiedState(getInitialCopiedState);
   }, [getInitialCopiedState]);
 
+  // Now do the early return after all hooks
   if (!events || events.length === 0) return null;
 
   const getEventLabel = (event: TypedEvent): string => {
+    if (event.event === "conversioExperience" && event.conversio) {
+      return event.conversio.experienceLabel || "";
+    }
     if (event.conversio && event.conversio.event_label) {
       return event.conversio.event_label;
     }
@@ -114,6 +118,40 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     setCopiedState((prev) => ({ ...prev, [key]: true }));
     setActiveBorders((prev) => ({ ...prev, [key]: true }));
   };
+
+  // Add a helper function to identify which variation an experience event belongs to
+  // const getVariationFromExperienceEvent = (event: TypedEvent): string | null => {
+  //   if (!event.conversio || !event.event || event.event !== "conversioExperience") {
+  //     return null;
+  //   }
+    
+  //   const segment = event.conversio.experience_segment || "";
+    
+  //   // Check for control
+  //   if (segment.includes(".XCO")) {
+  //     return "Control";
+  //   }
+    
+  //   // Check for variations (XV1, XV2, etc.)
+  //   const match = segment.match(/\.XV(\d+)$/);
+  //   if (match && match[1]) {
+  //     return `Variation ${match[1]}`;
+  //   }
+    
+  //   // Check label as fallback
+  //   const label = event.conversio.experienceLabel || event.conversio.experience_label || "";
+  //   if (label.includes("Control")) {
+  //     return "Control";
+  //   }
+  //   if (label.includes("Variation")) {
+  //     const varMatch = label.match(/Variation\s+(\d+)/);
+  //     if (varMatch && varMatch[1]) {
+  //       return `Variation ${varMatch[1]}`;
+  //     }
+  //   }
+    
+  //   return null;
+  // };
 
   return (
     <EventDisplayWrapper>
@@ -138,12 +176,44 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
         <ChildrenWrapper>
           {parsedEvents.map((event, index) => {
             const isSephoraFormat = !!(event.conversio && event.conversio.event_category);
-            const segmentValue = isSephoraFormat ? event.conversio?.event_segment : event.eventSegment;
+            const isExperienceEvent = event.event === "conversioExperience" || event.experienceEvent;
+            const segmentValue = isExperienceEvent ? 
+              event.conversio?.experience_segment : 
+              isSephoraFormat ? 
+                event.conversio?.event_segment : 
+                event.eventSegment;
             const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
 
             let eventCode: string;
 
-            if (isSephoraFormat && event.conversio) {
+            if (isExperienceEvent && event.conversio) {
+              // Check if it's a Sephora event by checking clientId in the event segment
+              const isSephoraEvent = event.conversio.experience_segment?.startsWith('SA');
+              
+              if (isSephoraEvent) {
+                // Use snake_case format for Sephora events
+                eventCode = `window.dataLayer.push({
+event: "conversioExperience",
+conversio: {
+    experience_category: "Conversio Experience",
+    experience_action: "${event.conversio.experienceAction ?? event.conversio.experience_action ?? ""}",
+    experience_label: "${event.conversio.experienceLabel ?? event.conversio.experience_label ?? ""}",
+    experience_segment: "${event.conversio.experience_segment ?? ""}"
+}
+});`;
+              } else {
+                // Regular format for other clients (Liverpool)
+                eventCode = `window.dataLayer.push({
+  event: "conversioExperience",
+  conversio: {
+    experienceCategory: "${event.conversio.experienceCategory ?? ""}",
+    experienceAction: "${event.conversio.experienceAction ?? ""}",
+    experienceLabel: "${event.conversio.experienceLabel ?? ""}",
+    experience_segment: "${event.conversio.experience_segment ?? ""}"
+  }
+});`;
+              }
+            } else if (isSephoraFormat && event.conversio) {
               eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${
                 event.conversio.event_segment ?? ""
               }"\n  }\n});`;
@@ -158,9 +228,15 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
 
             return (
               <EventItemWrapper key={index}>
-                <EventItemLabel title={getEventLabel(event) + (event.triggerEvent ? " (Trigger Event)" : "")}>
-                  {getEventLabel(event)}
-                  {event.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
+                <EventItemLabel title={isExperienceEvent ? "Experience Tracking Event" : getEventLabel(event) + (event.triggerEvent ? " (Trigger Event)" : "")}>
+                  {isExperienceEvent ? (
+                    <ExperienceEventLabel>Experience Tracking Event</ExperienceEventLabel>
+                  ) : (
+                    <>
+                      {getEventLabel(event)}
+                      {event.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
+                    </>
+                  )}
                 </EventItemLabel>
                 <CodeWrapper>
                   <SyntaxHighlighter
