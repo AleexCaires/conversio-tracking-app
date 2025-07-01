@@ -50,7 +50,7 @@ export const EventsSectionTitle = styled.h3`
 export const SelectAllButton = styled.button`
   background-color: #582e89;
   color: white;
-  font-weight: 600;
+  font-weight: 500;
   padding: 8px 16px;
   border: none;
   border-radius: 8px;

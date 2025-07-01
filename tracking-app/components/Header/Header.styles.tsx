@@ -18,14 +18,10 @@ export const Nav = styled.nav`
 
 export const Logo = styled(Link)`
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  grid-column: 2;
 
   img {
     object-fit: contain;
-    width: 400px;
+    width: 150px;
     height: 60px;
   }
 `;
@@ -40,17 +36,8 @@ export const NavList = styled.ul`
   justify-content: flex-end;
 `;
 
-export const NavItemLink = styled(Link)`
-  text-decoration: none;
-  color: white;
-  font-weight: 700;
-  transition: color 0.2s ease-in-out;
-
-
-`;
-
 export const NavItem = styled.li`
-  background: #582E89;
+  background: #582e89;
   border-radius: 16px;
   height: 48px;
   width: 135px;
@@ -58,4 +45,13 @@ export const NavItem = styled.li`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-`
+  font-family: 'Montserrat', Arial, sans-serif !important;
+`;
+
+export const NavItemLink = styled(Link)`
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+  font-family: 'Montserrat', Arial, sans-serif !important;
+`;

@@ -42,7 +42,7 @@ export const EventLabelIndex = styled.span`
 
 export const TriggerEventText = styled.span`
   color: #d35400;
-  font-weight: 600;
+  font-weight: 500;
   margin-left: 0.5em;
 `;
 
@@ -77,7 +77,7 @@ export const ButtonsWrapper = styled.div`
 `;
 
 export const CopyButtonStyled = styled.button<{ $copied?: boolean; $isSegment?: boolean }>`
-height: 33px;
+  height: 33px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,4 +92,5 @@ height: 33px;
   cursor: pointer;
   transition: background 0.3s ease;
   width: ${({ $isSegment }) => ($isSegment ? "auto" : "80px")};
+  font-family: 'Montserrat', Arial, sans-serif !important;
 `;

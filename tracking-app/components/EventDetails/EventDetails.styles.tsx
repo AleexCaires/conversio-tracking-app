@@ -16,7 +16,7 @@ export const SectionWrapper = styled.div`
 
 export const Heading = styled.h2`
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 500;
 `;
 
 export const FieldGroupInitial = styled.div`
@@ -28,7 +28,7 @@ export const FieldGroupInitial = styled.div`
 `;
 
 export const Label = styled.label`
-  font-weight: 700;
+  font-weight: 500;
   margin-right: 10px;
 `;
 
@@ -89,7 +89,7 @@ export const TriggerButton = styled.button<{ disabled?: boolean }>`
   border-radius: 16px;
   background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#67FF88")}; // Grey out when disabled
   color: ${({ disabled }) => (disabled ? "#666666" : "#000")}; // Darker text when disabled
-  font-weight: 700;
+  font-weight: 500;
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")}; // Change cursor when disabled
   opacity: ${({ disabled }) => (disabled ? 0.6 : 1)}; // Reduce opacity when disabled
   border: none; // Assuming no border is desired, or adjust as needed
@@ -107,7 +107,7 @@ export const SaveToDBbtn = styled.button`
   border-radius: 16px;
   background: #582e89;
   color: white;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   margin: 0 auto;
 `;
