@@ -32,7 +32,7 @@ function EditModeWrapper() {
   useEffect(() => {
     if (!mounted) return;
 
-    const editParam = searchParams.get("edit");
+    const editParam = searchParams?.get("edit");
 
     if (editParam) {
       try {
