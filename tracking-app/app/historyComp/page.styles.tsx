@@ -4,7 +4,8 @@ export const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
+  font-family: "Montserrat", Arial, sans-serif !important;
+    padding: 0rem 2rem 2rem 2rem;
 `;
 
 export const SearchWrapper = styled.div`
@@ -13,6 +14,8 @@ export const SearchWrapper = styled.div`
   gap: 1rem;
   justify-content: center;
   align-items: center;
+  font-family: "Montserrat", Arial, sans-serif !important;
+
 
   .clientSelector {
     max-width: 200px;
@@ -21,6 +24,7 @@ export const SearchWrapper = styled.div`
   input,
   select {
     max-height: 40px;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
 `;
 
@@ -36,6 +40,7 @@ export const InputWrapper = styled.div`
     border: 1px solid #ccc;
     border-radius: 16px;
     text-align: start;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
 `;
 
@@ -52,6 +57,7 @@ export const FilterWrapper = styled.div`
     border-radius: 16px;
     background-color: #7948b324;
     text-align: center;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
 `;
 
@@ -66,13 +72,15 @@ export const ItemCard = styled.div`
   max-width: 300px;
   text-align: center;
   cursor: pointer;
-  height: 100px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  font-family: "Montserrat", Arial, sans-serif !important;
 
   p {
     margin: 0;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
   .bottomContainer {
     display: flex;
@@ -85,32 +93,41 @@ export const ItemCard = styled.div`
       margin: 0px 5px 5px 5px;
       color: grey;
       font-size: 16px;
+      font-family: "Montserrat", Arial, sans-serif !important;
     }
   }
   .clientName {
     color: black !important;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
   .itemCode {
     text-align: start;
     width: 25%;
     align-items: center;
     text-align: center;
-    background: linear-gradient(to bottom, #714c8a 0%, #483057 50%, #4c305e 100%);
+    background: linear-gradient(
+      to bottom,
+      #714c8a 0%,
+      #483057 50%,
+      #4c305e 100%
+    );
     padding: 0px 5px;
     border-radius: 16px;
     color: white !important;
     font-weight: 500 !important;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
   .experienceName,
   .itemCode {
     font-size: 16px;
     color: #000;
-    font-weight: bold;
+    font-weight: 500;
     max-width: 350px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 5px;
     display: block;
+    font-family: "Montserrat", Arial, sans-serif !important;
   }
 `;

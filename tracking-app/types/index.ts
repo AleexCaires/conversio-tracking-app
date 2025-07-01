@@ -11,7 +11,7 @@ export interface Event {
   triggerEvent?: boolean;
   codeCopied?: boolean;
   event?: string;
-  experienceEvent?: boolean; // Add flag to identify experience events
+  experienceEvent?: boolean;
   eventData?: {
     click?: {
       clickAction?: string;
@@ -27,11 +27,10 @@ export interface Event {
     event_action?: string;
     event_label?: string;
     event_segment?: string;
-    experienceCategory?: string; // Add fields for experience events
+    experienceCategory?: string;
     experienceAction?: string;
     experienceLabel?: string;
     experience_segment?: string;
-    // Add missing snake_case versions for Sephora format
     experience_category?: string;
     experience_action?: string;
     experience_label?: string;

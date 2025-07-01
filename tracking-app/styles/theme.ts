@@ -10,8 +10,8 @@ export const theme: DefaultTheme = {
     text: '#333',
   },
   fonts: {
-    main: "'Arial', sans-serif",
-    heading: "'Helvetica', sans-serif",
+    main: "'Montserrat', Arial, sans-serif",
+    heading: "'Montserrat', Arial, sans-serif",
   },
   spacing: {
     small: '8px',
