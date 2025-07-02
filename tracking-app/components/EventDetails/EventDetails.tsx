@@ -221,8 +221,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     };
 
     setIsLoading(true);
-    setErrorMessage("");
-    setSuccessMessage("");
 
     try {
       const res = await fetch("/api/save-elements", {
@@ -236,8 +234,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
       if (res.ok) {
         const data = await res.json();
         const successMsg = data.message || "Element saved successfully!";
-
-        setSuccessMessage(successMsg);
+        //console.log("Element saved successfully:", successMsg);
 
         if (isEditMode) {
           window.history.replaceState({}, "", "/");
@@ -249,10 +246,10 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         router.push("/historyComp");
       } else {
         const errorData = await res.json();
-        setErrorMessage(errorData.message || "An error occurred while saving.");
+        console.log(errorData.message || "An error occurred while saving.");
       }
     } catch {
-      setErrorMessage("Failed to save element data. Please try again.");
+      console.log("Failed to save element data. Please try again.");
     } finally {
       setIsLoading(false);
     }
