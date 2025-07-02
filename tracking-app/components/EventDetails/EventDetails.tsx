@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useRef } from "react";
 import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol, SectionWrapper, TriggerEventWrapper, TriggerButton, SaveToDBbtn, StickyButtonContainer, SelectAllButton } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 import { EditData, EventGroup, Event } from "@/types";
 import { useRouter } from "next/navigation"; // Import useRouter
-import CopyIcon from "../Icons/CopyIcon"; // Add this import
 
 interface EventDetailsProps {
   editData?: EditData;
@@ -31,8 +30,8 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   const [eventDescriptions, setEventDescriptions] = useState<string[]>(Array(2).fill(""));
   const [trigger, setTrigger] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  // const [errorMessage, setErrorMessage] = useState("");
+  // const [successMessage, setSuccessMessage] = useState("");
   const [triggerEventEnabled, setTriggerEventEnabled] = useState(false);
   const [triggerEventDescription, setTriggerEventDescription] = useState("");
   const [showDataLayerLogic, setShowDataLayerLogic] = useState(false); // Changed initial state to false
@@ -62,7 +61,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   }, [numEvents]);
 
   useEffect(() => {
-    setSuccessMessage("");
     setEventData({ controlEvents: [], variationEvents: [] });
     if (!isEditMode) {
       setSelectedStatus({});
@@ -159,10 +157,28 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     setEventDescriptions(updated);
   };
 
+  const eventsHeaderRef = useRef<HTMLDivElement>(null);
+
   const handleTriggerDataLayer = () => {
     setSelectedStatus({});
     setTrigger(true);
-    setShowDataLayerLogic(true); // Always show when explicitly triggered
+    setShowDataLayerLogic(true);
+    
+    // Add setTimeout to ensure DOM elements are rendered before scrolling
+    setTimeout(() => {
+      if (eventsHeaderRef.current) {
+        // Get the position of the element
+        const elementPosition = eventsHeaderRef.current.getBoundingClientRect().top;
+        // Calculate the offset position accounting for the header height
+        const offsetPosition = elementPosition + window.pageYOffset - 92;
+        
+        // Scroll to the calculated position
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   const handleDataGenerated = (data: EventDataWithCopied) => {
@@ -253,10 +269,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     setNumEvents(2);
     setEventDescriptions(Array(2).fill(""));
     setTrigger(false);
-    setErrorMessage("");
-    if (successMessage) {
-      setSuccessMessage(successMessage); // Preserve success message if provided
-    }
     setTriggerEventEnabled(false);
     setTriggerEventDescription("");
 
@@ -407,25 +419,28 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
 
         {showDataLayerLogic && (
           <>
-            <DataLayerLogic
-              client={selectedClient}
-              experienceNumber={experienceNumber}
-              eventDescriptions={getAllEventDescriptions()}
-              trigger={trigger}
-              setTrigger={setTrigger}
-              onDataGenerated={handleDataGenerated}
-              selectedStatus={selectedStatus}
-              setSelectedStatus={setSelectedStatus}
-              includeExperienceEvent={isSpecialClient && specialEventEnabled}
-              experienceName={experienceName}
-            />
+            {/* Add ref to this container that wraps the events section */}
+            <div ref={eventsHeaderRef}>
+              <DataLayerLogic
+                client={selectedClient}
+                experienceNumber={experienceNumber}
+                eventDescriptions={getAllEventDescriptions()}
+                trigger={trigger}
+                setTrigger={setTrigger}
+                onDataGenerated={handleDataGenerated}
+                selectedStatus={selectedStatus}
+                setSelectedStatus={setSelectedStatus}
+                includeExperienceEvent={isSpecialClient && specialEventEnabled}
+                experienceName={experienceName}
+              />
+            </div>
             
             <StickyButtonContainer>
               <SelectAllButton 
                 onClick={selectAllEvents} 
                 disabled={eventData.controlEvents.length === 0 && eventData.variationEvents.length === 0}
               >
-                <CopyIcon width="1em" height="1em" /> Select All
+                Select All Events
               </SelectAllButton>
               
               <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
@@ -435,8 +450,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           </>
         )}
 
-        {successMessage && <div style={{ color: "green", marginTop: "1rem" }}>{successMessage}</div>}
-        {errorMessage && <div style={{ color: "red", marginTop: "1rem" }}>{errorMessage}</div>}
       </Section>
     </SectionWrapper>
   );

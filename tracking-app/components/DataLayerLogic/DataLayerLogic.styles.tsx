@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const EventBlockWrapper = styled.div<{ "data-copied": boolean; $activeBorder: boolean }>`
   position: relative;
   margin-bottom: 1rem; // Added for spacing between blocks if they stack
-      width: 470px;
+    width: 470px;
     max-width: 470px;
     height: 190px;
 `;
@@ -11,7 +11,7 @@ export const EventBlockWrapper = styled.div<{ "data-copied": boolean; $activeBor
 export const SelectCheckbox = styled.input.attrs({ type: "checkbox" })`
   position: absolute;
     top: 1px;
-    right: 1px;
+    right: -2px;
   width: 20px;
   height: 20px;
   cursor: pointer;
