@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
-import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol, SectionWrapper, TriggerEventWrapper, TriggerButton, SaveToDBbtn } from "./EventDetails.styles";
+import { Section, Heading, FieldGroupInitial, Label, Input, EventDescriptionRow, EventInput, EventRow, EventCol, SectionWrapper, TriggerEventWrapper, TriggerButton, SaveToDBbtn, StickyButtonContainer, SelectAllButton } from "./EventDetails.styles";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import DataLayerLogic from "../DataLayerLogic/DataLayerLogic";
 import { EditData, EventGroup, Event } from "@/types";
 import { useRouter } from "next/navigation"; // Import useRouter
+import CopyIcon from "../Icons/CopyIcon"; // Add this import
 
 interface EventDetailsProps {
   editData?: EditData;
@@ -318,6 +319,41 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     return descs;
   };
 
+  const selectAllEvents = () => {
+    const newSelectedStatus = { ...selectedStatus };
+    
+    // Select all control events
+    eventData.controlEvents.forEach((_, idx) => {
+      newSelectedStatus[`control-${idx}`] = true;
+    });
+    
+    // Select all variation events
+    eventData.variationEvents.forEach((_, idx) => {
+      newSelectedStatus[`variation-${idx}`] = true;
+    });
+    
+    // Update the selected status
+    setSelectedStatus(newSelectedStatus);
+    
+    // Update the data with new copied status
+    const controlEventsWithCopied = eventData.controlEvents.map(() => ({
+      code: "",
+      codeCopied: true,
+    }));
+    
+    const variationEventsWithCopied = eventData.variationEvents.map(() => ({
+      code: "",
+      codeCopied: true,
+    }));
+    
+    handleDataGenerated({
+      controlEvents: eventData.controlEvents,
+      variationEvents: eventData.variationEvents,
+      controlEventsWithCopied,
+      variationEventsWithCopied,
+    });
+  };
+
   return (
     <SectionWrapper>
       <Section>
@@ -383,11 +419,22 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
               includeExperienceEvent={isSpecialClient && specialEventEnabled}
               experienceName={experienceName}
             />
-            <div style={{ margin: "0 auto" }}>
+            
+            {/* Remove the SelectAllButton from DataLayerLogic component */}
+            
+            {/* This sticky container will be visible at the bottom of the page */}
+            <StickyButtonContainer>
+              <SelectAllButton 
+                onClick={selectAllEvents} 
+                disabled={eventData.controlEvents.length === 0 && eventData.variationEvents.length === 0}
+              >
+                <CopyIcon width="1em" height="1em" /> Select All
+              </SelectAllButton>
+              
               <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
                 {isLoading ? "Saving..." : "Save to database"}
               </SaveToDBbtn>
-            </div>
+            </StickyButtonContainer>
           </>
         )}
 

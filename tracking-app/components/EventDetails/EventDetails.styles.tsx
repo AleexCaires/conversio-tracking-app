@@ -81,8 +81,8 @@ export const EventColEnd = styled.div`
 export const TriggerEventWrapper = styled.div`
   display: flex;
   align-items: center;
-
 `;
+
 export const TriggerButton = styled.button<{ disabled?: boolean }>`
   height: 48px;
   width: 115px;
@@ -98,16 +98,64 @@ export const TriggerButton = styled.button<{ disabled?: boolean }>`
   &:hover {
     background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#52CC6D")}; // Darker green on hover if not disabled
   }
+`;
 
+export const StickyButtonContainer = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  z-index: 100;
 `;
 
 export const SaveToDBbtn = styled.button`
   height: 48px;
-  width: 135px;
+  width: 155px;
   border-radius: 16px;
   background: #582e89;
   color: white;
   font-weight: 500;
   cursor: pointer;
-  margin: 0 auto;
+  font-family: 'Montserrat', Arial, sans-serif !important;
+  
+  &:disabled {
+    background-color: #B0B0B0;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`;
+
+export const SelectAllButton = styled.button`
+  height: 48px;
+  width: 155px;
+  background-color: #4A2570;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+  font-family: 'Montserrat', Arial, sans-serif !important;
+
+  &:hover {
+    background-color: #3A1C57;
+  }
+
+  &:disabled {
+    background-color: #B0B0B0;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 `;

@@ -39,34 +39,10 @@ export const EventsGrid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 16px;
   padding: 10px;
-  margin-bottom: 1.5rem; // Add some space below each grid
+  margin-bottom: 80px; /* Add extra bottom margin to prevent content from being hidden behind the sticky bar */
 `;
 
 export const EventsSectionTitle = styled.h3`
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-`;
-
-export const SelectAllButton = styled.button`
-  background-color: #582e89;
-  color: white;
-  font-weight: 500;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #4a2570;
-  }
-
-  &:disabled {
-    background-color: #b0b0b0;
-    cursor: not-allowed;
-  }
 `;
