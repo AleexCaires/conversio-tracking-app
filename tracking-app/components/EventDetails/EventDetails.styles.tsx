@@ -119,7 +119,7 @@ export const SaveToDBbtn = styled.button`
   height: 48px;
   width: 155px;
   border-radius: 8px;
-  background: #582e89;
+  background: ${({ theme }) => theme.colors?.darkPurple || '#45246B'}; // Add fallback
   color: white;
   padding: 8px 16px;
   font-weight: 500;
@@ -133,14 +133,14 @@ export const SaveToDBbtn = styled.button`
     opacity: 0.6;
   }
   &:hover{
-    background-color: #4B2775;
+    background-color: ${({ theme }) => theme.colors?.darkPurple || '#45246B'};
   }
 `;
 
 export const SelectAllButton = styled.button`
   height: 48px;
   width: 155px;
-  background-color: #2c6e49;
+  background-color: ${({ theme }) => theme.colors?.midGreen || '#2C6E49'};
   color: white;
   font-weight: 500;
   padding: 8px 16px;
@@ -155,7 +155,7 @@ export const SelectAllButton = styled.button`
   font-family: 'Montserrat', Arial, sans-serif !important;
 
   &:hover {
-    background-color: #255D3D;
+    background-color: ${({ theme }) => theme.colors?.darkGreen || '#255D3D'};
   }
 
   &:disabled {

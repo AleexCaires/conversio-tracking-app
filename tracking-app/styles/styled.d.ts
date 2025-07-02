@@ -5,8 +5,15 @@ import 'styled-components';
 declare module 'styled-components' {
   export interface DefaultTheme {
     colors: {
-      primary: string;
-      secondary: string;
+      darkPurple: string;
+      midPurple: string;
+      lightPurple: string;
+      darkGreen: string;
+      midGreen: string;
+      lightGreen: string;
+      darkOrange: string;
+      midOrange: string;
+      lightOrange: string;
       background: string;
       text: string;
     };

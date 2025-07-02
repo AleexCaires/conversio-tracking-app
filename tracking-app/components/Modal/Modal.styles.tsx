@@ -125,7 +125,7 @@ export const ActiveIndicatorIcon = styled(ActiveIcon)`
   right: -4px;
   width: 12px;
   height: 12px;
-  color: #28a745;
+ color: #28a745;
   background-color: white;
   border-radius: 50%;
 `;

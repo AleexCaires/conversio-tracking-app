@@ -6,7 +6,6 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     font-family: 'Montserrat', Arial, sans-serif;
-    background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
     box-sizing: border-box;
   }
@@ -17,7 +16,7 @@ export const GlobalStyle = createGlobalStyle`
     min-height: 100%;
     width: 100%;
     font-family: 'Montserrat', Arial, sans-serif !important;
-    background: none;
+    background: white;
   }
 
   html:where([class]), body:where([class]), div:where([class]) {
