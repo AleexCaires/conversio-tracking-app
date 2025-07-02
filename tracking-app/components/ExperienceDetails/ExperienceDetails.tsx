@@ -151,7 +151,9 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
 
         <FieldGroupMiddle>
           <ExperimentNumber>
-            <Label htmlFor="experienceNumber">Experience Number:*</Label>
+            <Label htmlFor="experienceNumber">
+              Experience Number<span style={{ color: "red" }}>*</span>
+            </Label>
             <Input
               id="experienceNumber"
               type="text"
@@ -171,14 +173,18 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
           </ExperimentNumber>
 
           <ExperimentName>
-            <Label htmlFor="experienceName">Experience Name:*</Label>
+            <Label htmlFor="experienceName">
+              Experience Name<span style={{ color: "red" }}>*</span>
+            </Label>
             <Input type="text" id="experienceName" name="experienceName" value={experienceName} onChange={(e) => setExperienceName(e.target.value)} />
           </ExperimentName>
         </FieldGroupMiddle>
 
         <FieldGroupEnd>
           <ExperienceVariations>
-            <Label htmlFor="numVariants">No. of Variants (not inc. control):*</Label>
+            <Label htmlFor="numVariants">
+              No. of Variants (not inc. control)<span style={{ color: "red" }}>*</span>
+            </Label>
             <Input type="number" id="numVariants" name="numVariants" value={numVariants} min={1} onChange={handleNumVariantsChange} />
           </ExperienceVariations>
         </FieldGroupEnd>

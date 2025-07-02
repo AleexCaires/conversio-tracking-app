@@ -420,9 +420,6 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
               experienceName={experienceName}
             />
             
-            {/* Remove the SelectAllButton from DataLayerLogic component */}
-            
-            {/* This sticky container will be visible at the bottom of the page */}
             <StickyButtonContainer>
               <SelectAllButton 
                 onClick={selectAllEvents} 
