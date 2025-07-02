@@ -15,7 +15,7 @@ export const SectionWrapper = styled.div`
 
 export const Heading = styled.h2`
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 500;
 `;
 
 export const FieldGroupMiddle = styled.div`
@@ -41,7 +41,7 @@ export const FieldGroupFirst = styled.div`
 `;
 
 export const Label = styled.label`
-  font-weight: 700;
+  font-weight: 500;
   margin-right: 10px;
 `;
 

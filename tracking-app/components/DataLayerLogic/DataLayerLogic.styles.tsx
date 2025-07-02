@@ -39,7 +39,7 @@ export const EventsGrid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 16px;
   padding: 10px;
-  margin-bottom: 1.5rem; // Add some space below each grid
+  margin-bottom: 80px; /* Add extra bottom margin to prevent content from being hidden behind the sticky bar */
 `;
 
 export const EventsSectionTitle = styled.h3`

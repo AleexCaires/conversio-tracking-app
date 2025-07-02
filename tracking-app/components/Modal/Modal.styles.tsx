@@ -69,7 +69,7 @@ export const HeaderTitle = styled.div`
   }
 
   strong {
-    font-weight: 600;
+    font-weight: 500;
   }
 `;
 
@@ -109,7 +109,7 @@ export const IconWrapper = styled.div`
 `;
 
 export const ToggleLabel = styled.span`
-  font-weight: 700;
+  font-weight: 500;
   font-size: 1.1rem;
 `;
 
