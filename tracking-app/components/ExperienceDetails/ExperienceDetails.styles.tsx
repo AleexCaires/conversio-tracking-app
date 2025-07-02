@@ -5,7 +5,7 @@ export const Section = styled.section`
   flex-direction: column;
   gap: 1.5rem;
   background-color: #7948b31f;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 2rem 5rem;
 `;
 export const SectionWrapper = styled.div`
@@ -49,7 +49,7 @@ export const Select = styled.select`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 16px;
+  border-radius: 8px;
   height: 40px;
 `;
 
@@ -57,7 +57,7 @@ export const Input = styled.input`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 16px;
+  border-radius: 8px;
   height: 40px;
 `;
 
@@ -102,7 +102,7 @@ export const SinglePlatformDisplay = styled.div`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #e0e0e0;
-  border-radius: 16px;
+  border-radius: 8px;
   height: 40px;
   background: #ededed;
   color: #b0b0b0;

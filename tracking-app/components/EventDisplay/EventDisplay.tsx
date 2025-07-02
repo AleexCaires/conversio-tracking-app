@@ -262,7 +262,7 @@ conversio: {
                       width: '470px',
                       maxWidth:'470px',
                       height: '190px',
-                      overflow: 'auto'
+                      overflow: 'hidden'
                     }}
                     showLineNumbers={false}
                     wrapLines={true}

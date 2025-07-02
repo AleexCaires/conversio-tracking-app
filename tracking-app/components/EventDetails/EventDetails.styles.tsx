@@ -6,7 +6,7 @@ export const Section = styled.section`
   gap: 1.5rem;
   padding: 2rem 5rem;
   background-color: #7948b33f;
-  border-radius: 16px;
+  border-radius: 8px;
 `;
 
 export const SectionWrapper = styled.div`
@@ -36,7 +36,7 @@ export const Input = styled.input`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 16px;
+  border-radius: 8px;
 `;
 
 export const EventDescriptionRow = styled.div`
@@ -50,7 +50,7 @@ export const EventInput = styled.input`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #999;
-  border-radius: 16px;
+  border-radius: 8px;
   background-color: white;
   min-width: 400px;
 `;
@@ -86,17 +86,17 @@ export const TriggerEventWrapper = styled.div`
 export const TriggerButton = styled.button<{ disabled?: boolean }>`
   height: 48px;
   width: 115px;
-  border-radius: 16px;
-  background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#67FF88")}; // Grey out when disabled
-  color: ${({ disabled }) => (disabled ? "#666666" : "#000")}; // Darker text when disabled
+  border-radius: 8px;
+  background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#2c6e49")}; 
+  color: ${({ disabled }) => (disabled ? "#fff" : "#fff")};
   font-weight: 500;
-  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")}; // Change cursor when disabled
-  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)}; // Reduce opacity when disabled
-  border: none; // Assuming no border is desired, or adjust as needed
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")}; 
+  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)}; 
+  border: none;
   margin: 0 auto;
 
   &:hover {
-    background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#52CC6D")}; // Darker green on hover if not disabled
+    background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#255D3D")};
   }
 `;
 
@@ -118,29 +118,34 @@ export const StickyButtonContainer = styled.div`
 export const SaveToDBbtn = styled.button`
   height: 48px;
   width: 155px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: #582e89;
   color: white;
+  padding: 8px 16px;
   font-weight: 500;
   cursor: pointer;
   font-family: 'Montserrat', Arial, sans-serif !important;
+  border: 0;
   
   &:disabled {
     background-color: #B0B0B0;
     cursor: not-allowed;
     opacity: 0.6;
   }
+  &:hover{
+    background-color: #4B2775;
+  }
 `;
 
 export const SelectAllButton = styled.button`
   height: 48px;
   width: 155px;
-  background-color: #4A2570;
+  background-color: #2c6e49;
   color: white;
   font-weight: 500;
   padding: 8px 16px;
   border: none;
-  border-radius: 16px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -150,7 +155,7 @@ export const SelectAllButton = styled.button`
   font-family: 'Montserrat', Arial, sans-serif !important;
 
   &:hover {
-    background-color: #3A1C57;
+    background-color: #255D3D;
   }
 
   &:disabled {

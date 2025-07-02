@@ -88,7 +88,7 @@ export const CopyButtonStyled = styled.button<{ $copied?: boolean; $isSegment?: 
     $copied ? ($isSegment ? "#1c7c3e" : "#0056b3") : $isSegment ? "#28a745" : "#007bff"};
   color: white;
   border: none;
-  border-radius: 1rem;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
   width: ${({ $isSegment }) => ($isSegment ? "auto" : "80px")};
