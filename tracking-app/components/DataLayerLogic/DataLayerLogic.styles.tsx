@@ -27,7 +27,7 @@ export const CopyButton = styled.button`
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
 
   &:hover {

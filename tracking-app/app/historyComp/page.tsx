@@ -180,17 +180,6 @@ const History = () => {
                   <>
                     <span
                       style={{
-                        margin: "0 0.15rem 0 0.3rem",
-                        color: "#ccc",
-                        fontWeight: 400,
-                        fontSize: "1.1rem",
-                        userSelect: "none"
-                      }}
-                    >
-                      |
-                    </span>
-                    <span
-                      style={{
                         color: "#bbb",
                         fontSize: "1rem",
                         fontWeight: 400,

@@ -38,7 +38,7 @@ export const InputWrapper = styled.div`
     width: 260px;
     max-width: 390px;
     border: 1px solid #ccc;
-    border-radius: 16px;
+    border-radius: 8px;
     text-align: start;
     font-family: "Montserrat", Arial, sans-serif !important;
   }
@@ -54,7 +54,7 @@ export const FilterWrapper = styled.div`
     width: 100%;
     max-width: 390px;
     border: 1px solid #ccc;
-    border-radius: 16px;
+    border-radius: 8px;
     background-color: #7948b324;
     text-align: center;
     font-family: "Montserrat", Arial, sans-serif !important;
@@ -64,7 +64,7 @@ export const FilterWrapper = styled.div`
 export const ItemCard = styled.div`
   padding: 1rem;
   border: 1px solid #4a049c;
-  border-radius: 16px;
+  border-radius: 8px;
   background-color: #7948b324;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   min-width: 150px;
@@ -112,7 +112,7 @@ export const ItemCard = styled.div`
       #4c305e 100%
     );
     padding: 0px 5px;
-    border-radius: 16px;
+    border-radius: 8px;
     color: white !important;
     font-weight: 500 !important;
     font-family: "Montserrat", Arial, sans-serif !important;

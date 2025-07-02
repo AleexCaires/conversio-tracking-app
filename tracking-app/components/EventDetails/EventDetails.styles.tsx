@@ -6,7 +6,7 @@ export const Section = styled.section`
   gap: 1.5rem;
   padding: 2rem 5rem;
   background-color: #7948b33f;
-  border-radius: 16px;
+  border-radius: 8px;
 `;
 
 export const SectionWrapper = styled.div`
@@ -36,7 +36,7 @@ export const Input = styled.input`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 16px;
+  border-radius: 8px;
 `;
 
 export const EventDescriptionRow = styled.div`
@@ -50,7 +50,7 @@ export const EventInput = styled.input`
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #999;
-  border-radius: 16px;
+  border-radius: 8px;
   background-color: white;
   min-width: 400px;
 `;
@@ -86,7 +86,7 @@ export const TriggerEventWrapper = styled.div`
 export const TriggerButton = styled.button<{ disabled?: boolean }>`
   height: 48px;
   width: 115px;
-  border-radius: 16px;
+  border-radius: 8px;
   background-color: ${({ disabled }) => (disabled ? "#B0B0B0" : "#67FF88")}; // Grey out when disabled
   color: ${({ disabled }) => (disabled ? "#666666" : "#000")}; // Darker text when disabled
   font-weight: 500;
@@ -118,7 +118,7 @@ export const StickyButtonContainer = styled.div`
 export const SaveToDBbtn = styled.button`
   height: 48px;
   width: 155px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: #582e89;
   color: white;
   font-weight: 500;
@@ -140,7 +140,7 @@ export const SelectAllButton = styled.button`
   font-weight: 500;
   padding: 8px 16px;
   border: none;
-  border-radius: 16px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
