@@ -37,7 +37,7 @@ export const NavList = styled.ul`
 `;
 
 export const NavItem = styled.li`
-  background: #582e89;
+  background: ${({ theme }) => theme.colors?.darkPurple || '#45246B'};
   border-radius: 8px;
   height: 48px;
   width: 135px;

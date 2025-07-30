@@ -102,7 +102,6 @@ export const ItemCard = styled.div`
   }
   .itemCode {
     text-align: start;
-    width: 25%;
     align-items: center;
     text-align: center;
     background: linear-gradient(

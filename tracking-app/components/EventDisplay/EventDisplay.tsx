@@ -15,7 +15,7 @@ interface EventDisplayProps {
 
 // Add a styled component for the Experience Event label
 const ExperienceEventLabel = styled.span`
-  color: #ff8c00;
+  color: #ED9C4A;
   font-weight: 500;
 `;
 
