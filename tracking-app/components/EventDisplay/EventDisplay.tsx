@@ -189,8 +189,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
             if (isExperienceEvent && event.conversio) {
               // Check if it's a Sephora event by checking clientId in the event segment
               const isSephoraEvent = event.conversio.experience_segment?.startsWith('SA');
-              
-              if (isSephoraEvent) {
+              const isVaxEvent = event.conversio.experience_segment?.startsWith('VX');
+
+              if (isSephoraEvent || isVaxEvent) {
                 // Use snake_case format for Sephora events
                 eventCode = `window.dataLayer.push({
 event: "conversioExperience",

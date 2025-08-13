@@ -72,7 +72,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumbe
             }
           }
         }
-        // Sephora/SA: variation number is in conversio.event_label
         else if ((event.event === "conversioEvent" || event.event === undefined) && event.conversio && typeof event.conversio.event_label === "string") {
           const labelMatch = event.conversio.event_label.match(/\(Variation (\d+)\)/);
           variation = labelMatch ? labelMatch[1] : "Unknown";
