@@ -305,14 +305,14 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     },
   }));
 
-  const isSpecialClient = selectedClient === "SA" || selectedClient === "LF";
+  const isSpecialClient = selectedClient === "SA" || selectedClient === "LF" || selectedClient === "VX"; // Check if the selected client is a special one
   // Initialize with true if special client is selected
   const [specialEventEnabled, setSpecialEventEnabled] = useState(isSpecialClient);
   
   // Add effect to update specialEventEnabled when client changes
   useEffect(() => {
     // Auto-select the experience event checkbox when special client is selected
-    if (selectedClient === "SA" || selectedClient === "LF") {
+    if (selectedClient === "SA" || selectedClient === "LF" || selectedClient === "VX") {
       setSpecialEventEnabled(true);
     } else {
       setSpecialEventEnabled(false);

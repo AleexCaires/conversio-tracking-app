@@ -113,12 +113,12 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     let newVariationEvents: string[] = [];
 
     // Insert special event at the top if needed (for Control)
-    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === 'VX')) {
       const expId = `${fullClient}`;
       const expName = experienceName || "";
       
       // Different format for Sephora
-      if (clientCode === "SA") {
+      if (clientCode === "SA" || clientCode === "VX") {
         newControlEvents.push(
           `window.dataLayer.push({
 event: "conversioExperience",
@@ -161,7 +161,7 @@ conversio: {
         }
     }
 });`);
-      } else if (clientCode === "SA") {
+      } else if (clientCode === "SA" || clientCode === "VX") {
         newControlEvents.push(`window.dataLayer.push({
     event: "conversioEvent", 
     conversio: {
@@ -200,7 +200,7 @@ conversio: {
         }
     }
 });`);
-        } else if (clientCode === "SA") {
+        } else if (clientCode === "SA" || clientCode === "VX") {
           newVariationEvents.push(`window.dataLayer.push({
     event: "conversioEvent", 
     conversio: {
@@ -228,14 +228,14 @@ conversio: {
     // Create a new array to hold all variation events in the correct order
     const finalVariationEvents: string[] = [];
     
-    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === 'VX')) {
       const expId = `${fullClient}`;
       const expName = experienceName || "";
       
       // Loop through each variation
       for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
         // Add the experience event first for this variation with different format for Sephora
-        if (clientCode === "SA") {
+        if (clientCode === "SA" || clientCode === "VX") {
           finalVariationEvents.push(
             `window.dataLayer.push({
 event: "conversioExperience",
@@ -378,7 +378,7 @@ conversio: {
         </>
       )}
       
-      {includeExperienceEvent && (clientCode === "SA" || clientCode === "LF") ? (
+      {includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === 'VX') ? (
         // Special rendering for clients with experience events
         Array.from({ length: numVariants }, (_, variantIdx) => {
           // For special clients with experience events, calculate positions differently
