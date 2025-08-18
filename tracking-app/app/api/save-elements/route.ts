@@ -64,14 +64,23 @@ export async function POST(req: Request) {
     const controlEvents = [];
     
     // Add experience event if needed
-    if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+    if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")) {
       controlEvents.push({
         event: "conversioExperience",
-        experienceEvent: true, // Mark as experience event
+        experienceEvent: true,
         conversio: {
-          experienceCategory: "Conversio Experience",
-          experienceAction: `${fullClient} | ${elementData.experienceName}`,
-          experienceLabel: `${fullClient} | Control Original`,
+          // SA & VX use snake_case, LF uses camelCase (we keep camelCase keys too for LF consumer safety)
+          ...(clientCode === "SA" || clientCode === "VX"
+            ? {
+                experience_category: "Conversio Experience",
+                experience_action: `${fullClient} | ${elementData.experienceName}`,
+                experience_label: `${fullClient} | Control Original`,
+              }
+            : {
+                experienceCategory: "Conversio Experience",
+                experienceAction: `${fullClient} | ${elementData.experienceName}`,
+                experienceLabel: `${fullClient} | Control Original`,
+              }),
           experience_segment: `${fullClient}.XCO`
         },
         codeCopied: false
@@ -97,7 +106,7 @@ export async function POST(req: Request) {
                   },
                 },
               };
-            } else if (clientCode === "SA") {
+            } else if (clientCode === "SA" || clientCode === "VX") {
               baseEvent = {
                 event: "conversioEvent",
                 conversio: {
@@ -138,7 +147,7 @@ export async function POST(req: Request) {
                   },
                 },
               };
-            } else if (clientCode === "SA") {
+            } else if (clientCode === "SA" || clientCode === "VX") {
               baseEvent = {
                 event: "conversioEvent",
                 conversio: {
@@ -172,14 +181,22 @@ export async function POST(req: Request) {
       const eventsForVariant = [];
       
       // Add experience event if needed
-      if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF")) {
+      if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")) {
         eventsForVariant.push({
           event: "conversioExperience",
-          experienceEvent: true, // Mark as experience event
+          experienceEvent: true,
           conversio: {
-            experienceCategory: "Conversio Experience",
-            experienceAction: `${fullClient} | ${elementData.experienceName}`,
-            experienceLabel: `${fullClient} | Variation ${variantIndex}`,
+            ...(clientCode === "SA" || clientCode === "VX"
+              ? {
+                  experience_category: "Conversio Experience",
+                  experience_action: `${fullClient} | ${elementData.experienceName}`,
+                  experience_label: `${fullClient} | Variation ${variantIndex}`,
+                }
+              : {
+                  experienceCategory: "Conversio Experience",
+                  experienceAction: `${fullClient} | ${elementData.experienceName}`,
+                  experienceLabel: `${fullClient} | Variation ${variantIndex}`,
+                }),
             experience_segment: `${fullClient}.XV${variantIndex}`
           },
           codeCopied: false
@@ -204,7 +221,7 @@ export async function POST(req: Request) {
                     },
                   },
                 };
-              } else if (clientCode === "SA") {
+              } else if (clientCode === "SA" || clientCode === "VX") {
                 baseEvent = {
                   event: "conversioEvent",
                   conversio: {
@@ -244,7 +261,7 @@ export async function POST(req: Request) {
                     },
                   },
                 };
-              } else if (clientCode === "SA") {
+              } else if (clientCode === "SA" || clientCode === "VX") {
                 baseEvent = {
                   event: "conversioEvent",
                   conversio: {
