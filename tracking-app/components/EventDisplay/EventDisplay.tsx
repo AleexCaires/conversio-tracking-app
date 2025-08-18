@@ -214,7 +214,7 @@ conversio: {
   }
 });`;
               }
-            } else if (isSephoraFormat && event.conversio) {
+            } else if (isSephoraFormat && event.conversio || isVaxEvent && event.conversio) {
               eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${
                 event.conversio.event_segment ?? ""
               }"\n  }\n});`;
