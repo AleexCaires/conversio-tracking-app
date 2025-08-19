@@ -55,22 +55,18 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   const clientCode = clientData ? clientData.code : client;
   const fullClient = `${clientCode}${experienceNumber}`;
 
-  const getRandomLetter = useCallback((usedLetters: Set<string>, seed: string): string => {
+  const getRandomLetter = useCallback((usedLetters: Set<string>): string => {
     const letters = "GHIJKLMNOPQRSTUVWXYZ";
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      const char = seed.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash;
+    const nextIndex = usedLetters.size;
+    if (nextIndex < letters.length) {
+      const letter = letters[nextIndex];
+      usedLetters.add(letter);
+      return letter;
     }
-
-    const availableLetters = letters.split("").filter((letter) => !usedLetters.has(letter));
-    if (availableLetters.length === 0) return "Q"; // fallback
-
-    const index = Math.abs(hash) % availableLetters.length;
-    const letter = availableLetters[index];
-    usedLetters.add(letter);
-    return letter;
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[DataLayerLogic] More than 20 unique event descriptions – reusing last letter (Z). Extend letters if needed.');
+    }
+    return 'Z';
   }, []);
 
   const toggleSelection = (key: string) => {
@@ -93,8 +89,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
 
     eventDescriptions.forEach((description, index) => {
       if (!descriptionLetters.has(description)) {
-        const seed = `${description}-${index}-${fullClient}`;
-        descriptionLetters.set(description, getRandomLetter(usedLetters, seed));
+        descriptionLetters.set(description, getRandomLetter(usedLetters));
       }
     });
 
@@ -419,5 +414,3 @@ conversio: {
 };
 
 export default DataLayerLogic;
-
-
