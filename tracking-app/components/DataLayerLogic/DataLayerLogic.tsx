@@ -87,7 +87,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    eventDescriptions.forEach((description, index) => {
+    eventDescriptions.forEach((description) => {
       if (!descriptionLetters.has(description)) {
         descriptionLetters.set(description, getRandomLetter(usedLetters));
       }
