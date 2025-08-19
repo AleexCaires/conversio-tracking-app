@@ -119,40 +119,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     setActiveBorders((prev) => ({ ...prev, [key]: true }));
   };
 
-  // Add a helper function to identify which variation an experience event belongs to
-  // const getVariationFromExperienceEvent = (event: TypedEvent): string | null => {
-  //   if (!event.conversio || !event.event || event.event !== "conversioExperience") {
-  //     return null;
-  //   }
-    
-  //   const segment = event.conversio.experience_segment || "";
-    
-  //   // Check for control
-  //   if (segment.includes(".XCO")) {
-  //     return "Control";
-  //   }
-    
-  //   // Check for variations (XV1, XV2, etc.)
-  //   const match = segment.match(/\.XV(\d+)$/);
-  //   if (match && match[1]) {
-  //     return `Variation ${match[1]}`;
-  //   }
-    
-  //   // Check label as fallback
-  //   const label = event.conversio.experienceLabel || event.conversio.experience_label || "";
-  //   if (label.includes("Control")) {
-  //     return "Control";
-  //   }
-  //   if (label.includes("Variation")) {
-  //     const varMatch = label.match(/Variation\s+(\d+)/);
-  //     if (varMatch && varMatch[1]) {
-  //       return `Variation ${varMatch[1]}`;
-  //     }
-  //   }
-    
-  //   return null;
-  // };
-
   return (
     <EventDisplayWrapper>
       <EventTitle>{title}</EventTitle>
@@ -175,24 +141,40 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
       {showMode === "code" && (
         <ChildrenWrapper>
           {parsedEvents.map((event, index) => {
-            const isSephoraFormat = !!(event.conversio && event.conversio.event_category);
-            const isExperienceEvent = event.event === "conversioExperience" || event.experienceEvent;
-            const segmentValue = isExperienceEvent ? 
-              event.conversio?.experience_segment : 
-              isSephoraFormat ? 
-                event.conversio?.event_segment : 
-                event.eventSegment;
-            const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
+            // Derive client prefix from any available segment
+            const segmentSource =
+              event.conversio?.event_segment ||
+              event.eventSegment ||
+              event.conversio?.experience_segment ||
+              "";
+            const clientPrefix = segmentSource.slice(0, 2); // e.g. SA, VX, LF, etc.
+
+            const isExperienceEvent =
+              event.event === "conversioExperience" || event.experienceEvent;
+
+            const isSnakeCaseFormat =
+              !!(
+                event.conversio &&
+                (event.conversio.event_category ||
+                  event.conversio.experience_category)
+              ) || ["SA", "VX"].includes(clientPrefix);
+
+            const segmentValue = isExperienceEvent
+              ? event.conversio?.experience_segment
+              : isSnakeCaseFormat
+              ? event.conversio?.event_segment
+              : event.eventSegment;
+
+            const isAdobeTarget =
+              !event.eventSegment && event.eventCategory && event.eventLabel;
 
             let eventCode: string;
 
             if (isExperienceEvent && event.conversio) {
-              // Check if it's a Sephora event by checking clientId in the event segment
-              const isSephoraEvent = event.conversio.experience_segment?.startsWith('SA');
-              const isVaxEvent = event.conversio.experience_segment?.startsWith('VX');
-
+              const isSephoraEvent = event.conversio.experience_segment?.startsWith("SA");
+              const isVaxEvent = event.conversio.experience_segment?.startsWith("VX");
               if (isSephoraEvent || isVaxEvent) {
-                // Use snake_case format for Sephora events
+                // SA & VX experience events (snake_case)
                 eventCode = `window.dataLayer.push({
 event: "conversioExperience",
 conversio: {
@@ -203,7 +185,7 @@ conversio: {
 }
 });`;
               } else {
-                // Regular format for other clients (Liverpool)
+                // Other clients (camelCase)
                 eventCode = `window.dataLayer.push({
   event: "conversioExperience",
   conversio: {
@@ -214,14 +196,39 @@ conversio: {
   }
 });`;
               }
-            } else if (isSephoraFormat && event.conversio) {
-              eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${event.conversio.event_action ?? ""}",\n    event_label: "${event.conversio.event_label ?? ""}",\n    event_segment: "${
-                event.conversio.event_segment ?? ""
-              }"\n  }\n});`;
+            } else if (isSnakeCaseFormat && event.conversio) {
+              // SA & VX regular conversioEvent snake_case
+              eventCode = `window.dataLayer.push({
+  event: "conversioEvent",
+  conversio: {
+    event_category: "${event.conversio.event_category ?? ""}",
+    event_action: "${event.conversio.event_action ?? ""}",
+    event_label: "${event.conversio.event_label ?? ""}",
+    event_segment: "${event.conversio.event_segment ?? ""}"
+  }
+});`;
             } else if (isAdobeTarget) {
-              eventCode = `adobeDataLayer.push({\n  event: "targetClickEvent",\n  eventData: {\n    click: {\n      clickLocation: "${event.eventCategory}",\n      clickAction: "${event.eventAction}",\n      clickText: "${event.eventLabel}"\n    }\n  }\n});`;
+              eventCode = `adobeDataLayer.push({
+  event: "targetClickEvent",
+  eventData: {
+    click: {
+      clickLocation: "${event.eventCategory}",
+      clickAction: "${event.eventAction}",
+      clickText: "${event.eventLabel}"
+    }
+  }
+});`;
             } else {
-              eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    \"eventCategory\": \"${event.eventCategory}\",\n    \"eventAction\": \"${event.eventAction}\",\n    \"eventLabel\": \"${event.eventLabel}\",\n    \"eventSegment\": \"${event.eventSegment}\"\n  }\n});`;
+              // Standard camelCase (non SA/VX)
+                eventCode = `window.dataLayer.push({
+  event: "conversioEvent",
+  conversio: {
+    "eventCategory": "${event.eventCategory}",
+    "eventAction": "${event.eventAction}",
+    "eventLabel": "${event.eventLabel}",
+    "eventSegment": "${event.eventSegment}"
+  }
+});`;
             }
 
             const codeKey = `${index}-code`;

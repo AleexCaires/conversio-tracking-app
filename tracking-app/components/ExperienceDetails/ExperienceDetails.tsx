@@ -44,6 +44,7 @@ const ExperienceDetails: React.FC<ExperienceDetailsProps> = ({ onClientChange, o
         case "HO": // Hobbs
         case "WC": // Whistles
         case "TS": // Team Sport
+        case "VX":
           setPlatform("AB Tasty");
           setPlatformOptions(["AB Tasty"]);
           break;
