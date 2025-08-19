@@ -56,7 +56,7 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   const fullClient = `${clientCode}${experienceNumber}`;
 
   const getRandomLetter = useCallback((usedLetters: Set<string>, seed: string): string => {
-    const letters = "QRSTUVWXYZ";
+    const letters = "GHIJKLMNOPQRSTUVWXYZ";
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
       const char = seed.charCodeAt(i);

@@ -119,40 +119,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     setActiveBorders((prev) => ({ ...prev, [key]: true }));
   };
 
-  // Add a helper function to identify which variation an experience event belongs to
-  // const getVariationFromExperienceEvent = (event: TypedEvent): string | null => {
-  //   if (!event.conversio || !event.event || event.event !== "conversioExperience") {
-  //     return null;
-  //   }
-    
-  //   const segment = event.conversio.experience_segment || "";
-    
-  //   // Check for control
-  //   if (segment.includes(".XCO")) {
-  //     return "Control";
-  //   }
-    
-  //   // Check for variations (XV1, XV2, etc.)
-  //   const match = segment.match(/\.XV(\d+)$/);
-  //   if (match && match[1]) {
-  //     return `Variation ${match[1]}`;
-  //   }
-    
-  //   // Check label as fallback
-  //   const label = event.conversio.experienceLabel || event.conversio.experience_label || "";
-  //   if (label.includes("Control")) {
-  //     return "Control";
-  //   }
-  //   if (label.includes("Variation")) {
-  //     const varMatch = label.match(/Variation\s+(\d+)/);
-  //     if (varMatch && varMatch[1]) {
-  //       return `Variation ${varMatch[1]}`;
-  //     }
-  //   }
-    
-  //   return null;
-  // };
-
   return (
     <EventDisplayWrapper>
       <EventTitle>{title}</EventTitle>
@@ -186,7 +152,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
             const isExperienceEvent =
               event.event === "conversioExperience" || event.experienceEvent;
 
-            // Treat SA and VX the same (snake_case format)
             const isSnakeCaseFormat =
               !!(
                 event.conversio &&
