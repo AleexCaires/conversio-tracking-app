@@ -189,7 +189,7 @@ conversio: {
                 eventCode = `window.dataLayer.push({
   event: "conversioExperience",
   conversio: {
-    experienceCategory: "${event.conversio.experienceCategory ?? ""}",
+    experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",
     experienceAction: "${event.conversio.experienceAction ?? ""}",
     experienceLabel: "${event.conversio.experienceLabel ?? ""}",
     experience_segment: "${event.conversio.experience_segment ?? ""}"
@@ -228,6 +228,46 @@ conversio: {
     "eventLabel": "${event.eventLabel}",
     "eventSegment": "${event.eventSegment}"
   }
+});`;
+            }
+
+            // ===== NEW: build display version for experience events using waitForDataLayer wrapper =====
+            let displayCode = eventCode;
+            if (isExperienceEvent && event.conversio) {
+              const isSnake = !!(event.conversio.experience_category || event.conversio.experience_action);
+              const payloadLines = isSnake
+                ? [
+                    'event: "conversioExperience"',
+                    'conversio: {',
+                    `  experience_category: "Conversio Experience",`,
+                    `  experience_action: "${event.conversio.experienceAction ?? event.conversio.experience_action ?? ""}",`,
+                    `  experience_label: "${event.conversio.experienceLabel ?? event.conversio.experience_label ?? ""}",`,
+                    `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
+                    '}'
+                  ]
+                : [
+                    'event: "conversioExperience"',
+                    'conversio: {',
+                    `  experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",`,
+                    `  experienceAction: "${event.conversio.experienceAction ?? ""}",`,
+                    `  experienceLabel: "${event.conversio.experienceLabel ?? ""}",`,
+                    `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
+                    '}'
+                  ];
+
+              const payloadObject = `{\n  ${payloadLines.join('\n  ')}\n}`;
+              displayCode =
+`function waitForDataLayer(callback) {
+  let checkInterval = setInterval(() => {
+    if (window.dataLayer && Array.isArray(window.dataLayer)) {
+      clearInterval(checkInterval);
+      callback();
+    }
+  }, 100);
+}
+
+waitForDataLayer(() => {
+  window.dataLayer.push(${payloadObject});
 });`;
             }
 
@@ -275,28 +315,23 @@ conversio: {
                     showLineNumbers={false}
                     wrapLines={true}
                   >
-                    {eventCode}
+                    {displayCode}
                   </SyntaxHighlighter>
                   <ButtonsWrapper>
                     {segmentValue && (
-                      <CopyButtonStyled onClick={() => handleCopy(index, "segment", segmentValue)} $copied={copiedState[segmentKey]} $isSegment>
-                        {copiedState[segmentKey] ? (
-                          "Segment Copied!"
-                        ) : (
-                          <>
-                            <CopyIcon width="1em" height="1em" /> Segment
-                          </>
-                        )}
+                      <CopyButtonStyled
+                        onClick={() => handleCopy(index, "segment", segmentValue)}
+                        $copied={copiedState[segmentKey]}
+                        $isSegment
+                      >
+                        {copiedState[segmentKey] ? "Segment Copied!" : (<><CopyIcon width="1em" height="1em" /> Segment</>)}
                       </CopyButtonStyled>
                     )}
-                    <CopyButtonStyled onClick={() => handleCopy(index, "code", eventCode)} $copied={copiedState[codeKey]}>
-                      {copiedState[codeKey] ? (
-                        "Copied!"
-                      ) : (
-                        <>
-                          <CopyIcon width="1em" height="1em" /> Code
-                        </>
-                      )}
+                    <CopyButtonStyled
+                      onClick={() => handleCopy(index, "code", isExperienceEvent ? displayCode : eventCode)}
+                      $copied={copiedState[codeKey]}
+                    >
+                      {copiedState[codeKey] ? "Copied!" : (<><CopyIcon width="1em" height="1em" /> Code</>)}
                     </CopyButtonStyled>
                   </ButtonsWrapper>
                 </CodeWrapper>

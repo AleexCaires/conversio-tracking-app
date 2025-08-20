@@ -5,13 +5,14 @@ export const EventBlockWrapper = styled.div<{ "data-copied": boolean; $activeBor
   margin-bottom: 1rem; // Added for spacing between blocks if they stack
     width: 470px;
     max-width: 470px;
-    height: 190px;
+    height: 215px;
+    overflow: scroll;
 `;
 
 export const SelectCheckbox = styled.input.attrs({ type: "checkbox" })`
   position: absolute;
-    top: 1px;
-    right: -2px;
+  top: 1px;
+  right: -2px;
   width: 20px;
   height: 20px;
   cursor: pointer;
