@@ -161,8 +161,8 @@ conversio: {
     event: "conversioEvent", 
     conversio: {
       event_category: "Conversio CRO",
-      event_action: "${eventSegment} | Event Tracking",
-      event_label: "${eventSegment} | (Control Original) | ${description}",
+      event_action: "${fullClient} | Event Tracking",
+      event_label: "${fullClient} | (Control Original) | ${description}",
       event_segment: "${eventSegment}"
     }
   });`);
@@ -200,8 +200,8 @@ conversio: {
     event: "conversioEvent", 
     conversio: {
       event_category: "Conversio CRO",
-      event_action: "${eventSegment} | Event Tracking",
-      event_label: "${eventSegment} | (Variation ${variantIndex}) | ${description}",
+      event_action: "${fullClient} | Event Tracking",
+      event_label: "${fullClient} | (Variation ${variantIndex}) | ${description}",
       event_segment: "${eventSegment}"
     }
   });`);
