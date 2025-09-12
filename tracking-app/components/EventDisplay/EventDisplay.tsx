@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, EventLabelsList, EventLabelItem, EventLabelIndex, TriggerEventText, EventItemWrapper, EventItemLabel, CodeWrapper, ButtonsWrapper, CopyButtonStyled } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import styled from "styled-components";
 
 interface EventDisplayProps {
@@ -15,7 +15,7 @@ interface EventDisplayProps {
 
 // Add a styled component for the Experience Event label
 const ExperienceEventLabel = styled.span`
-  color: #ED9C4A;
+  color: #ed9c4a;
   font-weight: 500;
 `;
 
@@ -141,32 +141,26 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
       {showMode === "code" && (
         <ChildrenWrapper>
           {parsedEvents.map((event, index) => {
-            // Derive client prefix from any available segment
-            const segmentSource =
-              event.conversio?.event_segment ||
-              event.eventSegment ||
-              event.conversio?.experience_segment ||
-              "";
-            const clientPrefix = segmentSource.slice(0, 2); // e.g. SA, VX, LF, etc.
+            // derive raw and base segments and sanitizer to ensure actions/labels use base (e.g. SA2131) not full segment (e.g. SA2131ECOG)
+            const rawSegment = event.conversio?.event_segment || event.eventSegment || event.conversio?.experience_segment || "";
+            const baseMatch = rawSegment.match(/^[A-Za-z]+\d+/);
+            const baseSegment = baseMatch ? baseMatch[0] : rawSegment;
+            const sanitizeUsingBase = (str?: string) => {
+              if (!str) return "";
+              if (rawSegment && baseSegment && str.includes(rawSegment)) {
+                return str.replace(new RegExp(rawSegment, "g"), baseSegment);
+              }
+              return str;
+            };
+            const clientPrefix = (rawSegment || "").slice(0, 2); // e.g. SA, VX, LF
 
-            const isExperienceEvent =
-              event.event === "conversioExperience" || event.experienceEvent;
+            const isExperienceEvent = event.event === "conversioExperience" || event.experienceEvent;
 
-            const isSnakeCaseFormat =
-              !!(
-                event.conversio &&
-                (event.conversio.event_category ||
-                  event.conversio.experience_category)
-              ) || ["SA", "VX"].includes(clientPrefix);
+            const isSnakeCaseFormat = !!(event.conversio && (event.conversio.event_category || event.conversio.experience_category)) || ["SA", "VX"].includes(clientPrefix);
 
-            const segmentValue = isExperienceEvent
-              ? event.conversio?.experience_segment
-              : isSnakeCaseFormat
-              ? event.conversio?.event_segment
-              : event.eventSegment;
+            const segmentValue = isExperienceEvent ? event.conversio?.experience_segment : isSnakeCaseFormat ? event.conversio?.event_segment : event.eventSegment;
 
-            const isAdobeTarget =
-              !event.eventSegment && event.eventCategory && event.eventLabel;
+            const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
 
             let eventCode: string;
 
@@ -174,16 +168,12 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
               const isSephoraEvent = event.conversio.experience_segment?.startsWith("SA");
               const isVaxEvent = event.conversio.experience_segment?.startsWith("VX");
               if (isSephoraEvent || isVaxEvent) {
-                // SA & VX experience events (snake_case)
-                eventCode = `window.dataLayer.push({
-event: "conversioExperience",
-conversio: {
-    experience_category: "Conversio Experience",
-    experience_action: "${event.conversio.experienceAction ?? event.conversio.experience_action ?? ""}",
-    experience_label: "${event.conversio.experienceLabel ?? event.conversio.experience_label ?? ""}",
-    experience_segment: "${event.conversio.experience_segment ?? ""}"
-}
-});`;
+                // SA & VX experience events (snake_case) - ensure action/label use base segment
+                const expAction = sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "");
+                const expLabel = sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "");
+                eventCode = `window.dataLayer.push({\nevent: "conversioExperience",\nconversio: {\n    experience_category: "Conversio Experience",\n    experience_action: "${expAction}",\n    experience_label: "${expLabel}",\n    experience_segment: "${
+                  event.conversio.experience_segment ?? ""
+                }"\n}\n});`;
               } else {
                 // Other clients (camelCase)
                 eventCode = `window.dataLayer.push({
@@ -197,16 +187,10 @@ conversio: {
 });`;
               }
             } else if (isSnakeCaseFormat && event.conversio) {
-              // SA & VX regular conversioEvent snake_case
-              eventCode = `window.dataLayer.push({
-  event: "conversioEvent",
-  conversio: {
-    event_category: "${event.conversio.event_category ?? ""}",
-    event_action: "${event.conversio.event_action ?? ""}",
-    event_label: "${event.conversio.event_label ?? ""}",
-    event_segment: "${event.conversio.event_segment ?? ""}"
-  }
-});`;
+              // SA & VX regular conversioEvent snake_case - sanitize action/label to use base segment
+              const actionVal = sanitizeUsingBase(event.conversio.event_action ?? "");
+              const labelVal = sanitizeUsingBase(event.conversio.event_label ?? "");
+              eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${actionVal}",\n    event_label: "${labelVal}",\n    event_segment: "${event.conversio.event_segment ?? ""}"\n  }\n});`;
             } else if (isAdobeTarget) {
               eventCode = `adobeDataLayer.push({
   event: "targetClickEvent",
@@ -220,7 +204,7 @@ conversio: {
 });`;
             } else {
               // Standard camelCase (non SA/VX)
-                eventCode = `window.dataLayer.push({
+              eventCode = `window.dataLayer.push({
   event: "conversioEvent",
   conversio: {
     "eventCategory": "${event.eventCategory}",
@@ -238,37 +222,25 @@ conversio: {
               const payloadLines = isSnake
                 ? [
                     'event: "conversioExperience"',
-                    'conversio: {',
+                    "conversio: {",
                     `  experience_category: "Conversio Experience",`,
-                    `  experience_action: "${event.conversio.experienceAction ?? event.conversio.experience_action ?? ""}",`,
-                    `  experience_label: "${event.conversio.experienceLabel ?? event.conversio.experience_label ?? ""}",`,
+                    `  experience_action: "${sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "")}",`,
+                    `  experience_label: "${sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "")}",`,
                     `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
-                    '}'
+                    "}",
                   ]
                 : [
                     'event: "conversioExperience"',
-                    'conversio: {',
+                    "conversio: {",
                     `  experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",`,
-                    `  experienceAction: "${event.conversio.experienceAction ?? ""}",`,
-                    `  experienceLabel: "${event.conversio.experienceLabel ?? ""}",`,
+                    `  experienceAction: "${sanitizeUsingBase(event.conversio.experienceAction ?? "")}",`,
+                    `  experienceLabel: "${sanitizeUsingBase(event.conversio.experienceLabel ?? "")}",`,
                     `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
-                    '}'
+                    "}",
                   ];
 
-              const payloadObject = `{\n  ${payloadLines.join('\n  ')}\n}`;
-              displayCode =
-`function waitForDataLayer(callback) {
-  let checkInterval = setInterval(() => {
-    if (window.dataLayer && Array.isArray(window.dataLayer)) {
-      clearInterval(checkInterval);
-      callback();
-    }
-  }, 100);
-}
-
-waitForDataLayer(() => {
-  window.dataLayer.push(${payloadObject});
-});`;
+              const payloadObject = `{\n  ${payloadLines.join("\n  ")}\n}`;
+              displayCode = `function waitForDataLayer(callback) {\n  let checkInterval = setInterval(() => {\n    if (window.dataLayer && Array.isArray(window.dataLayer)) {\n      clearInterval(checkInterval);\n      callback();\n    }\n  }, 100);\n}\n\nwaitForDataLayer(() => {\n  window.dataLayer.push(${payloadObject});\n});`;
             }
 
             const codeKey = `${index}-code`;
@@ -292,25 +264,17 @@ waitForDataLayer(() => {
                     style={vscDarkPlus}
                     customStyle={{
                       margin: 0,
-                      padding: '1rem',
-                      borderRadius: '0.5rem',
-                      fontSize: '14px',
-                      lineHeight: '1.5',
-                      border: activeBorders[codeKey] 
-                        ? '2px solid #007bff' 
-                        : activeBorders[segmentKey] 
-                        ? '2px solid #28a745' 
-                        : '1px solid #e5e7eb',
-                      boxShadow: activeBorders[codeKey]
-                        ? '0 0 10px #007bff, 0 0 20px #007bff'
-                        : activeBorders[segmentKey]
-                        ? '0 0 10px #28a745, 0 0 20px #28a745'
-                        : 'none',
-                      transition: 'box-shadow 0.3s ease, border 0.3s ease',
-                      width: '470px',
-                      maxWidth:'470px',
-                      height: '190px',
-                      overflow: 'hidden'
+                      padding: "1rem",
+                      borderRadius: "0.5rem",
+                      fontSize: "14px",
+                      lineHeight: "1.5",
+                      border: activeBorders[codeKey] ? "2px solid #007bff" : activeBorders[segmentKey] ? "2px solid #28a745" : "1px solid #e5e7eb",
+                      boxShadow: activeBorders[codeKey] ? "0 0 10px #007bff, 0 0 20px #007bff" : activeBorders[segmentKey] ? "0 0 10px #28a745, 0 0 20px #28a745" : "none",
+                      transition: "box-shadow 0.3s ease, border 0.3s ease",
+                      width: "470px",
+                      maxWidth: "470px",
+                      height: "190px",
+                      overflow: "hidden",
                     }}
                     showLineNumbers={false}
                     wrapLines={true}
@@ -319,19 +283,24 @@ waitForDataLayer(() => {
                   </SyntaxHighlighter>
                   <ButtonsWrapper>
                     {segmentValue && (
-                      <CopyButtonStyled
-                        onClick={() => handleCopy(index, "segment", segmentValue)}
-                        $copied={copiedState[segmentKey]}
-                        $isSegment
-                      >
-                        {copiedState[segmentKey] ? "Segment Copied!" : (<><CopyIcon width="1em" height="1em" /> Segment</>)}
+                      <CopyButtonStyled onClick={() => handleCopy(index, "segment", segmentValue)} $copied={copiedState[segmentKey]} $isSegment>
+                        {copiedState[segmentKey] ? (
+                          "Segment Copied!"
+                        ) : (
+                          <>
+                            <CopyIcon width="1em" height="1em" /> Segment
+                          </>
+                        )}
                       </CopyButtonStyled>
                     )}
-                    <CopyButtonStyled
-                      onClick={() => handleCopy(index, "code", isExperienceEvent ? displayCode : eventCode)}
-                      $copied={copiedState[codeKey]}
-                    >
-                      {copiedState[codeKey] ? "Copied!" : (<><CopyIcon width="1em" height="1em" /> Code</>)}
+                    <CopyButtonStyled onClick={() => handleCopy(index, "code", isExperienceEvent ? displayCode : eventCode)} $copied={copiedState[codeKey]}>
+                      {copiedState[codeKey] ? (
+                        "Copied!"
+                      ) : (
+                        <>
+                          <CopyIcon width="1em" height="1em" /> Code
+                        </>
+                      )}
                     </CopyButtonStyled>
                   </ButtonsWrapper>
                 </CodeWrapper>
