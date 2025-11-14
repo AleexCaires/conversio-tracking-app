@@ -93,15 +93,67 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     setCopiedState(getInitialCopiedState);
   }, [getInitialCopiedState]);
 
+  const generateExperienceEventCode = (event: TypedEvent, isSnakeCase: boolean, sanitizeFn: (str?: string) => string): string => {
+    if (!event.conversio) return "";
+
+    const categoryValue = event.conversio.experienceCategory ?? event.conversio.experience_category ?? "Conversio Experience";
+    const actionValue = sanitizeFn(event.conversio.experienceAction ?? event.conversio.experience_action ?? "");
+    const labelValue = sanitizeFn(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "");
+    const segmentValue = event.conversio.experience_segment ?? "";
+
+    const conversioObject: Record<string, string> = {};
+    if (isSnakeCase) {
+      conversioObject.experience_category = categoryValue;
+      conversioObject.experience_action = actionValue;
+      conversioObject.experience_label = labelValue;
+      conversioObject.experience_segment = segmentValue;
+    } else {
+      conversioObject.experienceCategory = categoryValue;
+      conversioObject.experienceAction = actionValue;
+      conversioObject.experienceLabel = labelValue;
+      conversioObject.experience_segment = segmentValue; // Note: this key is snake_case in both formats
+    }
+
+    const payload = {
+      event: "conversioExperience",
+      conversio: conversioObject,
+    };
+
+    // Use JSON.stringify to ensure correct formatting and escaping
+    const payloadString = JSON.stringify(payload, null, 2);
+
+    return `function waitForDataLayer(callback) {
+  let checkInterval = setInterval(() => {
+    if (window.dataLayer && Array.isArray(window.dataLayer)) {
+      clearInterval(checkInterval);
+      callback();
+    }
+  }, 100);
+}
+
+waitForDataLayer(() => {
+  window.dataLayer.push(${payloadString});
+});`;
+  };
+
   // Now do the early return after all hooks
   if (!events || events.length === 0) return null;
 
   const getEventLabel = (event: TypedEvent): string => {
     if (event.event === "conversioExperience" && event.conversio) {
-      return event.conversio.experienceLabel || "";
+      return event.conversio.experienceLabel || event.conversio.experience_label || "Experience Tracking Event";
     }
     if (event.conversio && event.conversio.event_label) {
-      return event.conversio.event_label;
+      const label = event.conversio.event_label;
+      const firstPart = label.split(" | ")[0]; // e.g., "SA1111ECOQ" or "FN222"
+
+      // Extract only the base segment (letters + numbers, no prefix/suffix)
+      // e.g., "SA1111ECOQ" -> "SA1111", "FN222" -> "FN222"
+      const baseMatch = firstPart.match(/^[A-Z]+\d+/);
+      const baseSegment = baseMatch ? baseMatch[0] : firstPart;
+
+      const rest = label.substring(firstPart.length); // Get " | (Control Original) | Description"
+      return baseSegment + rest;
     }
     return event.eventLabel ?? "";
   };
@@ -148,26 +200,8 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
 
               let eventCode: string;
 
-              if (isExperienceEvent && event.conversio) {
-                const isSephoraEvent = event.conversio.experience_segment?.startsWith("SA");
-                const isVaxEvent = event.conversio.experience_segment?.startsWith("VX");
-                if (isSephoraEvent || isVaxEvent) {
-                  const expAction = sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "");
-                  const expLabel = sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "");
-                  eventCode = `window.dataLayer.push({\nevent: "conversioExperience",\nconversio: {\n    experience_category: "Conversio Experience",\n    experience_action: "${expAction}",\n    experience_label: "${expLabel}",\n    experience_segment: "${
-                    event.conversio.experience_segment ?? ""
-                  }"\n}\n});`;
-                } else {
-                  eventCode = `window.dataLayer.push({
-  event: "conversioExperience",
-  conversio: {
-    experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",
-    experienceAction: "${event.conversio.experienceAction ?? ""}",
-    experienceLabel: "${event.conversio.experienceLabel ?? ""}",
-    experience_segment: "${event.conversio.experience_segment ?? ""}"
-  }
-});`;
-                }
+              if (isExperienceEvent) {
+                eventCode = generateExperienceEventCode(event, isSnakeCaseFormat, sanitizeUsingBase);
               } else if (isSnakeCaseFormat && event.conversio) {
                 const actionVal = sanitizeUsingBase(event.conversio.event_action ?? "");
                 const labelVal = sanitizeUsingBase(event.conversio.event_label ?? "");
@@ -198,40 +232,19 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
               }
 
               let displayCode = eventCode;
-              if (isExperienceEvent && event.conversio) {
-                const isSnake = !!(event.conversio.experience_category || event.conversio.experience_action);
-                const payloadLines = isSnake
-                  ? [
-                      'event: "conversioExperience"',
-                      "conversio: {",
-                      `  experience_category: "Conversio Experience",`,
-                      `  experience_action: "${sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "")}",`,
-                      `  experience_label: "${sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "")}",`,
-                      `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
-                      "}",
-                    ]
-                  : [
-                      'event: "conversioExperience"',
-                      "conversio: {",
-                      `  experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",`,
-                      `  experienceAction: "${sanitizeUsingBase(event.conversio.experienceAction ?? "")}",`,
-                      `  experienceLabel: "${sanitizeUsingBase(event.conversio.experienceLabel ?? "")}",`,
-                      `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
-                      "}",
-                    ];
-
-                const payloadObject = `{\n  ${payloadLines.join("\n  ")}\n}`;
-                displayCode = `function waitForDataLayer(callback) {\n  let checkInterval = setInterval(() => {\n    if (window.dataLayer && Array.isArray(window.dataLayer)) {\n      clearInterval(checkInterval);\n      callback();\n    }\n  }, 100);\n}\n\nwaitForDataLayer(() => {\n  window.dataLayer.push(${payloadObject});\n});`;
+              if (isExperienceEvent) {
+                displayCode = generateExperienceEventCode(event, isSnakeCaseFormat, sanitizeUsingBase);
               }
 
               const labelKey = `${idx}-label`;
-              const codeToDisplay = isExperienceEvent ? displayCode : eventCode;
+              const codeToDisplay = displayCode;
 
               return (
                 <EventLabelItem key={idx}>
                   <EventLabelIndex>{idx + 1}.</EventLabelIndex>
                   {item.label}
                   {item.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
+                  {isExperienceEvent && <ExperienceEventLabel style={{ marginLeft: "0.5em" }}>(Experience Tracking Event)</ExperienceEventLabel>}
                   <CopyButtonStyled
                     onClick={() => {
                       handleCopy(idx, "label", codeToDisplay);
@@ -281,28 +294,8 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
 
             let eventCode: string;
 
-            if (isExperienceEvent && event.conversio) {
-              const isSephoraEvent = event.conversio.experience_segment?.startsWith("SA");
-              const isVaxEvent = event.conversio.experience_segment?.startsWith("VX");
-              if (isSephoraEvent || isVaxEvent) {
-                // SA & VX experience events (snake_case) - ensure action/label use base segment
-                const expAction = sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "");
-                const expLabel = sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "");
-                eventCode = `window.dataLayer.push({\nevent: "conversioExperience",\nconversio: {\n    experience_category: "Conversio Experience",\n    experience_action: "${expAction}",\n    experience_label: "${expLabel}",\n    experience_segment: "${
-                  event.conversio.experience_segment ?? ""
-                }"\n}\n});`;
-              } else {
-                // Other clients (camelCase)
-                eventCode = `window.dataLayer.push({
-  event: "conversioExperience",
-  conversio: {
-    experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",
-    experienceAction: "${event.conversio.experienceAction ?? ""}",
-    experienceLabel: "${event.conversio.experienceLabel ?? ""}",
-    experience_segment: "${event.conversio.experience_segment ?? ""}"
-  }
-});`;
-              }
+            if (isExperienceEvent) {
+              eventCode = generateExperienceEventCode(event, isSnakeCaseFormat, sanitizeUsingBase);
             } else if (isSnakeCaseFormat && event.conversio) {
               // SA & VX regular conversioEvent snake_case - sanitize action/label to use base segment
               const actionVal = sanitizeUsingBase(event.conversio.event_action ?? "");
@@ -334,32 +327,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
 
             // ===== NEW: build display version for experience events using waitForDataLayer wrapper =====
             let displayCode = eventCode;
-            if (isExperienceEvent && event.conversio) {
-              const isSnake = !!(event.conversio.experience_category || event.conversio.experience_action);
-              const payloadLines = isSnake
-                ? [
-                    'event: "conversioExperience"',
-                    "conversio: {",
-                    `  experience_category: "Conversio Experience",`,
-                    `  experience_action: "${sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "")}",`,
-                    `  experience_label: "${sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "")}",`,
-                    `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
-                    "}",
-                  ]
-                : [
-                    'event: "conversioExperience"',
-                    "conversio: {",
-                    `  experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",`,
-                    `  experienceAction: "${sanitizeUsingBase(event.conversio.experienceAction ?? "")}",`,
-                    `  experienceLabel: "${sanitizeUsingBase(event.conversio.experienceLabel ?? "")}",`,
-                    `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
-                    "}",
-                  ];
-
-              const payloadObject = `{\n  ${payloadLines.join("\n  ")}\n}`;
-              displayCode = `function waitForDataLayer(callback) {\n  let checkInterval = setInterval(() => {\n    if (window.dataLayer && Array.isArray(window.dataLayer)) {\n      clearInterval(checkInterval);\n      callback();\n    }\n  }, 100);\n}\n\nwaitForDataLayer(() => {\n  window.dataLayer.push(${payloadObject});\n});`;
+            if (isExperienceEvent) {
+              displayCode = generateExperienceEventCode(event, isSnakeCaseFormat, sanitizeUsingBase);
             }
-
             const codeKey = `${index}-code`;
             const segmentKey = `${index}-segment`;
 
@@ -410,7 +380,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
                         )}
                       </CopyButtonStyled>
                     )}
-                    <CopyButtonStyled onClick={() => handleCopy(index, "code", isExperienceEvent ? displayCode : eventCode)} $copied={copiedState[codeKey]}>
+                    <CopyButtonStyled onClick={() => handleCopy(index, "code", displayCode)} $copied={copiedState[codeKey]}>
                       {copiedState[codeKey] ? (
                         "Copied!"
                       ) : (
