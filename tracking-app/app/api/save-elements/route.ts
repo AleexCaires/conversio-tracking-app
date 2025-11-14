@@ -20,30 +20,32 @@ export async function POST(req: Request) {
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    const getRandomLetter = (seed: string, usedLetters: Set<string>): string => {
-      const letters = "QRSTUVWXYZ";
-      // Create a simple hash from the seed to make it deterministic
-      let hash = 0;
-      for (let i = 0; i < seed.length; i++) {
-        const char = seed.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash = hash & hash; // Convert to 32bit integer
+    const getRandomLetter = (usedLetters: Set<string>): string => {
+      // Single-letter pool only (no double letters) - Q removed for regular events
+      const letters = "GHIJKLMNOPRSTUVWXYZ"; // 19 letters (Q removed)
+      const nextIndex = usedLetters.size;
+      if (nextIndex < letters.length) {
+        const letter = letters[nextIndex];
+        usedLetters.add(letter);
+        return letter;
       }
-
-      const availableLetters = letters.split("").filter((letter) => !usedLetters.has(letter));
-      if (availableLetters.length === 0) return "Q"; // fallback
-
-      const index = Math.abs(hash) % availableLetters.length;
-      const letter = availableLetters[index];
-      usedLetters.add(letter);
-      return letter;
+      console.warn("[save-elements] More than 19 unique event descriptions – reusing last letter (Z). Extend letters if needed.");
+      return "Z";
     };
 
-    elementData.eventDescriptions.forEach((desc: string, index: number) => {
-      if (!descriptionLetters.has(desc)) {
-        // Use description + index as seed for deterministic results
-        const seed = `${desc}-${index}-${fullClient}`;
-        descriptionLetters.set(desc, getRandomLetter(seed, usedLetters));
+    elementData.eventDescriptions.forEach((description: string, index: number) => {
+      if (!descriptionLetters.has(description)) {
+        // Check if this is a trigger event (first in the array)
+        // Trigger events always get Q
+        const isTriggerEvent = index === 0;
+
+        if (isTriggerEvent) {
+          // Trigger events always get Q
+          descriptionLetters.set(description, "Q");
+        } else {
+          // Regular events get sequential letters from the pool
+          descriptionLetters.set(description, getRandomLetter(usedLetters));
+        }
       }
     });
 
@@ -62,7 +64,7 @@ export async function POST(req: Request) {
 
     // Generate Dummy Control events
     const controlEvents = [];
-    
+
     // Add experience event if needed
     if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")) {
       controlEvents.push({
@@ -81,12 +83,12 @@ export async function POST(req: Request) {
                 experienceAction: `${fullClient} | ${elementData.experienceName}`,
                 experienceLabel: `${fullClient} | Control Original`,
               }),
-          experience_segment: `${fullClient}.XCO`
+          experience_segment: `${fullClient}.XCO`,
         },
-        codeCopied: false
+        codeCopied: false,
       });
     }
-    
+
     // Add regular control events
     const regularControlEvents =
       elementData.controlEventsWithCopied && elementData.controlEventsWithCopied.length === elementData.eventDescriptions.length
@@ -179,7 +181,7 @@ export async function POST(req: Request) {
     const variationEvents = [];
     for (let variantIndex = 1; variantIndex <= elementData.numVariants; variantIndex++) {
       const eventsForVariant = [];
-      
+
       // Add experience event if needed
       if (elementData.includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")) {
         eventsForVariant.push({
@@ -197,14 +199,15 @@ export async function POST(req: Request) {
                   experienceAction: `${fullClient} | ${elementData.experienceName}`,
                   experienceLabel: `${fullClient} | Variation ${variantIndex}`,
                 }),
-            experience_segment: `${fullClient}.XV${variantIndex}`
+            experience_segment: `${fullClient}.XV${variantIndex}`,
           },
-          codeCopied: false
+          codeCopied: false,
         });
       }
-      
+
       // Add regular variation events
-      const regularVariationEvents = elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
+      const regularVariationEvents =
+        elementData.variationEventsWithCopied && elementData.variationEventsWithCopied.length === elementData.numVariants * elementData.eventDescriptions.length
           ? elementData.variationEventsWithCopied.slice((variantIndex - 1) * elementData.eventDescriptions.length, variantIndex * elementData.eventDescriptions.length).map((eventObj: unknown, idx: number) => {
               const description = elementData.eventDescriptions[idx];
               const eventSegment = generateEventSegment(description, `V${variantIndex}`);
@@ -288,7 +291,7 @@ export async function POST(req: Request) {
             });
 
       eventsForVariant.push(...regularVariationEvents);
-      
+
       variationEvents.push({ label: `Variation ${variantIndex}`, events: eventsForVariant });
     }
 

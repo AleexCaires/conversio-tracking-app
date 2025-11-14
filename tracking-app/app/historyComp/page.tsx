@@ -144,7 +144,7 @@ const History = () => {
                   paddingLeft: "2.2rem",
                   height: "40px",
                   lineHeight: "40px",
-                  boxSizing: "border-box"
+                  boxSizing: "border-box",
                 }}
                 autoComplete="off"
               />
@@ -158,21 +158,11 @@ const History = () => {
                   display: "flex",
                   alignItems: "center",
                   height: "100%",
-                  pointerEvents: "none"
+                  pointerEvents: "none",
                 }}
               >
                 {/* Outlined search SVG */}
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#888"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ display: "block" }}
-                >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -183,7 +173,7 @@ const History = () => {
                         color: "#bbb",
                         fontSize: "1rem",
                         fontWeight: 400,
-                        userSelect: "none"
+                        userSelect: "none",
                       }}
                     >
                       Search
