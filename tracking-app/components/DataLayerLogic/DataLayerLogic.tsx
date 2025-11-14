@@ -4,8 +4,8 @@ import { clients } from "../../lib/clients";
 import { Client } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
 import { EventBlockWrapper, SelectCheckbox, CopyButton, EventsGrid, EventsSectionTitle } from "./DataLayerLogic.styles";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface EventDataWithCopied {
   controlEvents: string[];
@@ -32,18 +32,7 @@ interface DataLayerLogicProps {
   experienceName?: string;
 }
 
-const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
-  client,
-  experienceNumber,
-  eventDescriptions,
-  trigger,
-  setTrigger,
-  onDataGenerated,
-  selectedStatus,
-  setSelectedStatus,
-  includeExperienceEvent,
-  experienceName
-}) => {
+const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus, includeExperienceEvent, experienceName }) => {
   const { numVariants } = useExperience();
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<LocalEventData>({
@@ -56,17 +45,18 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
   const fullClient = `${clientCode}${experienceNumber}`;
 
   const getRandomLetter = useCallback((usedLetters: Set<string>): string => {
-    const letters = "GHIJKLMNOPQRSTUVWXYZ";
+    // Single-letter pool only (no double letters) - Q removed for regular events
+    const letters = "GHIJKLMNOPRSTUVWXYZ"; // 19 letters (Q removed)
     const nextIndex = usedLetters.size;
     if (nextIndex < letters.length) {
       const letter = letters[nextIndex];
       usedLetters.add(letter);
       return letter;
     }
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[DataLayerLogic] More than 20 unique event descriptions – reusing last letter (Z). Extend letters if needed.');
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[DataLayerLogic] More than 19 unique event descriptions – reusing last letter (Z). Extend letters if needed.");
     }
-    return 'Z';
+    return "Z";
   }, []);
 
   const toggleSelection = (key: string) => {
@@ -87,9 +77,19 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    eventDescriptions.forEach((description) => {
+    eventDescriptions.forEach((description, index) => {
       if (!descriptionLetters.has(description)) {
-        descriptionLetters.set(description, getRandomLetter(usedLetters));
+        // Check if this is a trigger event (first in the array if it was prepended)
+        // Trigger events always get Q
+        const isTriggerEvent = index === 0;
+
+        if (isTriggerEvent) {
+          // Trigger events always get Q
+          descriptionLetters.set(description, "Q");
+        } else {
+          // Regular events get sequential letters from the pool
+          descriptionLetters.set(description, getRandomLetter(usedLetters));
+        }
       }
     });
 
@@ -108,10 +108,10 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({
     let newVariationEvents: string[] = [];
 
     // Insert special event at the top if needed (for Control)
-    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === 'VX')) {
+    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")) {
       const expId = `${fullClient}`;
       const expName = experienceName || "";
-      
+
       // Different format for Sephora
       if (clientCode === "SA" || clientCode === "VX") {
         newControlEvents.push(
@@ -222,11 +222,11 @@ conversio: {
     // Insert special event for each variation if needed
     // Create a new array to hold all variation events in the correct order
     const finalVariationEvents: string[] = [];
-    
-    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === 'VX')) {
+
+    if (includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")) {
       const expId = `${fullClient}`;
       const expName = experienceName || "";
-      
+
       // Loop through each variation
       for (let variantIndex = 1; variantIndex <= numVariants; variantIndex++) {
         // Add the experience event first for this variation with different format for Sephora
@@ -256,7 +256,7 @@ conversio: {
 });`
           );
         }
-        
+
         // Then add all the normal events for this variation
         const startIdx = (variantIndex - 1) * eventDescriptions.length;
         const endIdx = startIdx + eventDescriptions.length;
@@ -264,7 +264,7 @@ conversio: {
           finalVariationEvents.push(newVariationEvents[i]);
         }
       }
-      
+
       // Replace the variation events with our correctly ordered final array
       newVariationEvents = finalVariationEvents;
     }
@@ -341,11 +341,11 @@ conversio: {
         style={vscDarkPlus}
         customStyle={{
           margin: 0,
-          padding: '12px',
-          borderRadius: '6px',
-          fontSize: '14px',
-          lineHeight: '1.5',
-          border: activeBorders[key] ? '2px solid #22c55e' : '1px solid #e5e7eb'
+          padding: "12px",
+          borderRadius: "6px",
+          fontSize: "14px",
+          lineHeight: "1.5",
+          border: activeBorders[key] ? "2px solid #22c55e" : "1px solid #e5e7eb",
         }}
         showLineNumbers={false}
         wrapLines={true}
@@ -372,43 +372,37 @@ conversio: {
           <EventsGrid>{localEventData.controlEvents.map((event, index) => renderEventBlock(event, `control-${index}`))}</EventsGrid>
         </>
       )}
-      
-      {includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === 'VX') ? (
-        // Special rendering for clients with experience events
-        Array.from({ length: numVariants }, (_, variantIdx) => {
-          // For special clients with experience events, calculate positions differently
-          const eventsPerVariation = eventDescriptions.length + 1; // +1 for the experience event
-          const start = variantIdx * eventsPerVariation;
-          const end = start + eventsPerVariation;
-          const events = localEventData.variationEvents.slice(start, end);
 
-          if (events.length === 0) return null;
-          return (
-            <React.Fragment key={variantIdx + 1}>
-              <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
-              <EventsGrid>
-                {events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}
-              </EventsGrid>
-            </React.Fragment>
-          );
-        })
-      ) : (
-        // Regular rendering for standard clients
-        Array.from({ length: numVariants }, (_, variantIdx) => {
-          const start = variantIdx * eventDescriptions.length;
-          const end = start + eventDescriptions.length;
-          const events = localEventData.variationEvents.slice(start, end);
-          if (events.length === 0) return null;
-          return (
-            <React.Fragment key={variantIdx + 1}>
-              <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
-              <EventsGrid>
-                {events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}
-              </EventsGrid>
-            </React.Fragment>
-          );
-        })
-      )}
+      {includeExperienceEvent && (clientCode === "SA" || clientCode === "LF" || clientCode === "VX")
+        ? // Special rendering for clients with experience events
+          Array.from({ length: numVariants }, (_, variantIdx) => {
+            // For special clients with experience events, calculate positions differently
+            const eventsPerVariation = eventDescriptions.length + 1; // +1 for the experience event
+            const start = variantIdx * eventsPerVariation;
+            const end = start + eventsPerVariation;
+            const events = localEventData.variationEvents.slice(start, end);
+
+            if (events.length === 0) return null;
+            return (
+              <React.Fragment key={variantIdx + 1}>
+                <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
+                <EventsGrid>{events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}</EventsGrid>
+              </React.Fragment>
+            );
+          })
+        : // Regular rendering for standard clients
+          Array.from({ length: numVariants }, (_, variantIdx) => {
+            const start = variantIdx * eventDescriptions.length;
+            const end = start + eventDescriptions.length;
+            const events = localEventData.variationEvents.slice(start, end);
+            if (events.length === 0) return null;
+            return (
+              <React.Fragment key={variantIdx + 1}>
+                <EventsSectionTitle>{`Variation ${variantIdx + 1} Events`}</EventsSectionTitle>
+                <EventsGrid>{events.map((event, idx) => renderEventBlock(event, `variation-${start + idx}`))}</EventsGrid>
+              </React.Fragment>
+            );
+          })}
     </div>
   );
 };

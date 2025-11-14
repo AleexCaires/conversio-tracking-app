@@ -84,6 +84,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     const state: Record<string, boolean> = {};
     parsedEvents.forEach((_, idx) => {
       state[`${idx}-code`] = false;
+      state[`${idx}-label`] = false;
     });
     return state;
   }, [parsedEvents]);
@@ -112,7 +113,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     }))
     .filter((item) => item.label && item.label.trim() !== "." && item.label.trim() !== "");
 
-  const handleCopy = (index: number, type: "code" | "segment", text: string) => {
+  const handleCopy = (index: number, type: "code" | "segment" | "label", text: string) => {
     const key = `${index}-${type}`;
     onCopy(text);
     setCopiedState((prev) => ({ ...prev, [key]: true }));
@@ -127,13 +128,129 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
         <EventLabelsWrapper>
           <strong>Event Labels:</strong>
           <EventLabelsList>
-            {eventLabels.map((item, idx) => (
-              <EventLabelItem key={idx}>
-                <EventLabelIndex>{idx + 1}.</EventLabelIndex>
-                {item.label}
-                {item.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
-              </EventLabelItem>
-            ))}
+            {eventLabels.map((item, idx) => {
+              const event = parsedEvents[idx];
+              const rawSegment = event.conversio?.event_segment || event.eventSegment || event.conversio?.experience_segment || "";
+              const baseMatch = rawSegment.match(/^[A-Za-z]+\d+/);
+              const baseSegment = baseMatch ? baseMatch[0] : rawSegment;
+              const sanitizeUsingBase = (str?: string) => {
+                if (!str) return "";
+                if (rawSegment && baseSegment && str.includes(rawSegment)) {
+                  return str.replace(new RegExp(rawSegment, "g"), baseSegment);
+                }
+                return str;
+              };
+              const clientPrefix = (rawSegment || "").slice(0, 2);
+
+              const isExperienceEvent = event.event === "conversioExperience" || event.experienceEvent;
+              const isSnakeCaseFormat = !!(event.conversio && (event.conversio.event_category || event.conversio.experience_category)) || ["SA", "VX"].includes(clientPrefix);
+              const isAdobeTarget = !event.eventSegment && event.eventCategory && event.eventLabel;
+
+              let eventCode: string;
+
+              if (isExperienceEvent && event.conversio) {
+                const isSephoraEvent = event.conversio.experience_segment?.startsWith("SA");
+                const isVaxEvent = event.conversio.experience_segment?.startsWith("VX");
+                if (isSephoraEvent || isVaxEvent) {
+                  const expAction = sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "");
+                  const expLabel = sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "");
+                  eventCode = `window.dataLayer.push({\nevent: "conversioExperience",\nconversio: {\n    experience_category: "Conversio Experience",\n    experience_action: "${expAction}",\n    experience_label: "${expLabel}",\n    experience_segment: "${
+                    event.conversio.experience_segment ?? ""
+                  }"\n}\n});`;
+                } else {
+                  eventCode = `window.dataLayer.push({
+  event: "conversioExperience",
+  conversio: {
+    experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",
+    experienceAction: "${event.conversio.experienceAction ?? ""}",
+    experienceLabel: "${event.conversio.experienceLabel ?? ""}",
+    experience_segment: "${event.conversio.experience_segment ?? ""}"
+  }
+});`;
+                }
+              } else if (isSnakeCaseFormat && event.conversio) {
+                const actionVal = sanitizeUsingBase(event.conversio.event_action ?? "");
+                const labelVal = sanitizeUsingBase(event.conversio.event_label ?? "");
+                eventCode = `window.dataLayer.push({\n  event: "conversioEvent",\n  conversio: {\n    event_category: "${event.conversio.event_category ?? ""}",\n    event_action: "${actionVal}",\n    event_label: "${labelVal}",\n    event_segment: "${
+                  event.conversio.event_segment ?? ""
+                }"\n  }\n});`;
+              } else if (isAdobeTarget) {
+                eventCode = `adobeDataLayer.push({
+  event: "targetClickEvent",
+  eventData: {
+    click: {
+      clickLocation: "${event.eventCategory}",
+      clickAction: "${event.eventAction}",
+      clickText: "${event.eventLabel}"
+    }
+  }
+});`;
+              } else {
+                eventCode = `window.dataLayer.push({
+  event: "conversioEvent",
+  conversio: {
+    "eventCategory": "${event.eventCategory}",
+    "eventAction": "${event.eventAction}",
+    "eventLabel": "${event.eventLabel}",
+    "eventSegment": "${event.eventSegment}"
+  }
+});`;
+              }
+
+              let displayCode = eventCode;
+              if (isExperienceEvent && event.conversio) {
+                const isSnake = !!(event.conversio.experience_category || event.conversio.experience_action);
+                const payloadLines = isSnake
+                  ? [
+                      'event: "conversioExperience"',
+                      "conversio: {",
+                      `  experience_category: "Conversio Experience",`,
+                      `  experience_action: "${sanitizeUsingBase(event.conversio.experienceAction ?? event.conversio.experience_action ?? "")}",`,
+                      `  experience_label: "${sanitizeUsingBase(event.conversio.experienceLabel ?? event.conversio.experience_label ?? "")}",`,
+                      `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
+                      "}",
+                    ]
+                  : [
+                      'event: "conversioExperience"',
+                      "conversio: {",
+                      `  experienceCategory: "${event.conversio.experienceCategory ?? "Conversio Experience"}",`,
+                      `  experienceAction: "${sanitizeUsingBase(event.conversio.experienceAction ?? "")}",`,
+                      `  experienceLabel: "${sanitizeUsingBase(event.conversio.experienceLabel ?? "")}",`,
+                      `  experience_segment: "${event.conversio.experience_segment ?? ""}"`,
+                      "}",
+                    ];
+
+                const payloadObject = `{\n  ${payloadLines.join("\n  ")}\n}`;
+                displayCode = `function waitForDataLayer(callback) {\n  let checkInterval = setInterval(() => {\n    if (window.dataLayer && Array.isArray(window.dataLayer)) {\n      clearInterval(checkInterval);\n      callback();\n    }\n  }, 100);\n}\n\nwaitForDataLayer(() => {\n  window.dataLayer.push(${payloadObject});\n});`;
+              }
+
+              const labelKey = `${idx}-label`;
+              const codeToDisplay = isExperienceEvent ? displayCode : eventCode;
+
+              return (
+                <EventLabelItem key={idx}>
+                  <EventLabelIndex>{idx + 1}.</EventLabelIndex>
+                  {item.label}
+                  {item.triggerEvent && <TriggerEventText>(Trigger Event)</TriggerEventText>}
+                  <CopyButtonStyled
+                    onClick={() => {
+                      handleCopy(idx, "label", codeToDisplay);
+                    }}
+                    $copied={copiedState[labelKey]}
+                    title="Copy code"
+                    style={{ marginLeft: "auto", padding: "0.3rem 0.6rem", height: "1.8rem", fontSize: "0.75rem", flexShrink: 0 }}
+                  >
+                    {copiedState[labelKey] ? (
+                      "✓ Copied!"
+                    ) : (
+                      <>
+                        <CopyIcon width="0.9em" height="0.9em" />
+                      </>
+                    )}
+                  </CopyButtonStyled>
+                </EventLabelItem>
+              );
+            })}
           </EventLabelsList>
         </EventLabelsWrapper>
       )}

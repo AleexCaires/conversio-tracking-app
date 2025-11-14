@@ -19,7 +19,7 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, content, experienceNumber, experienceName, client, onRefresh }) => {
   const router = useRouter();
-  const [showMode, setShowMode] = useState<"labels" | "code">("code");
+  const [showMode, setShowMode] = useState<"labels" | "code">("labels");
 
   if (!isOpen) return null;
 

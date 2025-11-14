@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
 export const ChildrenWrapper = styled.div`
-    display: flex;
-    gap: 16px;
-    padding: 10px;
-    overflow-x: auto;
+  display: flex;
+  gap: 16px;
+  padding: 10px;
+  overflow-x: auto;
 `;
 
 export const EventDisplayWrapper = styled.div`
@@ -34,6 +34,7 @@ export const EventLabelItem = styled.li`
   line-height: 2;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 `;
 
 export const EventLabelIndex = styled.span`
@@ -84,13 +85,12 @@ export const CopyButtonStyled = styled.button<{ $copied?: boolean; $isSegment?: 
   gap: 0.5em;
   padding: 0.25rem 0.6rem;
   font-size: 0.8rem;
-  background-color: ${({ $copied, $isSegment }) =>
-    $copied ? ($isSegment ? "#1c7c3e" : "#0056b3") : $isSegment ? "#28a745" : "#007bff"};
+  background-color: ${({ $copied, $isSegment }) => ($copied ? ($isSegment ? "#1c7c3e" : "#0056b3") : $isSegment ? "#28a745" : "#007bff")};
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
   width: ${({ $isSegment }) => ($isSegment ? "auto" : "80px")};
-  font-family: 'Montserrat', Arial, sans-serif !important;
+  font-family: "Montserrat", Arial, sans-serif !important;
 `;
