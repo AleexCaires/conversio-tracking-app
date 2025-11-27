@@ -147,9 +147,9 @@ waitForDataLayer(() => {
       const label = event.conversio.event_label;
       const firstPart = label.split(" | ")[0]; // e.g., "SA1111ECOQ" or "FN222"
 
-      // Extract only the base segment (letters + numbers, no prefix/suffix)
-      // e.g., "SA1111ECOQ" -> "SA1111", "FN222" -> "FN222"
-      const baseMatch = firstPart.match(/^[A-Z]+\d+/);
+      // Extract only the base segment (letters + numbers, optionally with decimal, no prefix/suffix)
+      // e.g., "SA1111ECOQ" -> "SA1111", "VX010.2ECOQ" -> "VX010.2", "FN222" -> "FN222"
+      const baseMatch = firstPart.match(/^[A-Z]+\d+(?:\.\d+)?/);
       const baseSegment = baseMatch ? baseMatch[0] : firstPart;
 
       const rest = label.substring(firstPart.length); // Get " | (Control Original) | Description"
@@ -157,7 +157,6 @@ waitForDataLayer(() => {
     }
     return event.eventLabel ?? "";
   };
-
   const eventLabels = parsedEvents
     .map((event) => ({
       label: getEventLabel(event),
@@ -183,7 +182,7 @@ waitForDataLayer(() => {
             {eventLabels.map((item, idx) => {
               const event = parsedEvents[idx];
               const rawSegment = event.conversio?.event_segment || event.eventSegment || event.conversio?.experience_segment || "";
-              const baseMatch = rawSegment.match(/^[A-Za-z]+\d+/);
+              const baseMatch = rawSegment.match(/^[A-Za-z]+\d+(?:\.\d+)?/);
               const baseSegment = baseMatch ? baseMatch[0] : rawSegment;
               const sanitizeUsingBase = (str?: string) => {
                 if (!str) return "";
@@ -273,7 +272,7 @@ waitForDataLayer(() => {
           {parsedEvents.map((event, index) => {
             // derive raw and base segments and sanitizer to ensure actions/labels use base (e.g. SA2131) not full segment (e.g. SA2131ECOG)
             const rawSegment = event.conversio?.event_segment || event.eventSegment || event.conversio?.experience_segment || "";
-            const baseMatch = rawSegment.match(/^[A-Za-z]+\d+/);
+            const baseMatch = rawSegment.match(/^[A-Za-z]+\d+(?:\.\d+)?/);
             const baseSegment = baseMatch ? baseMatch[0] : rawSegment;
             const sanitizeUsingBase = (str?: string) => {
               if (!str) return "";
