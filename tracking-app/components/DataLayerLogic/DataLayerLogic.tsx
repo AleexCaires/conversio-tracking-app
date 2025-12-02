@@ -30,9 +30,10 @@ interface DataLayerLogicProps {
   setSelectedStatus: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   includeExperienceEvent?: boolean;
   experienceName?: string;
+  triggerEventInfo?: { enabled: boolean; description?: string };
 }
 
-const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus, includeExperienceEvent, experienceName }) => {
+const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumber, eventDescriptions, trigger, setTrigger, onDataGenerated, selectedStatus, setSelectedStatus, includeExperienceEvent, experienceName, triggerEventInfo }) => {
   const { numVariants } = useExperience();
   const [activeBorders, setActiveBorders] = useState<Record<string, boolean>>({});
   const [localEventData, setLocalEventData] = useState<LocalEventData>({
@@ -79,9 +80,9 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
 
     eventDescriptions.forEach((description, index) => {
       if (!descriptionLetters.has(description)) {
-        // Check if this is a trigger event (first in the array if it was prepended)
-        // Trigger events always get Q
-        const isTriggerEvent = index === 0;
+        // Check if this is a trigger event
+        // Trigger events always get Q, but ONLY if triggerEventInfo indicates a trigger event is enabled
+        const isTriggerEvent = triggerEventInfo?.enabled && index === 0;
 
         if (isTriggerEvent) {
           // Trigger events always get Q
@@ -292,7 +293,7 @@ conversio: {
     });
 
     Promise.resolve().then(() => setTrigger(false));
-  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus, clientCode, fullClient, memoizedOnDataGenerated, setTrigger, getRandomLetter, includeExperienceEvent, experienceName]);
+  }, [trigger, numVariants, client, experienceNumber, eventDescriptions, selectedStatus, clientCode, fullClient, memoizedOnDataGenerated, setTrigger, getRandomLetter, includeExperienceEvent, experienceName, triggerEventInfo]);
 
   useEffect(() => {
     // Reset local event data when eventDescriptions is reset (e.g., after cancel edit)
