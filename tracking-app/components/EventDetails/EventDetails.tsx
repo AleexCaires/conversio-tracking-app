@@ -163,7 +163,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
     setSelectedStatus({});
     setTrigger(true);
     setShowDataLayerLogic(true);
-    
+
     // Add setTimeout to ensure DOM elements are rendered before scrolling
     setTimeout(() => {
       if (eventsHeaderRef.current) {
@@ -171,11 +171,11 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         const elementPosition = eventsHeaderRef.current.getBoundingClientRect().top;
         // Calculate the offset position accounting for the header height
         const offsetPosition = elementPosition + window.pageYOffset - 92;
-        
+
         // Scroll to the calculated position
         window.scrollTo({
           top: offsetPosition,
-          behavior: 'smooth'
+          behavior: "smooth",
         });
       }
     }, 100);
@@ -308,7 +308,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
   const isSpecialClient = selectedClient === "SA" || selectedClient === "LF" || selectedClient === "VX"; // Check if the selected client is a special one
   // Initialize with true if special client is selected
   const [specialEventEnabled, setSpecialEventEnabled] = useState(isSpecialClient);
-  
+
   // Add effect to update specialEventEnabled when client changes
   useEffect(() => {
     // Auto-select the experience event checkbox when special client is selected
@@ -330,31 +330,31 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
 
   const selectAllEvents = () => {
     const newSelectedStatus = { ...selectedStatus };
-    
+
     // Select all control events
     eventData.controlEvents.forEach((_, idx) => {
       newSelectedStatus[`control-${idx}`] = true;
     });
-    
+
     // Select all variation events
     eventData.variationEvents.forEach((_, idx) => {
       newSelectedStatus[`variation-${idx}`] = true;
     });
-    
+
     // Update the selected status
     setSelectedStatus(newSelectedStatus);
-    
+
     // Update the data with new copied status
     const controlEventsWithCopied = eventData.controlEvents.map(() => ({
       code: "",
       codeCopied: true,
     }));
-    
+
     const variationEventsWithCopied = eventData.variationEvents.map(() => ({
       code: "",
       codeCopied: true,
     }));
-    
+
     handleDataGenerated({
       controlEvents: eventData.controlEvents,
       variationEvents: eventData.variationEvents,
@@ -387,12 +387,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
           {isSpecialClient && (
             <div style={{ display: "flex", alignItems: "center", marginLeft: "2rem" }}>
               <label style={{ display: "flex", alignItems: "center", marginRight: "1rem" }}>
-                <input
-                  type="checkbox"
-                  checked={specialEventEnabled}
-                  onChange={(e) => setSpecialEventEnabled(e.target.checked)}
-                  style={{ marginRight: "0.5rem" }}
-                />
+                <input type="checkbox" checked={specialEventEnabled} onChange={(e) => setSpecialEventEnabled(e.target.checked)} style={{ marginRight: "0.5rem" }} />
                 Experience Tracking Event
               </label>
             </div>
@@ -429,24 +424,24 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
                 setSelectedStatus={setSelectedStatus}
                 includeExperienceEvent={isSpecialClient && specialEventEnabled}
                 experienceName={experienceName}
+                triggerEventInfo={{
+                  enabled: triggerEventEnabled,
+                  description: triggerEventDescription,
+                }}
               />
             </div>
-            
+
             <StickyButtonContainer>
-              <SelectAllButton 
-                onClick={selectAllEvents} 
-                disabled={eventData.controlEvents.length === 0 && eventData.variationEvents.length === 0}
-              >
+              <SelectAllButton onClick={selectAllEvents} disabled={eventData.controlEvents.length === 0 && eventData.variationEvents.length === 0}>
                 Select All Events
               </SelectAllButton>
-              
+
               <SaveToDBbtn onClick={saveElementData} disabled={isLoading || eventData.controlEvents.length === 0}>
                 {isLoading ? "Saving..." : "Save to database"}
               </SaveToDBbtn>
             </StickyButtonContainer>
           </>
         )}
-
       </Section>
     </SectionWrapper>
   );
