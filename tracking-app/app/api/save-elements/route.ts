@@ -33,11 +33,11 @@ export async function POST(req: Request) {
       return "Z";
     };
 
-    elementData.eventDescriptions.forEach((description: string, index: number) => {
+    elementData.eventDescriptions.forEach((description: string) => {
       if (!descriptionLetters.has(description)) {
-        // Check if this is a trigger event (first in the array)
-        // Trigger events always get Q
-        const isTriggerEvent = index === 0;
+        // Check if this is a trigger event by comparing with the trigger event description
+        // Trigger events only get Q if the trigger event is enabled
+        const isTriggerEvent = elementData.triggerEvent?.enabled && description === elementData.triggerEvent?.description;
 
         if (isTriggerEvent) {
           // Trigger events always get Q
@@ -59,8 +59,13 @@ export async function POST(req: Request) {
       return `${fullClient}E${variantPrefix}${sharedLetter}`;
     };
 
-    // Helper to determine if this index is the trigger event
-    const isTriggerEvent = (idx: number) => elementData.triggerEvent && elementData.triggerEvent.enabled && idx === 0;
+    // Helper to determine if this index corresponds to the trigger event
+    const isTriggerEvent = (idx: number) => {
+      if (!elementData.triggerEvent?.enabled) return false;
+      if (idx >= elementData.eventDescriptions.length) return false;
+      const description = elementData.eventDescriptions[idx];
+      return description === elementData.triggerEvent?.description;
+    };
 
     // Generate Dummy Control events
     const controlEvents = [];

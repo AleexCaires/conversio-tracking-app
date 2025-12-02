@@ -78,11 +78,13 @@ const DataLayerLogic: React.FC<DataLayerLogicProps> = ({ client, experienceNumbe
     const usedLetters = new Set<string>();
     const descriptionLetters = new Map<string, string>();
 
-    eventDescriptions.forEach((description, index) => {
+    eventDescriptions.forEach((description) => {
       if (!descriptionLetters.has(description)) {
         // Check if this is a trigger event
-        // Trigger events always get Q, but ONLY if triggerEventInfo indicates a trigger event is enabled
-        const isTriggerEvent = triggerEventInfo?.enabled && index === 0;
+        // Trigger events always get Q, but ONLY if:
+        // 1. A trigger event is enabled
+        // 2. The description matches the trigger event description
+        const isTriggerEvent = triggerEventInfo?.enabled && description === triggerEventInfo?.description;
 
         if (isTriggerEvent) {
           // Trigger events always get Q
