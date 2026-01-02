@@ -4,7 +4,6 @@ export const clients = [
   { name: "Laithwaites", code: "LT" },
   { name: "Accessorize", code: "AS" },
   { name: "Monsoon", code: "MS" },
-  { name: "Ocado", code: "OPT" },
   { name: "Team Sport", code: "TS" },
   { name: "Sephora", code: "SA" },
   { name: "Belmond", code: "BM" },
