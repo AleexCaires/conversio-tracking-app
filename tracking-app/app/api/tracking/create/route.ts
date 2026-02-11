@@ -16,10 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!body._id || !body.client || !body.experienceName || !body.events) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing required fields: _id, client, experienceName, events" }),
-        { status: 400, headers: getCorsHeaders(origin) }
-      );
+      return new Response(JSON.stringify({ success: false, error: "Missing required fields: _id, client, experienceName, events" }), { status: 400, headers: getCorsHeaders(origin) });
     }
 
     const db = await connectToDatabase();
@@ -28,10 +25,7 @@ export async function POST(request: NextRequest) {
     // Check if document with this _id already exists
     const existing = await collection.findOne({ _id: body._id });
     if (existing) {
-      return new Response(
-        JSON.stringify({ success: false, error: `Document with _id "${body._id}" already exists` }),
-        { status: 409, headers: getCorsHeaders(origin) }
-      );
+      return new Response(JSON.stringify({ success: false, error: `Document with _id "${body._id}" already exists` }), { status: 409, headers: getCorsHeaders(origin) });
     }
 
     // Insert new document
