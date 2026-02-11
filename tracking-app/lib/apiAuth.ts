@@ -1,6 +1,4 @@
 // Allowed origins for CORS - loaded from environment variable
-// Set ALLOWED_ORIGINS in .env as a comma-separated list, e.g.:
-// ALLOWED_ORIGINS=https://cp.conversio.com,http://localhost:3000,http://localhost:3001
 const originsEnv = process.env.ALLOWED_ORIGINS || "";
 export const allowedOrigins = originsEnv
   .split(",")
