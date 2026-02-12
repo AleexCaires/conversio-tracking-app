@@ -1,5 +1,6 @@
 import { connectToDatabase } from "../../../lib/mongodb";
 import { Event, EventGroup, ExperienceData } from "@/types";
+import { authenticateRequest } from "../../../lib/apiAuth";
 
 interface DatabaseElement {
   _id: string;
@@ -9,7 +10,11 @@ interface DatabaseElement {
   events: EventGroup[];
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Check authentication
+  const authError = await authenticateRequest(req);
+  if (authError) return authError;
+
   try {
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
@@ -17,7 +22,7 @@ export async function GET() {
     const elements = await collection.find({}).toArray();
     console.log(
       "Raw elements from database:",
-      elements.map((e) => ({ _id: e._id, type: typeof e._id }))
+      elements.map((e) => ({ _id: e._id, type: typeof e._id })),
     );
 
     const formattedElements = elements
@@ -28,7 +33,7 @@ export async function GET() {
           dateCreated: doc.dateCreated as string | Date | undefined,
           experienceName: doc.experienceName as string,
           events: doc.events as EventGroup[],
-        })
+        }),
       )
       .map((element: DatabaseElement): ExperienceData | null => {
         // Ensure dateCreated is always present and is an ISO string
@@ -112,7 +117,7 @@ export async function GET() {
 
     console.log(
       "Formatted elements:",
-      formattedElements.map((e) => ({ _id: e._id, type: typeof e._id }))
+      formattedElements.map((e) => ({ _id: e._id, type: typeof e._id })),
     );
 
     return new Response(JSON.stringify({ elements: formattedElements }), {

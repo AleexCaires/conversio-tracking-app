@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongodb";
-import { getCorsHeaders, handleOptions } from "@/lib/apiAuth";
+import { getCorsHeaders, handleOptions, authenticateRequest } from "@/lib/apiAuth";
 import { NextRequest } from "next/server";
 
 export async function OPTIONS(request: NextRequest) {
@@ -9,6 +9,10 @@ export async function OPTIONS(request: NextRequest) {
 
 //Create a new event/experience
 export async function POST(request: NextRequest) {
+  // Check authentication
+  const authError = await authenticateRequest(request);
+  if (authError) return authError;
+
   const origin = request.headers.get("origin");
 
   try {

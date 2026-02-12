@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { Event, EventGroup, ExperienceData } from "@/types";
-import { getCorsHeaders, handleOptions } from "@/lib/apiAuth";
+import { getCorsHeaders, handleOptions, authenticateRequest } from "@/lib/apiAuth";
 import { NextRequest } from "next/server";
 
 interface DatabaseElement {
@@ -18,6 +18,10 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  // Check authentication
+  const authError = await authenticateRequest(request);
+  if (authError) return authError;
+
   const origin = request.headers.get("origin");
 
   try {

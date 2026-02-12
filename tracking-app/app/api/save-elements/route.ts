@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { clients } from "../../../lib/clients";
+import { authenticateRequest } from "../../../lib/apiAuth";
 
 export async function POST(req: Request) {
+  // Check authentication
+  const authError = await authenticateRequest(req);
+  if (authError) return authError;
+
   try {
     const body = await req.json();
 
@@ -352,7 +357,7 @@ export async function POST(req: Request) {
           dateCreated: now,
         },
       },
-      { upsert: true }
+      { upsert: true },
     );
 
     //console.log("Save operation result:", result);
