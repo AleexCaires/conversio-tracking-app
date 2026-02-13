@@ -70,10 +70,12 @@ export async function GET(request: NextRequest) {
                     };
                   }
                   if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                    const { codeCopied: _codeCopied, ...rest } = event;
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { codeCopied, ...rest } = event;
                     return rest;
                   }
-                  const { codeCopied: _codeCopied2, ...rest } = event;
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const { codeCopied, ...rest } = event;
                   return rest;
                 });
                 return { ...group, events: formattedCopiedEvents };
@@ -94,10 +96,12 @@ export async function GET(request: NextRequest) {
                 };
               }
               if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                const { codeCopied: _codeCopied, ...rest } = event;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { codeCopied, ...rest } = event;
                 return rest;
               }
-              const { codeCopied: _codeCopied2, ...rest } = event;
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { codeCopied, ...rest } = event;
               return rest;
             });
             return { ...group, events: formattedAllEvents };
