@@ -70,10 +70,10 @@ export async function GET(request: NextRequest) {
                     };
                   }
                   if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                    const { codeCopied, ...rest } = event;
+                    const { codeCopied: _codeCopied, ...rest } = event;
                     return rest;
                   }
-                  const { codeCopied, ...rest } = event;
+                  const { codeCopied: _codeCopied2, ...rest } = event;
                   return rest;
                 });
                 return { ...group, events: formattedCopiedEvents };
@@ -94,10 +94,10 @@ export async function GET(request: NextRequest) {
                 };
               }
               if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                const { codeCopied, ...rest } = event;
+                const { codeCopied: _codeCopied, ...rest } = event;
                 return rest;
               }
-              const { codeCopied, ...rest } = event;
+              const { codeCopied: _codeCopied2, ...rest } = event;
               return rest;
             });
             return { ...group, events: formattedAllEvents };
