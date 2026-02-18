@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState, useCallback } from "react";
 import { useExperience } from "../ExperienceContext/ExperienceContext";
 import { clients } from "../../lib/clients";
@@ -126,7 +128,7 @@ conversio: {
     experience_label: "${expId} | Control Original",
     experience_segment: "${expId}.XCO"
 }
-});`
+});`,
         );
       } else {
         // Original format for Liverpool
@@ -139,7 +141,7 @@ conversio: {
         'experienceLabel': '${expId} | Control Original',
         'experience_segment': '${expId}.XCO'
     }
-});`
+});`,
         );
       }
     }
@@ -243,7 +245,7 @@ conversio: {
     experience_label: "${expId} | Variation ${variantIndex}",
     experience_segment: "${expId}.XV${variantIndex}"
 }
-});`
+});`,
           );
         } else {
           // Original format for Liverpool
@@ -256,7 +258,7 @@ conversio: {
         'experienceLabel': '${expId} | Variation ${variantIndex}',
         'experience_segment': '${expId}.XV${variantIndex}'
     }
-});`
+});`,
           );
         }
 
