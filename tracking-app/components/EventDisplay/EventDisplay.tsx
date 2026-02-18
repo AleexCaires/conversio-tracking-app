@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from "react";
 import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, EventLabelsList, EventLabelItem, EventLabelIndex, TriggerEventText, EventItemWrapper, EventItemLabel, CodeWrapper, ButtonsWrapper, CopyButtonStyled } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
@@ -33,10 +35,10 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
             typeof parsed.triggerEvent !== "undefined"
               ? Boolean(parsed.triggerEvent)
               : typeof parsed.eventData?.triggerEvent !== "undefined"
-              ? Boolean(parsed.eventData?.triggerEvent)
-              : typeof parsed.eventData?.click?.triggerEvent !== "undefined"
-              ? Boolean(parsed.eventData?.click?.triggerEvent)
-              : false;
+                ? Boolean(parsed.eventData?.triggerEvent)
+                : typeof parsed.eventData?.click?.triggerEvent !== "undefined"
+                  ? Boolean(parsed.eventData?.click?.triggerEvent)
+                  : false;
           return {
             eventAction: clickAction || "N/A",
             eventCategory: clickLocation || "N/A",
@@ -57,10 +59,10 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
             typeof eventObj.triggerEvent !== "undefined"
               ? Boolean(eventObj.triggerEvent)
               : typeof eventObj.eventData?.triggerEvent !== "undefined"
-              ? Boolean(eventObj.eventData?.triggerEvent)
-              : typeof eventObj.eventData?.click?.triggerEvent !== "undefined"
-              ? Boolean(eventObj.eventData?.click?.triggerEvent)
-              : false;
+                ? Boolean(eventObj.eventData?.triggerEvent)
+                : typeof eventObj.eventData?.click?.triggerEvent !== "undefined"
+                  ? Boolean(eventObj.eventData?.click?.triggerEvent)
+                  : false;
           return {
             eventAction: clickAction || "N/A",
             eventCategory: clickLocation || "N/A",

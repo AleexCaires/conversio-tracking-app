@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import EventDisplay from "../EventDisplay/EventDisplay";
 import { ModalOverlay, ModalContainer, ModalHeader, CloseButton, ModalContent, HeaderTitle, EditButton, DeleteButton, ToggleWrapper, ToggleLabel, StyledSegmentIcon, StyledCodeIcon, IconWrapper, ActiveIndicatorIcon } from "./Modal.styles";
