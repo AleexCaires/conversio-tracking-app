@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 const ActiveIcon = (props: React.SVGProps<SVGSVGElement>) => (

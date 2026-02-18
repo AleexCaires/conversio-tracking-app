@@ -7,6 +7,8 @@ import { ContentWrapper, SearchWrapper, InputWrapper, FilterWrapper, ItemCard } 
 import { ExperienceData, ModalContent as ModalContentType } from "@/types";
 import { clients } from "../../lib/clients";
 
+export const dynamic = "force-dynamic";
+
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState("");

@@ -11,6 +11,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, Suspense } from "react";
 import { EditData, EventDetailsRef } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 // Create a wrapper component for edit mode functionality
 function EditModeWrapper() {
   const searchParams = useSearchParams();

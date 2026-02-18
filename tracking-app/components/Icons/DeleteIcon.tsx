@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 const DeleteIcon = (props: React.SVGProps<SVGSVGElement>) => (

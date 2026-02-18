@@ -4,9 +4,14 @@ import React, { useState, useEffect, useMemo } from "react";
 import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, EventLabelsList, EventLabelItem, EventLabelIndex, TriggerEventText, EventItemWrapper, EventItemLabel, CodeWrapper, ButtonsWrapper, CopyButtonStyled } from "./EventDisplay.styles";
 import { Event as TypedEvent } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import dynamic from "next/dynamic";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import styled from "styled-components";
+
+const SyntaxHighlighter = dynamic(
+  () => import("react-syntax-highlighter").then((mod) => mod.Prism),
+  { ssr: false }
+);
 
 interface EventDisplayProps {
   title: string;
