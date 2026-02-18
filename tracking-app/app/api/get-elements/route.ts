@@ -11,9 +11,24 @@ interface DatabaseElement {
 }
 
 export async function GET(req: Request) {
-  // Check authentication
-  const authError = await authenticateRequest(req);
-  if (authError) return authError;
+  // Allow internal dashboard (same-origin) requests without API credentials,
+  // but keep API key auth for any other callers.
+  const origin = req.headers.get("origin");
+  const url = new URL(req.url);
+
+  const isInternalDashboardRequest =
+    (origin &&
+      (origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.includes("conversio-tracking-app.vercel.app"))) ||
+    url.hostname === "localhost" ||
+    url.hostname === "127.0.0.1" ||
+    url.hostname === "conversio-tracking-app.vercel.app";
+
+  if (!isInternalDashboardRequest) {
+    const authError = await authenticateRequest(req);
+    if (authError) return authError;
+  }
 
   try {
     const db = await connectToDatabase();
