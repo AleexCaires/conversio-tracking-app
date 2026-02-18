@@ -5,7 +5,7 @@ import { ChildrenWrapper, EventDisplayWrapper, EventTitle, EventLabelsWrapper, E
 import { Event as TypedEvent } from "@/types";
 import CopyIcon from "../Icons/CopyIcon";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import styled from "styled-components";
 
 interface EventDisplayProps {
