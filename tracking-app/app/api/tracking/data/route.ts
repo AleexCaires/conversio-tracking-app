@@ -1,6 +1,7 @@
-import { connectToDatabase } from "../../../lib/mongodb";
+import { connectToDatabase } from "@/lib/mongodb";
 import { Event, EventGroup, ExperienceData } from "@/types";
-import { authenticateRequest } from "../../../lib/apiAuth";
+import { getCorsHeaders, handleOptions, authenticateRequest } from "@/lib/apiAuth";
+import { NextRequest } from "next/server";
 
 interface DatabaseElement {
   _id: string;
@@ -10,20 +11,24 @@ interface DatabaseElement {
   events: EventGroup[];
 }
 
-export async function GET(req: Request) {
+// Handle preflight OPTIONS requests
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return handleOptions(origin);
+}
+
+export async function GET(request: NextRequest) {
   // Check authentication
-  const authError = await authenticateRequest(req);
+  const authError = await authenticateRequest(request);
   if (authError) return authError;
+
+  const origin = request.headers.get("origin");
 
   try {
     const db = await connectToDatabase();
     const collection = db.collection("eventdata");
 
     const elements = await collection.find({}).toArray();
-    console.log(
-      "Raw elements from database:",
-      elements.map((e) => ({ _id: e._id, type: typeof e._id })),
-    );
 
     const formattedElements = elements
       .map(
@@ -36,12 +41,10 @@ export async function GET(req: Request) {
         }),
       )
       .map((element: DatabaseElement): ExperienceData | null => {
-        // Ensure dateCreated is always present and is an ISO string
         let dateCreated: string;
         if (element.dateCreated) {
           dateCreated = new Date(element.dateCreated).toISOString();
         } else {
-          // If no dateCreated, use current date as fallback
           dateCreated = new Date().toISOString();
         }
 
@@ -63,15 +66,17 @@ export async function GET(req: Request) {
                       eventCategory: event.eventData?.click?.clickLocation,
                       eventLabel: event.eventData?.click?.clickText,
                       eventSegment: "",
-                      codeCopied: event.codeCopied,
                       ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
                     };
                   }
-                  // For Sephora, return event as-is if it has conversio property
                   if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                    return event; // <-- Do not flatten, return as-is
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { codeCopied, ...rest } = event;
+                    return rest;
                   }
-                  return event;
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const { codeCopied, ...rest } = event;
+                  return rest;
                 });
                 return { ...group, events: formattedCopiedEvents };
               }
@@ -87,15 +92,17 @@ export async function GET(req: Request) {
                   eventCategory: event.eventData?.click?.clickLocation,
                   eventLabel: event.eventData?.click?.clickText,
                   eventSegment: "",
-                  codeCopied: event.codeCopied,
                   ...(event.triggerEvent ? { triggerEvent: event.triggerEvent } : {}),
                 };
               }
-              // For Sephora, return event as-is if it has conversio property
               if (isSephora && event.event === "conversioEvent" && event.conversio) {
-                return event; // <-- Do not flatten, return as-is
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { codeCopied, ...rest } = event;
+                return rest;
               }
-              return event;
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { codeCopied, ...rest } = event;
+              return rest;
             });
             return { ...group, events: formattedAllEvents };
           });
@@ -115,20 +122,15 @@ export async function GET(req: Request) {
       })
       .filter((element: ExperienceData | null): element is ExperienceData => element !== null);
 
-    console.log(
-      "Formatted elements:",
-      formattedElements.map((e) => ({ _id: e._id, type: typeof e._id })),
-    );
-
-    return new Response(JSON.stringify({ elements: formattedElements }), {
+    return new Response(JSON.stringify({ success: true, elements: formattedElements }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: getCorsHeaders(origin),
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    return new Response(JSON.stringify({ message: `Failed to fetch elements: ${errorMessage}` }), {
+    return new Response(JSON.stringify({ success: false, error: `Failed to fetch elements: ${errorMessage}` }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: getCorsHeaders(origin),
     });
   }
 }

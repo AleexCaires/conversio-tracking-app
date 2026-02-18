@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { clients } from "../../../lib/clients";
+import { authenticateRequest } from "../../../lib/apiAuth";
 
 interface UpdateCodeCopiedRequest {
   client: string;
@@ -11,6 +12,10 @@ interface UpdateCodeCopiedRequest {
 }
 
 export async function POST(req: Request) {
+  // Check authentication
+  const authError = await authenticateRequest(req);
+  if (authError) return authError;
+
   try {
     const { client, experienceNumber, eventType, eventIndex, codeCopied }: UpdateCodeCopiedRequest = await req.json();
 

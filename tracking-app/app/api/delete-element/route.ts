@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { clients } from "../../../lib/clients";
 import { ObjectId } from "mongodb";
+import { authenticateRequest } from "../../../lib/apiAuth";
 
 export async function DELETE(req: Request) {
+  // Check authentication
+  const authError = await authenticateRequest(req);
+  if (authError) return authError;
+
   try {
     const { client, experienceNumber } = await req.json();
 
