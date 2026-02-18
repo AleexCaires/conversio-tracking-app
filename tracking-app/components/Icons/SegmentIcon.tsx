@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 const SegmentIcon = (props: React.SVGProps<SVGSVGElement>) => (
