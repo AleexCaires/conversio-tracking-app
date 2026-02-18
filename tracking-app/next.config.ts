@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: true,
   },
+  output: "standalone",
+  trailingSlash: false,
+  generateEtags: false,
+  poweredByHeader: false,
 };
 
 export default nextConfig;
