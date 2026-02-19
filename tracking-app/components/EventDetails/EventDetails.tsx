@@ -246,7 +246,7 @@ const EventDetails = forwardRef<{ reset: () => void; triggerDataGeneration: () =
         router.push("/historyComp");
       } else {
         const errorData = await res.json();
-        console.log(errorData.message || "An error occurred while saving.");
+        console.log(errorData.message || errorData.error || "An error occurred while saving.");
       }
     } catch {
       console.log("Failed to save element data. Please try again.");

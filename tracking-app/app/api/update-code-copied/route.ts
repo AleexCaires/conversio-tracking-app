@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { clients } from "../../../lib/clients";
-import { authenticateRequest } from "../../../lib/apiAuth";
+import { authenticateRequest, getCorsHeaders, handleOptions } from "../../../lib/apiAuth";
 
 interface UpdateCodeCopiedRequest {
   client: string;
@@ -11,7 +12,15 @@ interface UpdateCodeCopiedRequest {
   codeCopied: boolean;
 }
 
-export async function POST(req: Request) {
+// Handle preflight OPTIONS requests
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return handleOptions(origin);
+}
+
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin");
+
   // Check authentication
   const authError = await authenticateRequest(req);
   if (authError) return authError;
@@ -22,7 +31,7 @@ export async function POST(req: Request) {
     //console.log("Received update request:", { client, experienceNumber, eventType, eventIndex, codeCopied });
 
     if (!client || !experienceNumber || !eventType || typeof eventIndex !== "number") {
-      return NextResponse.json({ message: "Missing required fields." }, { status: 400 });
+      return NextResponse.json({ message: "Missing required fields." }, { status: 400, headers: getCorsHeaders(origin) });
     }
 
     const clientCode = clients.find((c) => c.name === client || c.code === client)?.code || client;
@@ -44,7 +53,7 @@ export async function POST(req: Request) {
     const doc = await collection.findOne({ _id: fullClient });
     if (!doc) {
       console.error("Document not found for _id:", fullClient);
-      return NextResponse.json({ message: "Document not found." }, { status: 404 });
+      return NextResponse.json({ message: "Document not found." }, { status: 404, headers: getCorsHeaders(origin) });
     }
 
     let updated = false;
@@ -72,15 +81,15 @@ export async function POST(req: Request) {
 
     if (!updated) {
       console.error("Event not found for update in document:", fullClient);
-      return NextResponse.json({ message: "Event not found." }, { status: 404 });
+      return NextResponse.json({ message: "Event not found." }, { status: 404, headers: getCorsHeaders(origin) });
     }
 
     await collection.updateOne({ _id: fullClient }, { $set: { events: doc.events } });
 
-    return NextResponse.json({ message: "codeCopied updated successfully." });
+    return NextResponse.json({ message: "codeCopied updated successfully." }, { headers: getCorsHeaders(origin) });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("API error:", error);
-    return NextResponse.json({ message: `Failed to update codeCopied: ${errorMessage}` }, { status: 500 });
+    return NextResponse.json({ message: `Failed to update codeCopied: ${errorMessage}` }, { status: 500, headers: getCorsHeaders(origin) });
   }
 }

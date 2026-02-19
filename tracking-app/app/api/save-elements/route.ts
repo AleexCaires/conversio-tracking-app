@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { clients } from "../../../lib/clients";
-import { authenticateRequest } from "../../../lib/apiAuth";
+import { authenticateRequest, getCorsHeaders, handleOptions } from "../../../lib/apiAuth";
+import { NextRequest } from "next/server";
 
-export async function POST(req: Request) {
-  // Check authentication
-  const authError = await authenticateRequest(req);
-  if (authError) return authError;
+// Handle preflight OPTIONS requests
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return handleOptions(origin);
+}
+
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  const url = new URL(req.url);
+
+  const isInternalDashboardRequest = (origin && (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("conversio-tracking-app.vercel.app"))) || url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "conversio-tracking-app.vercel.app";
+
+  // For internal dashboard requests, allow access without API credentials.
+  // For any other callers, require valid API key/secret.
+  if (!isInternalDashboardRequest) {
+    const authError = await authenticateRequest(req);
+    if (authError) return authError;
+  }
 
   try {
     const body = await req.json();
@@ -14,7 +29,7 @@ export async function POST(req: Request) {
     const { elementData } = body;
 
     if (!elementData || !elementData.client || !elementData.eventDescriptions || !elementData.experienceNumber || !elementData.experienceName || typeof elementData.numVariants !== "number") {
-      return NextResponse.json({ message: "Missing required fields in request body." }, { status: 400 });
+      return NextResponse.json({ message: "Missing required fields in request body." }, { status: 400, headers: getCorsHeaders(origin) });
     }
 
     const clientCode = clients.find((c) => c.name === elementData.client)?.code || elementData.client;
@@ -362,9 +377,9 @@ export async function POST(req: Request) {
 
     //console.log("Save operation result:", result);
 
-    return NextResponse.json({ message: "Element saved successfully!", result });
+    return NextResponse.json({ message: "Element saved successfully!", result }, { headers: getCorsHeaders(origin) });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    return NextResponse.json({ message: `Failed to save element: ${errorMessage}` }, { status: 500 });
+    return NextResponse.json({ message: `Failed to save element: ${errorMessage}` }, { status: 500, headers: getCorsHeaders(origin) });
   }
 }

@@ -1,13 +1,28 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { clients } from "../../../lib/clients";
 import { ObjectId } from "mongodb";
-import { authenticateRequest } from "../../../lib/apiAuth";
+import { authenticateRequest, getCorsHeaders, handleOptions } from "../../../lib/apiAuth";
 
-export async function DELETE(req: Request) {
-  // Check authentication
-  const authError = await authenticateRequest(req);
-  if (authError) return authError;
+// Handle preflight OPTIONS requests
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return handleOptions(origin);
+}
+
+export async function DELETE(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  const url = new URL(req.url);
+
+  const isInternalDashboardRequest = (origin && (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("conversio-tracking-app.vercel.app"))) || url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "conversio-tracking-app.vercel.app";
+
+  // For internal dashboard requests, allow access without API credentials.
+  // For any other callers, require valid API key/secret.
+  if (!isInternalDashboardRequest) {
+    const authError = await authenticateRequest(req);
+    if (authError) return authError;
+  }
 
   try {
     const { client, experienceNumber } = await req.json();
@@ -16,7 +31,7 @@ export async function DELETE(req: Request) {
 
     if (!client || !experienceNumber) {
       console.log("[DELETE] Missing client or experienceNumber.");
-      return NextResponse.json({ message: "Missing client or experienceNumber." }, { status: 400 });
+      return NextResponse.json({ message: "Missing client or experienceNumber." }, { status: 400, headers: getCorsHeaders(origin) });
     }
 
     const db = await connectToDatabase();
@@ -59,14 +74,14 @@ export async function DELETE(req: Request) {
 
     if (!result || result.deletedCount === 0) {
       console.log("[DELETE] No document found or deleted");
-      return NextResponse.json({ message: "Experience not found." }, { status: 404 });
+      return NextResponse.json({ message: "Experience not found." }, { status: 404, headers: getCorsHeaders(origin) });
     }
 
     console.log("[DELETE] Experience deleted successfully:", result);
-    return NextResponse.json({ message: "Experience deleted successfully." });
+    return NextResponse.json({ message: "Experience deleted successfully." }, { headers: getCorsHeaders(origin) });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("[DELETE] Failed to delete experience:", error);
-    return NextResponse.json({ message: `Failed to delete experience: ${errorMessage}` }, { status: 500 });
+    return NextResponse.json({ message: `Failed to delete experience: ${errorMessage}` }, { status: 500, headers: getCorsHeaders(origin) });
   }
 }
