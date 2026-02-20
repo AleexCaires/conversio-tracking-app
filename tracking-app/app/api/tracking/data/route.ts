@@ -36,11 +36,11 @@ export async function GET(request: NextRequest) {
     // Helper to safely escape regex chars
     const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    let elements: unknown[] = [];
+    let elements: any[] = [];
 
     if (experienceNumber) {
       // 1) Try exact _id match (string)
-      const exact = await collection.findOne({ _id: experienceNumber });
+      const exact = await collection.findOne({ _id: experienceNumber } as any);
       if (exact) {
         elements = [exact];
       } else {
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         // 3) Fallback: match documents whose _id ends with the provided experienceNumber
         if (elements.length === 0) {
           const escaped = escapeRegExp(experienceNumber);
-          elements = await collection.find({ _id: { $regex: `${escaped}$` } }).toArray();
+          elements = await collection.find({ _id: { $regex: new RegExp(`${escaped}$`) } } as any).toArray();
         }
       }
     } else {
