@@ -17,7 +17,8 @@ export function getCorsHeaders(origin: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    // include custom auth headers so preflight permits `x-api-key` and `x-api-secret`
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, x-api-secret",
     // Security headers
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
@@ -28,6 +29,8 @@ export function getCorsHeaders(origin: string | null): Record<string, string> {
 
   if (origin && isOriginAllowed(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
+    // required when browser requests use credentials: 'include'
+    headers["Access-Control-Allow-Credentials"] = "true";
   }
 
   return headers;
