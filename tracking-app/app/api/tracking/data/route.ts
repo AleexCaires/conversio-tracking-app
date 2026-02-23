@@ -19,10 +19,10 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  // Check authentication
-  const authError = await authenticateRequest(request);
-  if (authError) return authError;
-
+  // Authentication removed for testing: endpoint is now public
+  //   // Check authentication
+  // const authError = await authenticateRequest(request);
+  // if (authError) return authError;
   const origin = request.headers.get("origin");
 
   try {
