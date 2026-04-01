@@ -129,7 +129,10 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
     // Use JSON.stringify to ensure correct formatting and escaping
     const payloadString = JSON.stringify(payload, null, 2);
 
-    return `function waitForDataLayer(callback) {
+    const snippetType = /variation/i.test(labelValue) ? "Variation" : "Control";
+
+    return `/* ${snippetType} snippet — segment: ${segmentValue} */
+function waitForDataLayer(callback) {
   let checkInterval = setInterval(() => {
     if (window.dataLayer && Array.isArray(window.dataLayer)) {
       clearInterval(checkInterval);
@@ -138,9 +141,52 @@ const EventDisplay: React.FC<EventDisplayProps> = ({ title, events, onCopy, show
   }, 100);
 }
 
-waitForDataLayer(() => {
-  window.dataLayer.push(${payloadString});
-});`;
+(function () {
+  'use strict';
+
+  var dl = window.dataLayer = window.dataLayer || [];
+
+  function isConsentUpdate(args) {
+    return (
+      args &&
+      args.length >= 3 &&
+      args[0] === 'consent' &&
+      args[1] === 'update' &&
+      args[2] &&
+      args[2].analytics_storage === 'granted'
+    );
+  }
+
+  function handleConsentUpdate(obj) {
+    waitForDataLayer(() => {
+      window.dataLayer.push(${payloadString});
+    });
+  }
+
+  // 1. Check historical pushes
+  for (var i = 0; i < dl.length; i++) {
+    if (isConsentUpdate(dl[i])) {
+      handleConsentUpdate(dl[i][2]);
+      return;
+    }
+  }
+
+  // 2. Listen for future pushes
+  var originalPush = dl.push;
+
+  dl.push = function () {
+    var args = Array.prototype.slice.call(arguments);
+
+    for (var j = 0; j < args.length; j++) {
+      if (isConsentUpdate(args[j])) {
+        handleConsentUpdate(args[j][2]);
+      }
+    }
+
+    return originalPush.apply(dl, arguments);
+  };
+
+})();`;
   };
 
   // Now do the early return after all hooks
