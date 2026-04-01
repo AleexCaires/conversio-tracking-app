@@ -8,10 +8,7 @@ import dynamic from "next/dynamic";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import styled from "styled-components";
 
-const SyntaxHighlighter = dynamic(
-  () => import("react-syntax-highlighter").then((mod) => mod.Prism),
-  { ssr: false }
-);
+const SyntaxHighlighter = dynamic(() => import("react-syntax-highlighter").then((mod) => mod.Prism), { ssr: false });
 
 interface EventDisplayProps {
   title: string;
